@@ -1,0 +1,24 @@
+{{- define "Role-dex" -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: Role
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - dex.coreos.com
+  resources:
+  - authcodes
+  - authrequests
+  - connectors
+  - oauth2clients
+  - offlinesessionses
+  - passwords
+  - refreshtokens
+  - signingkeies
+  verbs:
+  - "*"
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Role-dex" ) }}

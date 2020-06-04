@@ -1,0 +1,189 @@
+# Default values for dex-aio.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+images:
+  applications:
+    dex:
+      tag: v2.20.0
+      name: dexidp/dex
+      repo: quay.io
+    nginx:
+      tag: 1.17.10-alpine
+      name: nginx
+      repo: docker.io
+    authenticator:
+      tag: 1.2.0
+      name: mintel/dex-k8s-authenticator
+      repo: docker.io
+    tls_init:
+      tag: latest 
+      name: metal3-io/ironic
+      repo: quay.io
+  pull:
+    policy: IfNotPresent
+
+node_labels:
+  dex:
+    key: node-role.kubernetes.io/master
+    value: ""
+
+
+params:
+  site:
+    name: PDL1
+  endpoints:
+    hostname: vm-capi-docker.lan
+    port:
+      https: 5556
+      http: 5554
+      k8s: 6443
+    tls:
+      cert_manager: false
+      issuer:
+        name: workload-cluster-ca-issuer
+        kind: Issuer
+  oidc:
+    client_id: my-cluster
+    client_secret: pUBnBOY80SnXgjibTYM9ZWNzY2xreNGQok
+  ldap:
+    bind_password: super-secure
+
+over_rides:
+  deployment:
+    dex:
+      spec:
+        replicas: 1
+
+# advanced config below:
+config:
+  dex.yaml:
+    issuer: https://{{ .Values.params.endpoints.hostname }}:{{ .Values.params.endpoints.port.https }}/dex
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+    web:
+      https: 127.0.0.1:{{ .Values.params.endpoints.port.https }}
+      tlsCert: "/var/run/secrets/airshipit.org/tls/crt/tls.crt"
+      tlsKey: "/var/run/secrets/airshipit.org/tls/key/tls.key"
+    frontend:
+      theme: coreos
+      issuer: Airship
+      issuerUrl: https://www.airshipit.org/
+      logoUrl: "data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxLjUxaW4iIGhlaWdodD0iMC40MWluIiB2aWV3Qm94PSIwIDAgMTA4LjY2IDI5LjIiPjxkZWZzPjxzdHlsZT4uY2xzLTF7ZmlsbDojMTQxZjQ3O30uY2xzLTJ7ZmlsbDojNjVjN2MyO308L3N0eWxlPjwvZGVmcz48dGl0bGU+bG9nb18yY29sb3I8L3RpdGxlPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE2Ni45Myw5OS40N2E0LDQsMCwwLDEtLjM2LTEuMiw0LjMxLDQuMzEsMCwwLDEtMy4zNiwxLjQ1QTQuNzIsNC43MiwwLDAsMSwxNjAsOTguNThhMy42NCwzLjY0LDAsMCwxLTEuMjktMi44NiwzLjc1LDMuNzUsMCwwLDEsMS41Ny0zLjI1LDcuNzQsNy43NCwwLDAsMSw0LjU0LTEuMTVoMS42NHYtLjc3YTIuMTYsMi4xNiwwLDAsMC0uNDctMS40NywxLjg4LDEuODgsMCwwLDAtMS41LS41NkEyLjEsMi4xLDAsMCwwLDE2Myw4OWExLjQ3LDEuNDcsMCwwLDAtLjUxLDEuMTlIMTU5YTMuNTcsMy41NywwLDAsMSwuNzItMi4xNSw0Ljc4LDQuNzgsMCwwLDEsMi0xLjU1LDcuNDQsNy40NCwwLDAsMSwyLjk0LS41Niw1LjgsNS44LDAsMCwxLDMuOTEsMS4yNEE0LjMzLDQuMzMsMCwwLDEsMTcwLDkwLjZ2NS43OWE2LjM0LDYuMzQsMCwwLDAsLjUzLDIuODd2LjIxWk0xNjQsOTdhMy4xNSwzLjE1LDAsMCwwLDEuNDYtLjM1LDIuMjksMi4yOSwwLDAsMCwxLS45NFY5My40aC0xLjMzYy0xLjc4LDAtMi43My42Mi0yLjg1LDEuODV2LjIxYTEuNDQsMS40NCwwLDAsMCwuNDcsMS4xQTEuOCwxLjgsMCwwLDAsMTY0LDk3WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEyNS42NyAtNzUuNCkiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xNzIuNDcsODIuNjhhMS43MywxLjczLDAsMCwxLC41My0xLjMyLDIuMzEsMi4zMSwwLDAsMSwyLjkyLDAsMS44OCwxLjg4LDAsMCwxLDAsMi42NSwyLjI4LDIuMjgsMCwwLDEtMi45LDBBMS43NywxLjc3LDAsMCwxLDE3Mi40Nyw4Mi42OFptMy43OCwxNi43OWgtMy41OFY4Ni4xM2gzLjU4WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEyNS42NyAtNzUuNCkiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xODYuNDIsODkuNDdhOSw5LDAsMCwwLTEuMjgtLjEsMi42MSwyLjYxLDAsMCwwLTIuNjUsMS4zN3Y4LjczaC0zLjU2Vjg2LjEzaDMuMzZsLjEsMS41OWEzLjMsMy4zLDAsMCwxLDMtMS44NCwzLjkyLDMuOTIsMCwwLDEsMS4xMS4xNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMjUuNjcgLTc1LjQpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTk1Ljc0LDk1Ljc4YTEuMTYsMS4xNiwwLDAsMC0uNjUtMSw3LjQzLDcuNDMsMCwwLDAtMi4wNy0uNjdjLTMuMTgtLjY2LTQuNzYtMi00Ljc2LTRhMy42OCwzLjY4LDAsMCwxLDEuNDctMyw2LDYsMCwwLDEsMy44NS0xLjE5LDYuMzUsNi4zNSwwLDAsMSw0LjA2LDEuMiwzLjc2LDMuNzYsMCwwLDEsMS41MywzLjFIMTk1LjZhMS43MiwxLjcyLDAsMCwwLS40OS0xLjI2LDIuMSwyLjEsMCwwLDAtMS41NC0uNSwyLjEzLDIuMTMsMCwwLDAtMS4zOS40MSwxLjI5LDEuMjksMCwwLDAtLjUsMSwxLjEsMS4xLDAsMCwwLC41NiwxLDYsNiwwLDAsMCwxLjkuNjMsMTQuNzcsMTQuNzcsMCwwLDEsMi4yNC42cTIuODIsMSwyLjgyLDMuNThhMy40OSwzLjQ5LDAsMCwxLTEuNTYsMyw2Ljc3LDYuNzcsMCwwLDEtNCwxLjEzLDcsNywwLDAsMS0zLS42LDUsNSwwLDAsMS0yLTEuNjQsMy43OSwzLjc5LDAsMCwxLS43NC0yLjI1aDMuMzhhMS44MiwxLjgyLDAsMCwwLC43LDEuNDUsMi43NiwyLjc2LDAsMCwwLDEuNzUuNTEsMi41OSwyLjU5LDAsMCwwLDEuNTUtLjM5QTEuMjEsMS4yMSwwLDAsMCwxOTUuNzQsOTUuNzhaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTI1LjY3IC03NS40KSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTIwNS4zNSw4Ny41OGE0LjQ4LDQuNDgsMCwwLDEsMy41Ny0xLjdxNC4zNCwwLDQuNCw1djguNTVoLTMuNTZWOTFhMi40NSwyLjQ1LDAsMCwwLS41LTEuNjksMi4wOSwyLjA5LDAsMCwwLTEuNjQtLjU1QTIuNDMsMi40MywwLDAsMCwyMDUuMzUsOTB2OS40OGgtMy41NlY4MC41M2gzLjU2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEyNS42NyAtNzUuNCkiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMTUuODIsODIuNjhhMS43MywxLjczLDAsMCwxLC41NC0xLjMyLDIsMiwwLDAsMSwxLjQ2LS41MiwyLDIsMCwwLDEsMS40Ni41MiwxLjczLDEuNzMsMCwwLDEsLjU0LDEuMzIsMS43OCwxLjc4LDAsMCwxLS41NSwxLjMzLDIuMjgsMi4yOCwwLDAsMS0yLjksMEExLjc4LDEuNzgsMCwwLDEsMjE1LjgyLDgyLjY4Wm0zLjc5LDE2Ljc5SDIxNlY4Ni4xM2gzLjU4WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEyNS42NyAtNzUuNCkiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0yMzQuMzMsOTIuOTJhOCw4LDAsMCwxLTEuNCw0Ljk0LDQuNDgsNC40OCwwLDAsMS0zLjc4LDEuODYsNC4xMyw0LjEzLDAsMCwxLTMuMjYtMS40MXY2LjI5aC0zLjU3Vjg2LjEzaDMuMzFsLjEyLDEuMzFhNC4xOCw0LjE4LDAsMCwxLDMuMzgtMS41NkE0LjUxLDQuNTEsMCwwLDEsMjMzLDg3LjcxYTguMTUsOC4xNSwwLDAsMSwxLjM3LDVabS0zLjU2LS4yNmE1LjIzLDUuMjMsMCwwLDAtLjY2LTIuODcsMi4xNiwyLjE2LDAsMCwwLTEuOTItMSwyLjMyLDIuMzIsMCwwLDAtMi4zLDEuMjh2NS40NmEyLjM3LDIuMzcsMCwwLDAsMi4zMywxLjMyUTIzMC43Nyw5Ni44NCwyMzAuNzcsOTIuNjZaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTI1LjY3IC03NS40KSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTEzNS40NSw5Ny43NmwtMS41NS0uOUExLjksMS45LDAsMCwxLDEzMyw5NS42bC0uNTgtM2EyNi42LDI2LjYsMCwwLDEtMS42NS0zLjczbC00LjksOC40OWExLjQsMS40LDAsMCwwLDEuMjEsMi4xaDcuNjlhLjUxLjUxLDAsMCwwLC40NS0uMjZsLjcyLTEuMjVBMiwyLDAsMCwxLDEzNS40NSw5Ny43NloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMjUuNjcgLTc1LjQpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTQwLjU2LDc2LjFhMS40MSwxLjQxLDAsMCwwLTIuNDMsMGwtNi4wNiwxMC41MWExLjMsMS4zLDAsMCwxLC43NC0uNWMyLS41Myw1Ljk0LTEuMjMsOSwuNTZhOS43NCw5Ljc0LDAsMCwxLDMuNTIsMy43OWgzLjJhLjUxLjUxLDAsMCwxLC40LjE5WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEyNS42NyAtNzUuNCkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0xNTIuODQsOTcuMzcsMTQ5LDkwLjc4YS41My41MywwLDAsMS0uMTEuNTRsLTIsMkwxNTMsOTcuODFBMS40NiwxLjQ2LDAsMCwwLDE1Mi44NCw5Ny4zN1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0xMjUuNjcgLTc1LjQpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTM4LjY2LDkyLjE2QTI4LjM5LDI4LjM5LDAsMCwxLDEzMiw4Ni43NGwtLjEyLjJhMS4wOCwxLjA4LDAsMCwwLDAsLjgxLDE2LjMxLDE2LjMxLDAsMCwwLDEuODUsNC4zNmwuNjMsMy4yM2EuNTEuNTEsMCwwLDAsLjI1LjM0bDEuNTUuOWEuNTEuNTEsMCwwLDAsLjctLjE4bC41LS44NmExMC4xMSwxMC4xMSwwLDAsMCw0LjU2LjlsMS42LDIuNzdhLjUxLjUxLDAsMCwwLC45NC0uMTFsLjg4LTMuMTFjLjIxLDAsLjM5LS4wOS41Ny0uMTRhMS4zMiwxLjMyLDAsMCwwLC44Mi0uNjNBMjguNjUsMjguNjUsMCwwLDEsMTM4LjY2LDkyLjE2WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTEyNS42NyAtNzUuNCkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik0xNTIuMDksOTkuMzlsLTUuNjItMi40Ny0uNzMsMi41NWg1Ljg5QTEuMzksMS4zOSwwLDAsMCwxNTIuMDksOTkuMzlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMTI1LjY3IC03NS40KSIvPjwvc3ZnPg=="
+    expiry:
+      signingKeys: 6h
+      idTokens: 24h
+    logger:
+      level: debug
+      format: json
+    oauth2:
+      responseTypes:
+      - code
+      - token
+      - id_token
+      skipApprovalScreen: true
+    staticClients:
+    - id: "{{ .Values.params.oidc.client_id }}"
+      name: "{{ .Values.params.site.name }}"
+      secret: "{{ .Values.params.oidc.client_secret }}"
+      redirectURIs:
+      - "https://{{ .Values.params.endpoints.hostname }}:{{ .Values.params.endpoints.port.https }}/ui/callback/{{ .Values.params.oidc.client_id }}"
+    enablePasswordDB: true
+    staticPasswords:
+    - email: tenantadmin@atttest.com
+      # this is "password" bcrypt'd
+      hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+      username: tenantadmin
+      userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+  authenticator.yaml:
+    listen: https://127.0.0.1:5555
+    web_path_prefix: "/ui"
+    tls_cert: "/var/run/secrets/airshipit.org/tls/crt/tls.crt"
+    tls_key: "/var/run/secrets/airshipit.org/tls/key/tls.key"
+    debug: true
+    clusters:
+    - client_id: "{{ .Values.params.oidc.client_id }}"
+      client_secret: "{{ .Values.params.oidc.client_secret }}"
+      description: "Airship Cluster Kubernetes OpenIDC for {{ .Values.params.site.name }}"
+      issuer: "https://{{ .Values.params.endpoints.hostname }}:{{.Values.params.endpoints.port.https }}/dex"
+      k8s_ca_uri: "http://{{ .Values.params.endpoints.hostname }}:{{ .Values.params.endpoints.port.http }}/ca.crt"
+      k8s_master_uri: "https://{{ .Values.params.endpoints.hostname }}:{{.Values.params.endpoints.port.k8s}}/"
+      name: "{{ .Values.params.site.name }}"
+      redirect_uri: "https://{{ .Values.params.endpoints.hostname }}:{{ .Values.params.endpoints.port.https }}/ui/callback/{{ .Values.params.oidc.client_id }}"
+      short_description: "{{ .Values.params.site.name }} OpenIDC"
+  nsswitch.conf: |-
+    hosts: files dns
+  nginx.conf: |
+      user  nginx;
+      worker_processes  auto;
+
+      error_log  /var/log/nginx/error.log warn;
+      pid        /var/run/nginx.pid;
+
+
+      events {
+          worker_connections  1024;
+      }
+
+
+      http {
+          include       /etc/nginx/mime.types;
+          default_type  application/octet-stream;
+
+          log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                              '$status $body_bytes_sent "$http_referer" '
+                              '"$http_user_agent" "$http_x_forwarded_for"';
+
+          access_log  /var/log/nginx/access.log  main;
+
+          sendfile        on;
+
+          keepalive_timeout  65;
+          server {
+                  listen              80;
+                  server_name         {{ .Values.params.endpoints.hostname }};
+                  absolute_redirect   off;
+
+                  location / {  # the default location redirects to https
+                      return 301 https://$server_name:{{ .Values.params.endpoints.port.https }}$request_uri;
+                  }
+                  location = /ca.crt {  
+                      alias /usr/share/nginx/html/ca.crt;
+                  }
+              }
+          
+          server {
+              listen              443 ssl;
+              server_name         {{ .Values.params.endpoints.hostname }};
+              absolute_redirect   off; #RFC 7231
+              ssl_certificate     /var/run/secrets/airshipit.org/tls/crt/tls.crt;
+              ssl_certificate_key /var/run/secrets/airshipit.org/tls/key/tls.key;
+
+              location = / {  
+                  return 301 /ui/;
+              }
+
+              location = /ca.crt {  
+                  alias /usr/share/nginx/html/ca.crt;
+              }
+
+              location /dex/ {
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_pass https://127.0.0.1:{{ .Values.params.endpoints.port.https }}/dex/;
+                  proxy_ssl_trusted_certificate /usr/share/nginx/html/ca.crt;
+              }
+
+              location /ui/ {
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_pass https://127.0.0.1:5555/ui/;
+                  proxy_ssl_trusted_certificate /usr/share/nginx/html/ca.crt;
+              }
+
+          }
+      }
+
+

@@ -1,0 +1,233 @@
+{{- define "Deployment-dex" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+  annotations:
+    scheduler.alpha.kubernetes.io/critical-pod: ''
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" . | nindent 8 }}
+      annotations:
+       checksum/config: {{ include "helpers.config.hash" ( dict "Global" $ "TemplateName" "ConfigMap-dex.yaml" ) }}
+    spec:
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+          - "{{ .Values.params.endpoints.hostname }}"
+      serviceAccountName: {{ template "helpers.labels.fullname" . }}
+      tolerations:
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - operator: Exists
+      nodeSelector:
+{{ include "helpers.pod.node_selector" ( dict "Global" $ "Application" "dex" ) | nindent 8 }}
+      {{ if not .Values.params.endpoints.tls.cert_manager }}
+      initContainers:
+        - name: cert-gen
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tls_init" ) }}
+          command:
+            - bash
+            - -cex
+            - |
+              export PASSPHRASE=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c 32)
+              TMP_KEY="$(mktemp -d)"
+              openssl genrsa -des3 -out ${TMP_KEY}/server.key -passout env:PASSPHRASE 1024
+              openssl rsa -in "${TMP_KEY}/server.key" -out /var/run/airshipit.org/tls/key/tls.key -passin env:PASSPHRASE
+              openssl req -new -key /var/run/airshipit.org/tls/key/tls.key -out ${TMP_KEY}/server.csr -batch -subj "/commonName={{ .Values.params.endpoints.hostname }}"
+              openssl x509 -req -days 365 -in ${TMP_KEY}/server.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial $(printf '%(%s)T\n' -1) -out /var/run/airshipit.org/tls/crt/tls.crt
+              openssl verify -purpose sslserver -CAfile /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/crt/tls.crt
+              cp -v /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/ca-crt/ca.crt 
+              cp -v /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/ca-crt/ca-certificates.crt
+              chmod 0444 /var/run/airshipit.org/tls/ca-crt/*.crt /var/run/airshipit.org/tls/crt/tls.crt  /var/run/airshipit.org/tls/key/tls.key
+          volumeMounts:
+            - name: host-etc-kubernetes-pki
+              mountPath: /etc/kubernetes/pki
+              readOnly: true
+            - name: tls-ca-crt
+              mountPath: /var/run/airshipit.org/tls/ca-crt
+            - name: tls-crt
+              mountPath: /var/run/airshipit.org/tls/crt
+            - name: tls-key
+              mountPath: /var/run/airshipit.org/tls/key
+      {{ end }}
+      containers:
+      - name: nginx
+        image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "nginx" ) }}
+        imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+        command:
+          # - tail
+          # - -f
+          # - /dev/null
+          - nginx
+          - -g
+          - 'daemon off;'
+        ports:
+          - name: http
+            containerPort: 80
+            protocol: TCP
+          - name: https
+            containerPort: 443
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /ca.crt
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /ca.crt
+            port: http
+        volumeMounts:
+          - name: config-nginx-conf
+            mountPath: /etc/nginx/nginx.conf
+            subPath: nginx.conf
+          - name: tls-ca-crt
+            mountPath: /usr/share/nginx/html/
+          - name: tls-crt
+            mountPath: /var/run/secrets/airshipit.org/tls/crt/
+          - name: tls-key
+            mountPath: /var/run/secrets/airshipit.org/tls/key/
+      - name: dex
+        image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "dex" ) }}
+        imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+        command:
+          - /usr/local/bin/dex
+          - serve
+          - /etc/dex/dex.yaml
+        env:
+          - name: LDAP_BINDPW
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "helpers.labels.fullname" . }}
+                key: ldap-bindpw
+        livenessProbe:
+          # note, the api in this container is lisening on localhost, so we hit it via the nginx sidecar
+          # we have to set the port manually, as names dont carry across containers.
+          httpGet:
+            scheme: HTTPS
+            path: /dex/healthz
+            port: 443
+        readinessProbe:
+          # note, the api in this container is lisening on localhost, so we hit it via the nginx sidecar
+          # we have to set the port manually, as names dont carry across containers.
+          httpGet:
+            scheme: HTTPS
+            path: /dex/healthz
+            port: 443
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+          - name: config-dex-yaml
+            mountPath: /etc/dex/dex.yaml
+            subPath: dex.yaml
+          - name: tls-crt
+            mountPath: /var/run/secrets/airshipit.org/tls/crt/
+          - name: tls-key
+            mountPath: /var/run/secrets/airshipit.org/tls/key/
+      - name: authenticator
+        image: {{ include "helpers.pod.container.image" (dict "Global" $ "Application" "authenticator") }}
+        imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+        command:
+          - /app/bin/dex-k8s-authenticator
+          - --config
+          - /app/authenticator.yaml
+        livenessProbe:
+          httpGet:
+            path: /ui/
+            scheme: HTTPS
+            port: 443
+        readinessProbe:
+          httpGet:
+            path: /ui/
+            scheme: HTTPS
+            port: 443
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+        volumeMounts:
+          - name: config-authenticator-yaml
+            mountPath: /app/authenticator.yaml
+            subPath: authenticator.yaml
+          - name: config-nsswitch-conf
+            mountPath: /etc/nsswitch.conf
+            subPath: nsswitch.conf
+          {{- if .Values.params.endpoints.tls.cert_manager }}
+          - name: tls-ca-crt
+            mountPath: /etc/ssl/certs/ca-certificates.crt
+            subPath: ca.crt
+          {{- else }}
+          - name: tls-ca-crt
+            mountPath: /etc/ssl/certs/
+          {{- end }}
+          - name: tls-crt
+            mountPath: /var/run/secrets/airshipit.org/tls/crt/
+          - name: tls-key
+            mountPath: /var/run/secrets/airshipit.org/tls/key/
+      volumes:
+      - name: config-dex-yaml
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: dex.yaml
+            path: dex.yaml
+      - name: config-nginx-conf
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: nginx.conf
+            path: nginx.conf
+      - name: config-nsswitch-conf
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: nsswitch.conf
+            path: nsswitch.conf
+      - name: config-authenticator-yaml
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: authenticator.yaml
+            path: authenticator.yaml
+      {{- if .Values.params.endpoints.tls.cert_manager }}
+      - name: tls-ca-crt
+        secret:
+          secretName: {{ template "helpers.labels.fullname" . }}-tls
+          items:
+          - key: ca.crt
+            path: ca.crt
+      - name: tls-crt
+        secret:
+          secretName: {{ template "helpers.labels.fullname" . }}-tls
+          items:
+          - key: tls.crt
+            path: tls.crt
+      - name: tls-key
+        secret:
+          secretName: {{ template "helpers.labels.fullname" . }}-tls
+          items:
+          - key: tls.key
+            path: tls.key
+      {{- else }}
+      - name: tls-ca-crt
+        emptyDir: {}
+      - name: tls-crt
+        emptyDir: {}
+      - name: tls-key
+        emptyDir: {}
+      - name: host-etc-kubernetes-pki
+        hostPath:
+          path: /etc/kubernetes/pki/
+          type: DirectoryOrCreate
+      {{- end }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Deployment-dex" ) }}

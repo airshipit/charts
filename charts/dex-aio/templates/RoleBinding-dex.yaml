@@ -1,0 +1,19 @@
+{{- define "RoleBinding-dex" -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: RoleBinding
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "helpers.labels.fullname" . }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "helpers.labels.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "RoleBinding-dex" ) }}
