@@ -1,0 +1,30 @@
+{{- define "clusterrole_aggregate_edit-triggers" -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tekton-triggers-aggregate-edit
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
+    rbac.authorization.k8s.io/aggregate-to-edit: "true"
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups:
+      - triggers.tekton.dev
+    resources:
+      - clustertriggerbindings
+      - eventlisteners
+      - triggers
+      - triggerbindings
+      - triggertemplates
+    verbs:
+      - create
+      - delete
+      - deletecollection
+      - get
+      - list
+      - patch
+      - update
+      - watch
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole_aggregate_edit-triggers" ) }}

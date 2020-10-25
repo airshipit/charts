@@ -1,0 +1,17 @@
+{{- define "service-controller" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-triggers-controller
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+spec:
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
+  ports:
+    - name: http-metrics
+      protocol: TCP
+      port: {{ $.Values.params.endpoints.ports.metrics.port }}
+      targetPort: {{ $.Values.params.endpoints.ports.metrics.port }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-controller" ) }}

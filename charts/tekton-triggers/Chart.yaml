@@ -1,0 +1,14 @@
+apiVersion: v2
+appVersion: v0.9.1
+description: Tekton Triggers
+name: tekton-triggers
+version: 0.1.0
+icon: https://tekton.dev/images/tekton-horizontal-color.png
+home: https://github.com/tektoncd/triggers
+keywords:
+  - helm
+  - tekton
+  - tektoncd
+  - triggers
+description: |
+  This chart bootstraps installation of [tekton triggers](https://github.com/tektoncd/triggers).

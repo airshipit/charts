@@ -1,0 +1,19 @@
+{{- define "webhook-triggers" -}}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: webhook.triggers.tekton.dev
+webhooks:
+  - admissionReviewVersions:
+      - v1beta1
+    clientConfig:
+      service:
+        name: tekton-triggers-webhook
+        namespace: {{ $.Release.Namespace }}
+    failurePolicy: Fail
+    sideEffects: None
+    name: webhook.triggers.tekton.dev
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "webhook-triggers" ) }}
