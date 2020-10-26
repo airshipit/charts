@@ -1,0 +1,17 @@
+{{- define "service-deployment" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-dashboard
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 4 }}
+spec:
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
+  ports:
+    - name: web
+      protocol: TCP
+      port: {{ $.Values.params.endpoints.ports.web.port }}
+      targetPort:  {{ $.Values.params.endpoints.ports.web.port }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-deployment" ) }}

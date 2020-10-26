@@ -1,0 +1,71 @@
+{{- define "deployment-dashboard" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "helpers.labels.fullname" $ }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 3
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 8 }}
+    spec:
+      serviceAccountName: {{ template "helpers.labels.fullname" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_dashboard" ) | nindent 8 }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: tekton-dashboard
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_dashboard" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+          args:
+            - --port={{ $.Values.params.endpoints.ports.web.port }}
+            - --logout-url={{ $.Values.config.args.logout_url }}
+            - --pipelines-namespace={{ $.Release.Namespace }}
+            - --triggers-namespace={{ $.Release.Namespace }}
+            - --read-only={{ $.Values.config.args.read_only }}
+            - --csrf-secure-cookie={{ $.Values.config.args.csrf_secure_cookie }}
+            - --log-level={{ $.Values.config.args.log_level }}
+            - --log-format={{ $.Values.config.args.log_format }}
+            - --namespace={{ $.Values.config.args.namespace }}
+            - --openshift={{ $.Values.config.args.openshift }}
+            - --stream-logs={{ $.Values.config.args.stream_logs }}
+            - --external-logs={{ $.Values.config.args.external_logs }}
+          env:
+            - name: INSTALLED_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: web
+              containerPort: {{ $.Values.params.endpoints.ports.web.port }}
+          readinessProbe:
+            httpGet:
+              scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
+              path: /readiness
+              port: {{ $.Values.params.endpoints.ports.web.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
+              path: /health
+              port: {{ $.Values.params.endpoints.ports.web.port }}
+            initialDelaySeconds: 50
+            periodSeconds: 20
+            timeoutSeconds: 5
+      volumes: []
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-dashboard" ) }}
