@@ -1,0 +1,24 @@
+{{- define "service-webhook" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+  name: tekton-pipelines-webhook
+  namespace: {{ $.Release.Namespace }}
+spec:
+  ports:
+  - # Define metrics and profiling for them to be accessible within service meshes.
+    name: http-metrics
+    port: {{ $.Values.webhook.endpoints.ports.metrics.port }}
+    targetPort: {{ $.Values.webhook.endpoints.ports.metrics.targetPort }}
+  - name: http-profiling
+    port: {{ $.Values.webhook.endpoints.ports.profiling.port }}
+    targetPort: {{ $.Values.webhook.endpoints.ports.profiling.targetPort }}
+  - name: https-webhook
+    port: {{ $.Values.webhook.endpoints.ports.https_webhook.port }}
+    targetPort: {{ $.Values.webhook.endpoints.ports.https_webhook.targetPort }}
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "webhook" )  | nindent 4 }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-webhook" ) }}

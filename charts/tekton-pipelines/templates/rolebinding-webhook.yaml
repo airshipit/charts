@@ -1,0 +1,19 @@
+{{- define "rolebinding-webhook" -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-pipelines-webhook
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: tekton-pipelines-webhook
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: tekton-pipelines-webhook
+  apiGroup: rbac.authorization.k8s.io
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "rolebinding-webhook" ) }}

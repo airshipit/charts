@@ -1,0 +1,74 @@
+{{- define "deployment-webhook" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  # Note: the Deployment name must be the same as the Service name specified in
+  # config/400-webhook-service.yaml. If you change this name, you must also
+  # change the value of WEBHOOK_SERVICE_NAME below.
+  name: tekton-pipelines-webhook
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+spec:
+  replicas: {{ $.Values.webhook.pod.replicas }}
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 8 }}
+    spec:
+      serviceAccountName: tekton-pipelines-webhook
+      nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Component" "webhook" ) | nindent 8 }}
+      containers:
+      - name: webhook
+        # This is the Go import path for the binary that is containerized
+        # and substituted here.
+        image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "webhook" ) }}
+        imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+        env:
+        - name: SYSTEM_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - # If you are changing these names, you will also need to update
+          # the webhook's Role in 200-role.yaml to include the new
+          # values in the "configmaps" "get" rule.
+          name: CONFIG_LOGGING_NAME
+          value: config-logging
+        - name: CONFIG_OBSERVABILITY_NAME
+          value: config-observability
+        - name: CONFIG_LEADERELECTION_NAME
+          value: config-leader-election
+        - name: WEBHOOK_SERVICE_NAME
+          value: {{ $.Values.webhook.conf.service_name }}
+        - name: WEBHOOK_SECRET_NAME
+          value: {{ $.Values.webhook.conf.secret_name }}
+        - name: METRICS_DOMAIN
+          value: {{ $.Values.webhook.conf.metrics_domain }}
+        securityContext:
+          allowPrivilegeEscalation: {{ $.Values.webhook.pod.security_context.container.webhook.allowPrivilegeEscalation }}
+          runAsUser: {{ $.Values.webhook.pod.security_context.container.webhook.runAsUser }}
+        ports:
+        - name: metrics
+          containerPort: {{ $.Values.webhook.endpoints.ports.metrics.targetPort }}
+        - name: profiling
+          containerPort: {{ $.Values.webhook.endpoints.ports.profiling.targetPort }}
+        - name: https-webhook
+          containerPort: {{ $.Values.webhook.endpoints.ports.https_webhook.targetPort }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ $.Values.webhook.pod.probes.liveness.tcpPort }}
+          initialDelaySeconds: {{ $.Values.webhook.pod.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ $.Values.webhook.pod.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ $.Values.webhook.pod.probes.liveness.timeoutSeconds }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ $.Values.webhook.pod.probes.readiness.tcpPort }}
+          initialDelaySeconds: {{ $.Values.webhook.pod.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ $.Values.webhook.pod.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ $.Values.webhook.pod.probes.readiness.timeoutSeconds }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-webhook" ) }}

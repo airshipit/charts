@@ -1,0 +1,23 @@
+{{- define "validatingwebhookconfiguration-webhook-config" -}}
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: config.webhook.pipeline.tekton.dev
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+webhooks:
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    service:
+      name: tekton-pipelines-webhook
+      namespace: {{ $.Release.Namespace }}
+  failurePolicy: Fail
+  sideEffects: None
+  name: config.webhook.pipeline.tekton.dev
+  objectSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: tekton-pipelines
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "validatingwebhookconfiguration-webhook-config" ) }}

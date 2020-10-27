@@ -1,0 +1,23 @@
+{{- define "configmap-artifact-pvc" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-artifact-pvc
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+data:
+{{- if $.Values.controller.conf.artifact_pvc.size }}
+  # size of the PVC volume
+  # size: 5Gi
+  size: {{ $.Values.controller.conf.artifact_pvc.size }}
+{{- end }}
+
+{{- if $.Values.controller.conf.artifact_pvc.storageClassName }}
+  # storage class of the PVC volume
+  # storageClassName: storage-class-name
+  storageClassName: {{ $.Values.controller.conf.artifact_pvc.storageClassName }}
+{{- end }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-artifact-pvc" ) }}

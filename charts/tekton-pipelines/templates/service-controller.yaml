@@ -1,0 +1,18 @@
+{{- define "service-controller" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+  name: tekton-pipelines-controller
+  namespace: {{ $.Release.Namespace }}
+spec:
+  ports:
+  - name: http-metrics
+    port: {{ $.Values.controller.endpoints.ports.metrics.port }}
+    protocol: {{ $.Values.controller.endpoints.ports.metrics.protocol }}
+    targetPort: {{ $.Values.controller.endpoints.ports.metrics.targetPort }}
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-controller" ) }}

@@ -1,0 +1,18 @@
+{{- define "configmap-logging" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-logging
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+data:
+  # Common configuration for all knative codebase
+  zap-logger-config: |
+    {{ $.Values.common_config.logging.zap_logger_config | toJson }}
+  # Log level overrides
+  loglevel.controller: {{ $.Values.common_config.logging.loglevel.controller | quote }}
+  loglevel.webhook: {{ $.Values.common_config.logging.loglevel.webhook | quote }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-logging" ) }}

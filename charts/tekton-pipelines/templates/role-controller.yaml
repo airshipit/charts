@@ -1,0 +1,25 @@
+{{- define "role-controller" -}}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tekton-pipelines-controller
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["list", "watch"]
+- # The controller needs access to these configmaps for logging information and runtime configuration.
+  apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+  resourceNames: ["config-logging", "config-observability", "config-artifact-bucket",
+    "config-artifact-pvc", "feature-flags", "config-leader-election"]
+- apiGroups: ["policy"]
+  resources: ["podsecuritypolicies"]
+  resourceNames: ["tekton-pipelines"]
+  verbs: ["use"]
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "role-controller" ) }}

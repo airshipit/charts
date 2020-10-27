@@ -1,0 +1,68 @@
+{{- define "configmap-observability" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-observability
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+data:
+{{- if $.Values.common_config.observability.metrics.backend_destination }}
+  # metrics.backend-destination field specifies the system metrics destination.
+  # It supports either prometheus (the default) or stackdriver.
+  # Note: Using Stackdriver will incur additional charges.
+  metrics.backend-destination: {{ $.Values.common_config.observability.metrics.backend_destination | quote }}
+{{- end }}
+
+{{- if $.Values.common_config.observability.metrics.backend_destination }}{{ if eq $.Values.common_config.observability.metrics.backend_destination "stackdriver" }}
+{{- if $.Values.common_config.observability.metrics.stackdriver_project_id }}
+  # metrics.stackdriver-project-id field specifies the Stackdriver project ID. This
+  # field is optional. When running on GCE, application default credentials will be
+  # used and metrics will be sent to the cluster's project if this field is
+  # not provided.
+  metrics.stackdriver-project-id: {{ $.Values.common_config.observability.metrics.stackdriver_project_id | quote }}
+{{- end }}
+
+  # metrics.allow-stackdriver-custom-metrics indicates whether it is allowed
+  # to send metrics to Stackdriver using "global" resource type and custom
+  # metric type. Setting this flag to "true" could cause extra Stackdriver
+  # charge.  If metrics.backend-destination is not Stackdriver, this is
+  # ignored.
+  metrics.allow-stackdriver-custom-metrics: {{ $.Values.common_config.observability.metrics.allow_stackdriver_custom_metrics | quote }}
+{{- end }}{{ end }}
+  _example: |
+    ################################
+    #                              #
+    #    EXAMPLE CONFIGURATION     #
+    #                              #
+    ################################
+
+    # This block is not actually functional configuration,
+    # but serves to illustrate the available configuration
+    # options and document them in a way that is accessible
+    # to users that `kubectl edit` this config map.
+    #
+    # These sample configuration options may be copied out of
+    # this example block and unindented to be in the data block
+    # to actually change the configuration.
+
+    # metrics.backend-destination field specifies the system metrics destination.
+    # It supports either prometheus (the default) or stackdriver.
+    # Note: Using Stackdriver will incur additional charges.
+    metrics.backend-destination: prometheus
+
+    # metrics.stackdriver-project-id field specifies the Stackdriver project ID. This
+    # field is optional. When running on GCE, application default credentials will be
+    # used and metrics will be sent to the cluster's project if this field is
+    # not provided.
+    metrics.stackdriver-project-id: "<your stackdriver project id>"
+
+    # metrics.allow-stackdriver-custom-metrics indicates whether it is allowed
+    # to send metrics to Stackdriver using "global" resource type and custom
+    # metric type. Setting this flag to "true" could cause extra Stackdriver
+    # charge.  If metrics.backend-destination is not Stackdriver, this is
+    # ignored.
+    metrics.allow-stackdriver-custom-metrics: "false"
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-observability" ) }}
