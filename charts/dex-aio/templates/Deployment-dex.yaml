@@ -47,7 +47,7 @@ spec:
               openssl req -new -key /var/run/airshipit.org/tls/key/tls.key -out ${TMP_KEY}/server.csr -batch -subj "/commonName={{ .Values.params.endpoints.hostname }}"
               openssl x509 -req -days 365 -in ${TMP_KEY}/server.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -set_serial $(printf '%(%s)T\n' -1) -out /var/run/airshipit.org/tls/crt/tls.crt
               openssl verify -purpose sslserver -CAfile /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/crt/tls.crt
-              cp -v /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/ca-crt/ca.crt 
+              cp -v /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/ca-crt/ca.crt
               cp -v /etc/kubernetes/pki/ca.crt /var/run/airshipit.org/tls/ca-crt/ca-certificates.crt
               chmod 0444 /var/run/airshipit.org/tls/ca-crt/*.crt /var/run/airshipit.org/tls/crt/tls.crt  /var/run/airshipit.org/tls/key/tls.key
           volumeMounts:

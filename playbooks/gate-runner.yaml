@@ -11,21 +11,20 @@
 # limitations under the License.
 ---
 - hosts: primary
-  vars_files:
-  - vars.yaml
-  vars:
-    work_dir: "{{ zuul.project.src_dir }}"
-  roles:
-  - role: setup-helm
-  - role: ensure-chart-testing
-  - name: chart-testing
-    chart_testing_options: "--chart-dirs=. --validate-maintainers=false"
-    zuul_work_dir: "{{ work_dir }}/charts"
-  - role: build-helm-packages
   tasks:
-  - name: Check for trailing whitespaces
-    command: git grep -E -l -I " +$"
-    register: result
-    failed_when: result.stdout != ""
-    args:
-      chdir: "{{ zuul.project.src_dir }}"
+  - name: Create run artifacts
+    file:
+      path: "/tmp/artifacts"
+      state: directory
+  - name: Run gate script
+    include_role:
+      name: run-script
+    vars:
+      script: "{{ item }}"
+    loop: "{{ gate_scripts }}"
+  - name: Download artifacts to executor
+    synchronize:
+      src: "/tmp/artifacts"
+      dest: "{{ zuul.executor.log_root }}/{{ inventory_hostname }}"
+      mode: pull
+    ignore_errors: True

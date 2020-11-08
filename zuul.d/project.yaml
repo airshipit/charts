@@ -13,13 +13,12 @@
 - project:
     check:
       jobs:
-        - airship-charts-lint
-        - airship-charts-build
+        - airship-charts-lint-and-build
+        - airship-harbor-tekton
     gate:
       jobs:
-        - airship-charts-lint
-        - airship-charts-build
+        - airship-charts-lint-and-build
+        - airship-harbor-tekton
     post:
       jobs:
         - airship-charts-upload-git-mirror
-

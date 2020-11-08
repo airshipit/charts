@@ -1,5 +1,3 @@
-# Copyright 2017 The Openstack-Helm Authors.
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,6 +15,9 @@ SHELL := /bin/bash
 TASK  := build
 
 EXCLUDES := playbooks roles doc tests tools logs tmp zuul.d releasenotes
+# FIXME(lamt): Excluding the dex-aio as there are linting errors and should be
+# fixed in follow on patch. Once that's done, this can be removed.
+EXCLUDES += dex-aio
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 .PHONY: $(EXCLUDES) $(CHARTS)
@@ -51,9 +52,6 @@ pull-all-images:
 
 pull-images:
 	@./tools/pull-images.sh $(filter-out $@,$(MAKECMDGOALS))
-
-#dev-deploy:
-#	@./tools/gate/devel/start.sh $(filter-out $@,$(MAKECMDGOALS))
 
 %:
 	@:

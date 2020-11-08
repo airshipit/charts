@@ -9,10 +9,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-- include: setup-helm-serve.yaml
-
-- name: build all charts in repo
+---
+- name: Build all charts in repo
   make:
-    chdir: "{{ work_dir }}"
+    chdir: "{{ work_dir }}/charts"
     target: all

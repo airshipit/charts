@@ -11,23 +11,36 @@
 # limitations under the License.
 
 - job:
-    name: airship-charts-lint
+    name: airship-charts-lint-and-build
     run: playbooks/airship-zuul-linter.yaml
     description: Lint Helm charts
+    nodeset: airship-charts-single-node
 
 - job:
-    name: airship-charts-build
-    run: playbooks/airship-charts-build.yaml
-    description: Build Helm charts
+    name: airship-harbor-tekton
+    timeout: 7200
+    pre-run:
+      - playbooks/airship-setup.yaml
+    run: playbooks/gate-runner.yaml
+    post-run: playbooks/gather-logs.yaml
+    description: Runs Tekton charts
+    nodeset: airship-charts-single-node
+    vars:
+      collect_kubernetes_logs_namespace: tekton-pipelines
+      gate_scripts:
+        - ./tools/gate/tekton/100-deploy-k8s.sh
+        - ./tools/gate/tekton/200-install.sh
+        - ./tools/gate/tekton/300-test.sh
+        - ./tools/gate/harbor/200-install.sh
 
 - job:
     name: airship-charts-upload-git-mirror
     parent: upload-git-mirror
     description: Mirrors airship/charts to airshipit/charts
+    nodeset: airship-charts-single-node
     vars:
       git_mirror_repository: airshipit/charts
     secrets:
       - name: git_mirror_credentials
         secret: airship-charts-airshipit-github-secret
         pass-to-parent: true
-

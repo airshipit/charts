@@ -10,22 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 ---
-- hosts: primary
-  vars_files:
-  - vars.yaml
+- name: "Run script {{ script }}"
+  shell: |
+    set -xe;
+    {{ script_path }}
   vars:
-    work_dir: "{{ zuul.project.src_dir }}"
-  roles:
-  - role: setup-helm
-  - role: ensure-chart-testing
-  - name: chart-testing
-    chart_testing_options: "--chart-dirs=. --validate-maintainers=false"
-    zuul_work_dir: "{{ work_dir }}/charts"
-  - role: build-helm-packages
-  tasks:
-  - name: Check for trailing whitespaces
-    command: git grep -E -l -I " +$"
-    register: result
-    failed_when: result.stdout != ""
-    args:
-      chdir: "{{ zuul.project.src_dir }}"
+    script_path: "{{ script }}"
+  args:
+    chdir: "{{ zuul.project.src_dir }}"

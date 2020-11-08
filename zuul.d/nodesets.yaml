@@ -1,3 +1,4 @@
+---
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -9,23 +10,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
----
-- hosts: primary
-  vars_files:
-  - vars.yaml
-  vars:
-    work_dir: "{{ zuul.project.src_dir }}"
-  roles:
-  - role: setup-helm
-  - role: ensure-chart-testing
-  - name: chart-testing
-    chart_testing_options: "--chart-dirs=. --validate-maintainers=false"
-    zuul_work_dir: "{{ work_dir }}/charts"
-  - role: build-helm-packages
-  tasks:
-  - name: Check for trailing whitespaces
-    command: git grep -E -l -I " +$"
-    register: result
-    failed_when: result.stdout != ""
-    args:
-      chdir: "{{ zuul.project.src_dir }}"
+
+- nodeset:
+    name: airship-charts-single-node
+    nodes:
+      - name: primary
+        label: ubuntu-bionic
+    groups:
+      - name: primary
+        nodes:
+          - primary

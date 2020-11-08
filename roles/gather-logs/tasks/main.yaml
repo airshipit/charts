@@ -1,0 +1,28 @@
+---
+- name: Create directories for logs
+  file:
+    path: "{{ logs_dir }}/{{ item }}"
+    state: directory
+  with_items:
+    - objects/cluster
+    - objects/namespaced
+    - pod-logs
+
+- name: Gather kubernetes logs
+  shell: |
+    set -xe;
+    ./tools/gate/gather-pod-logs.sh
+    ./tools/gate/gather-objects.sh
+  environment:
+    LOGDIR: "{{ logs_dir }}"
+  args:
+    chdir: "{{ zuul.project.src_dir }}"
+
+- name: Upload the logs
+  synchronize:
+    mode: pull
+    src: "{{ logs_dir }}"
+    dest: "{{ zuul.executor.log_root }}/{{ inventory_hostname }}"
+    owner: no
+    group: no
+  ignore_errors: True

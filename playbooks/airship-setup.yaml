@@ -9,23 +9,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Leverage existing Zuul and OpenDev infra for k8s setup
 ---
-- hosts: primary
+- name: Set up requirements for k8s
+  hosts: primary
   vars_files:
   - vars.yaml
-  vars:
-    work_dir: "{{ zuul.project.src_dir }}"
   roles:
-  - role: setup-helm
-  - role: ensure-chart-testing
-  - name: chart-testing
-    chart_testing_options: "--chart-dirs=. --validate-maintainers=false"
-    zuul_work_dir: "{{ work_dir }}/charts"
-  - role: build-helm-packages
-  tasks:
-  - name: Check for trailing whitespaces
-    command: git grep -E -l -I " +$"
-    register: result
-    failed_when: result.stdout != ""
-    args:
-      chdir: "{{ zuul.project.src_dir }}"
+  - role: clear-firewall
+  - role: ensure-pip

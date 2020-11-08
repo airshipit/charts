@@ -17,7 +17,7 @@ images:
       name: mintel/dex-k8s-authenticator
       repo: docker.io
     tls_init:
-      tag: latest 
+      tag: latest
       name: metal3-io/ironic
       repo: quay.io
   pull:
@@ -149,11 +149,11 @@ config:
                   location / {  # the default location redirects to https
                       return 301 https://$server_name:{{ .Values.params.endpoints.port.https }}$request_uri;
                   }
-                  location = /ca.crt {  
+                  location = /ca.crt {
                       alias /usr/share/nginx/html/ca.crt;
                   }
               }
-          
+
           server {
               listen              443 ssl;
               server_name         {{ .Values.params.endpoints.hostname }};
@@ -161,11 +161,11 @@ config:
               ssl_certificate     /var/run/secrets/airshipit.org/tls/crt/tls.crt;
               ssl_certificate_key /var/run/secrets/airshipit.org/tls/key/tls.key;
 
-              location = / {  
+              location = / {
                   return 301 /ui/;
               }
 
-              location = /ca.crt {  
+              location = /ca.crt {
                   alias /usr/share/nginx/html/ca.crt;
               }
 
@@ -185,5 +185,3 @@ config:
 
           }
       }
-
-
