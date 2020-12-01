@@ -1,0 +1,61 @@
+{{- define "configmap-defaults" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-defaults
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+data:
+{{- if $.Values.controller.conf.defaults.default_timeout_minutes }}
+  # default-timeout-minutes contains the default number of
+  # minutes to use for TaskRun and PipelineRun, if none is specified.
+  # default-timeout-minutes: "60"  # 60 minutes
+  default-timeout-minutes: {{ $.Values.controller.conf.defaults.default_timeout_minutes | quote }}
+{{- end }}
+
+{{- if $.Values.controller.conf.defaults.default_service_account }}
+  # default-service-account contains the default service account name
+  # to use for TaskRun and PipelineRun, if none is specified.
+  # default-service-account: "default"
+  default-service-account: {{ $.Values.controller.conf.defaults.default_service_account | quote }}
+{{- end }}
+
+{{- if $.Values.controller.conf.defaults.default_managed_by_label_value }}
+  # default-managed-by-label-value contains the default value given to the
+  # "app.kubernetes.io/managed-by" label applied to all Pods created for
+  # TaskRuns. If a user's requested TaskRun specifies another value for this
+  # label, the user's request supercedes.
+  # default-managed-by-label-value: "tekton-pipelines"
+  default-managed-by-label-value: {{ $.Values.controller.conf.defaults.default_managed_by_label_value | quote }}
+{{- end }}
+
+{{- if $.Values.controller.conf.defaults.default_pod_template }}
+  # default-pod-template contains the default pod template to use
+  # TaskRun and PipelineRun, if none is specified. If a pod template
+  # is specified, the default pod template is ignored.
+  # default-pod-template:
+  default-pod-template: {{ $.Values.controller.conf.defaults.default_pod_template }}
+{{- end }}
+
+{{- if $.Values.controller.conf.defaults.default_cloud_events_sink }}
+  # default-cloud-events-sink contains the default CloudEvents sink to be
+  # used for TaskRun and PipelineRun, when no sink is specified.
+  # Note that right now it is still not possible to set a PipelineRun or
+  # TaskRun specific sink, so the default is the only option available.
+  # If no sink is specified, no CloudEvent is generated
+  # default-cloud-events-sink:
+  default-cloud-events-sink: {{ $.Values.controller.conf.defaults.default_cloud_events_sink }}
+{{- end }}
+
+{{- if $.Values.controller.conf.defaults.default_task_run_workspace_binding }}
+  # default-task-run-workspace-binding contains the default workspace
+  # configuration provided for any Workspaces that a Task declares
+  # but that a TaskRun does not explicitly provide.
+  # default-task-run-workspace-binding: |
+  #   emptyDir: {}
+  default-task-run-workspace-binding: {{ toJson $.Values.controller.conf.defaults.default_task_run_workspace_binding }}
+{{- end }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-defaults" ) }}

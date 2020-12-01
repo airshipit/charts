@@ -1,0 +1,187 @@
+# Default values file for Tekton-Pipelines
+---
+images:
+  applications:
+    controller:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/controller
+      repo: gcr.io/tekton-releases/github.com
+    kubeconfig_writer_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/kubeconfigwriter
+      repo: gcr.io/tekton-releases/github.com
+    creds_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/creds-init
+      repo: gcr.io/tekton-releases/github.com
+    git_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/git-init
+      repo: gcr.io/tekton-releases/github.com
+    entrypoint_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/entrypoint
+      repo: gcr.io/tekton-releases/github.com
+    nop_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/nop
+      repo: gcr.io/tekton-releases/github.com
+    imagedigest_exporter_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/imagedigestexporter
+      repo: gcr.io/tekton-releases/github.com
+    pr_image:
+      tag: v0.16.3
+      name: pipeline/cmd/pullrequest-init
+      repo: gcr.io/tekton-releases/github.com
+    build_gcs_fetcher_image:
+      tag: v0.16.3
+      name: tektoncd/pipeline/vendor/github.com/googlecloudplatform/cloud-builders/gcs-fetcher/cmd/gcs-fetcher
+      repo: gcr.io/tekton-releases/github.com
+    gsutil_image:
+      # This is google/cloud-sdk:302.0.0-slim
+      tag: 27b2c22bf259d9bc1a291e99c63791ba0c27a04d2db0a43241ba0f1f20f4067f
+      name: cloud-sdk@sha256
+      repo: google
+    shell_image:
+      # The shell image must be root in order to create directories and copy files to PVCs.
+      # gcr.io/distroless/base:debug-nonroot as of July 23, 2020
+      tag: 60f5ffe6fc481e9102747b043b3873a01893a5a8138f970c5f5fc06fb7494656
+      name: base@sha256
+      repo: gcr.io/distroless
+    webhook:
+      tag: v0.16.3
+      name: tektoncd/pipeline/cmd/webhook
+      repo: gcr.io/tekton-releases/github.com
+  pull:
+    policy: IfNotPresent
+
+node_labels:
+  controller:
+    - key: node-role.kubernetes.io/master
+      value: ''
+  webhook:
+    - key: node-role.kubernetes.io/master
+      value: ''
+
+controller:
+  endpoints:
+    ports:
+      metrics:
+        port: 9090
+        protocol: TCP
+        targetPort: 9090
+
+  pod:
+    replicas: 1
+    security_context:
+      container:
+        tekton_pipelines_controller:
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+
+  conf:
+    metrics_domain: tekton.dev/pipeline
+    artifact_bucket:
+      location: null
+      bucket:
+        service:
+          account:
+            secret:
+              name: null
+              key: null
+            field:
+              name: null
+    artifact_pvc:
+      size: null
+      storageClassName: null
+    defaults:
+      default_timeout_minutes: null
+      default_service_account: null
+      default_managed_by_label_value: null
+      default_pod_template: null
+      default_cloud_events_sink: null
+      default_task_run_workspace_binding: null
+    feature_flags:
+      disable_affinity_assistant: "false"
+      disable_home_env_overwrite: "false"
+      disable_working_directory_overwrite: "false"
+      running_in_environment_with_injected_sidecars: "true"
+
+webhook:
+  endpoints:
+    ports:
+      metrics:
+        port: 9090
+        targetPort: 9090
+      profiling:
+        port: 8008
+        targetPort: 8008
+      https_webhook:
+        port: 443
+        targetPort: 8443
+
+  pod:
+    probes:
+      liveness:
+        tcpPort: https-webhook
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 5
+      readiness:
+        tcpPort: https-webhook
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        timeoutSeconds: 1
+    replicas: 1
+    security_context:
+      container:
+        webhook:
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+
+  conf:
+    metrics_domain: tekton.dev/pipeline
+    secret_name: webhook-certs
+    service_name: tekton-pipelines-webhook
+
+common_config:
+  leader_election:
+    resourceLock: "leases"
+    leaseDuration: "15s"
+    renewDeadline: "10s"
+    retryPeriod: "2s"
+  logging:
+    zap_logger_config:
+      level: "info"
+      development: false
+      sampling:
+        initial: 100
+        thereafter: 100
+      outputPaths:
+        - "stdout"
+      errorOutputPaths:
+        - "stderr"
+      encoding: "json"
+      encoderConfig:
+        timeKey: ""
+        levelKey: "level"
+        nameKey: "logger"
+        callerKey: "caller"
+        messageKey: "msg"
+        stacktraceKey: "stacktrace"
+        lineEnding: ""
+        levelEncoder: ""
+        timeEncoder: ""
+        durationEncoder: ""
+        callerEncoder: ""
+    loglevel:
+      controller: "info"
+      webhook: "info"
+  observability:
+    metrics:
+      backend_destination: null
+      stackdriver_project_id: null
+      allow_stackdriver_custom_metrics: null
+
+over_rides: {}

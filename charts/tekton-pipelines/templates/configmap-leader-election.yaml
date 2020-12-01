@@ -1,0 +1,17 @@
+{{- define "configmap-leader-election" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-leader-election
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+data:
+  # An inactive but valid configuration follows; see example.
+  resourceLock: {{ $.Values.common_config.leader_election.resourceLock | quote }}
+  leaseDuration: {{ $.Values.common_config.leader_election.leaseDuration | quote }}
+  renewDeadline: {{ $.Values.common_config.leader_election.renewDeadline | quote }}
+  retryPeriod: {{ $.Values.common_config.leader_election.retryPeriod | quote }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-leader-election" ) }}
