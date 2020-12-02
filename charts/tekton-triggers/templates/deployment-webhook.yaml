@@ -1,0 +1,57 @@
+{{- define "deployment-webhook" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-triggers-webhook
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 3
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 8 }}
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+    spec:
+      serviceAccountName: tekton-triggers-controller
+      nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_webhook" ) | nindent 8 }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: tekton-triggers-webhook
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_webhook" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CONFIG_LOGGING_NAME
+              value: config-logging-triggers
+            - name: WEBHOOK_SERVICE_NAME
+              value: tekton-triggers-webhook
+            - name: WEBHOOK_SECRET_NAME
+              value: triggers-webhook-certs
+            - name: METRICS_DOMAIN
+              value: tekton.dev/triggers
+          ports:
+            - name: metrics
+              containerPort: {{ $.Values.params.endpoints.ports.metrics.port }}
+            - name: profiling
+              containerPort: {{ $.Values.params.endpoints.ports.profiling.port }}
+            - name: https-webhook
+              containerPort: {{ $.Values.params.endpoints.ports.webhook.target }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 65532
+      volumes: []
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-webhook" ) }}

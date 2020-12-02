@@ -1,0 +1,17 @@
+{{- define "service-webhook" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-triggers-webhook
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+spec:
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
+  ports:
+    - name: https-webhook
+      protocol: TCP
+      port: {{ $.Values.params.endpoints.ports.webhook.port }}
+      targetPort: {{ $.Values.params.endpoints.ports.webhook.target }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-webhook" ) }}

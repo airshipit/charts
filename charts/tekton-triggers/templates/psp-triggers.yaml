@@ -1,0 +1,36 @@
+{{- define "psp-triggers" -}}
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: tekton-triggers
+  labels:
+    app.kubernetes.io/instance: tekton-triggers
+    app.kubernetes.io/part-of: tekton-triggers
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  volumes:
+    - 'emptyDir'
+    - 'configMap'
+    - 'secret'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1
+        max: 65535
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "psp-triggers" ) }}

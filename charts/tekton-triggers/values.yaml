@@ -1,0 +1,77 @@
+---
+config:
+  controller:
+    period_seconds: 10
+    failure_threshold: 1
+    stderrthreshold: INFO
+    el_port: 8080
+  loglevel:
+    controller: info
+    eventlistener: info
+    webhook: info
+  observability:
+    metrics.backend-destination: prometheus
+  zap_logger_config:
+    development: false
+    encoderConfig:
+      callerEncoder: ''
+      callerKey: caller
+      durationEncoder: ''
+      levelEncoder: ''
+      levelKey: level
+      lineEnding: ''
+      messageKey: msg
+      nameKey: logger
+      stacktraceKey: stacktrace
+      timeEncoder: ''
+      timeKey: ''
+    encoding: json
+    errorOutputPaths:
+      - stderr
+    level: info
+    outputPaths:
+      - stdout
+    sampling:
+      initial: 100
+      thereafter: 100
+
+params:
+  endpoints:
+    ports:
+      metrics:
+        port: 9090
+        scheme: http
+      profiling:
+        port: 8008
+        scheme: http
+      webhook:
+        port: 443
+        target: 8443
+        scheme: https
+
+images:
+  applications:
+    tekton_controller:
+      name: tektoncd/triggers/cmd/controller
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.9.1
+    tekton_eventlistener:
+      name: tektoncd/triggers/cmd/eventlistenersink
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.9.1
+    tekton_webhook:
+      name: tektoncd/triggers/cmd/webhook
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.9.1
+  pull:
+    policy: IfNotPresent
+
+node_labels:
+  tekton_controller:
+    - key: node-role.kubernetes.io/master
+      value: ''
+  tekton_webhook:
+    - key: node-role.kubernetes.io/master
+      value: ''
+
+over_rides: {}

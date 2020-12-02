@@ -1,0 +1,60 @@
+{{- define "deployment-controller" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tekton-triggers-controller
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 6 }}
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 3
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 8 }}
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+    spec:
+      serviceAccountName: tekton-triggers-controller
+      nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_controller" ) | nindent 8 }}
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: tekton-triggers-controller
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_controller" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+          args:
+            - -logtostderr
+            - -stderrthreshold
+            - {{ $.Values.config.controller.stderrthreshold | quote }}
+            - -el-image
+            - {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_eventlistener" ) }}
+            - -el-port
+            - {{ $.Values.config.controller.el_port | quote }}
+            - -period-seconds
+            - {{ $.Values.config.controller.period_seconds | quote }}
+            - -failure-threshold
+            - {{ $.Values.config.controller.failure_threshold | quote }}
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: CONFIG_LOGGING_NAME
+              value: config-logging-triggers
+            - name: CONFIG_OBSERVABILITY_NAME
+              value: config-observability-triggers
+            - name: METRICS_DOMAIN
+              value: tekton.dev/triggers
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 65532
+      volumes: []
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-controller" ) }}
