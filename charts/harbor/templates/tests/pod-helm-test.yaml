@@ -1,0 +1,43 @@
+{{/*
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+{{/*
+Test that the API is up and the health endpoint returns a 2XX code */}}
+{{- $envAll := . }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{.Release.Name}}-test"
+  annotations:
+    "helm.sh/hook": "test-success"
+  labels:
+{{ include "harbor.labels" . | indent 4 }}
+    component: core
+spec:
+  securityContext:
+    fsGroup: 10000
+  restartPolicy: Never
+  containers:
+    - name: harbor-helm-tests
+      env:
+        - name: 'CORE_URL'
+          value: {{ template "harbor.coreURL" . }}
+      image: {{ .Values.core.image.repository }}:{{ .Values.core.image.tag }}
+      imagePullPolicy: {{ .Values.imagePullPolicy }}
+      command: ["/bin/bash", "-c", "curl -v -k -X GET --fail ${CORE_URL}/api/v2.0/health"]
+  {{- with .Values.core.nodeSelector }}
+  nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+...
