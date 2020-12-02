@@ -1,0 +1,35 @@
+---
+config:
+  args:
+    csrf_secure_cookie: false
+    external-logs: ''
+    log_format: json
+    log_level: info
+    logout_url: ''
+    namespace: ''
+    openshift: false
+    read_only: false
+    stream_logs: false
+
+images:
+  applications:
+    tekton_dashboard:
+      name: tektoncd/dashboard/cmd/dashboard
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.10.1
+  pull:
+    policy: IfNotPresent
+
+node_labels:
+  tekton_dashboard:
+    - key: node-role.kubernetes.io/master
+      value: ''
+
+params:
+  endpoints:
+    ports:
+      web:
+        port: 9097
+        scheme: http
+
+over_rides: {}
