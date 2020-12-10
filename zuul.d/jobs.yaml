@@ -28,10 +28,8 @@
     vars:
       collect_kubernetes_logs_namespace: tekton-pipelines
       gate_scripts:
-        - ./tools/gate/tekton/100-deploy-k8s.sh
-        - ./tools/gate/tekton/200-install.sh
-        - ./tools/gate/tekton/300-test.sh
-        - ./tools/gate/harbor/200-install.sh
+        - ./tools/utils/aio-setup.sh
+        - ./tools/gate/pipelines/run-test.sh
 
 - job:
     name: airship-charts-upload-git-mirror
