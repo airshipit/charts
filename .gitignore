@@ -1,1 +1,5 @@
 **.tgz
+
+# doc build environment and artifacts
+doc/build
+.tox/
