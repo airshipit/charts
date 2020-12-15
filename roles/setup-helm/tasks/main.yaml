@@ -18,8 +18,9 @@
 - name: Download Helm
   unarchive:
     remote_src: true
-    src: "https://get.helm.sh/helm-v{{ version.helm }}-linux-amd64.tar.gz"
+    src: "{{ repo_name }}/helm-v{{ version.helm }}-linux-amd64.tar.gz"
     dest: /tmp
+
 - name: Install Helm
   become: true
   copy:
