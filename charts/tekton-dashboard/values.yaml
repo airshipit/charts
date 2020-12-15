@@ -8,7 +8,7 @@ config:
     logout_url: ''
     namespace: ''
     openshift: false
-    read_only: false
+    read_only: true
     stream_logs: false
 
 images:
