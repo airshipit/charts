@@ -16,7 +16,7 @@ images:
     tekton_dashboard:
       name: tektoncd/dashboard/cmd/dashboard
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.1
+      tag: v0.12.0
   pull:
     policy: IfNotPresent
 
