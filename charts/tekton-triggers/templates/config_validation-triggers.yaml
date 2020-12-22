@@ -1,6 +1,6 @@
 {{- define "config_validation-triggers" -}}
 ---
-apiVersion: admissionregistration.k8s.io/v1beta1
+apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: config.webhook.triggers.tekton.dev
