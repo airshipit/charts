@@ -1,4 +1,4 @@
-{{- define "webhook_validation-triggers" -}}
+{{- define "validatingwebhookconfig-webhook" -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -16,4 +16,4 @@ webhooks:
     name: validation.webhook.triggers.tekton.dev
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "webhook_validation-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "validatingwebhookconfig-webhook" ) }}

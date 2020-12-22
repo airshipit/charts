@@ -1,4 +1,4 @@
-{{- define "config_logging-triggers" -}}
+{{- define "config-logging" -}}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -12,4 +12,4 @@ data:
   loglevel.eventlistener: {{ $.Values.config.loglevel.eventlistener | quote }}
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "config_logging-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "config-logging" ) }}

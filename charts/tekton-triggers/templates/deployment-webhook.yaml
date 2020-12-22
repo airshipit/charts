@@ -21,7 +21,7 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
-      serviceAccountName: tekton-triggers-controller
+      serviceAccountName: tekton-triggers-webhook
       nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Application" "tekton_webhook" ) | nindent 8 }}
       terminationGracePeriodSeconds: 30
       containers:
@@ -51,6 +51,20 @@ spec:
           securityContext:
             allowPrivilegeEscalation: false
             runAsUser: 65532
+          readinessProbe:
+            httpGet:
+              path: /
+              scheme: HTTPS
+              port: {{ $.Values.params.endpoints.ports.webhook.target }}
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              scheme: HTTPS
+              port: {{ $.Values.params.endpoints.ports.webhook.target }}
+            initialDelaySeconds: 60
+            periodSeconds: 30
       volumes: []
 ...
 {{- end -}}

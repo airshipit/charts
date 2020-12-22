@@ -4,35 +4,16 @@ set -eux
 
 TEKTON_NS="tekton-pipelines"
 
-# Runs the tekton pipeline trigger test
-function retry {
-  local n=1
-  local max=5
-  local delay=10
-
-  while true; do
-    "$@" && break || {
-      if [[ $n -lt $max ]]; then
-        (( n++ ))
-        sleep $delay
-      else
-        echo "failed after $n attempts." >&2
-        exit 1
-      fi
-    }
-  done
-}
-
 sleep 60
 
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/secret.yaml
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/serviceaccount.yaml
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/clustertriggerbinding-roles
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/triggerbinding-roles
-retry kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/triggertemplates/triggertemplate.yaml
-retry kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/triggerbindings/triggerbinding.yaml
-retry kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/triggerbindings/triggerbinding-message.yaml
-retry kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/eventlisteners/eventlistener.yaml
+kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/triggertemplates/triggertemplate.yaml
+kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/triggerbindings/triggerbinding.yaml
+kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/triggerbindings/triggerbinding-message.yaml
+kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/eventlisteners/eventlistener.yaml
 
 kubectl -n $TEKTON_NS get svc
 kubectl -n $TEKTON_NS get pod

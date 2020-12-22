@@ -1,4 +1,4 @@
-{{- define "clusterrole_aggregate_view-triggers" -}}
+{{- define "clusterrole-aggregate_view" -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -21,4 +21,4 @@ rules:
       - watch
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole_aggregate_view-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole-aggregate_view" ) }}

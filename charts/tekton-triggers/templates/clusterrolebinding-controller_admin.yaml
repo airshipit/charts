@@ -1,4 +1,4 @@
-{{- define "clusterrolebinding_controller-triggers" -}}
+{{- define "clusterrolebinding-controller_admin" -}}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -15,4 +15,4 @@ subjects:
     namespace: {{ $.Release.Namespace }}
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrolebinding_controller-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrolebinding-controller_admin" ) }}

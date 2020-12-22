@@ -1,4 +1,4 @@
-{{- define "clusterrole_admin-triggers" -}}
+{{- define "clusterrole-admin" -}}
 ---
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
@@ -93,4 +93,4 @@ rules:
       - watch
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole_admin-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole-admin" ) }}

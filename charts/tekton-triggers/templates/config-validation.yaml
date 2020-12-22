@@ -1,4 +1,4 @@
-{{- define "config_validation-triggers" -}}
+{{- define "config-validation" -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
@@ -20,4 +20,4 @@ webhooks:
           operator: Exists
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "config_validation-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "config-validation" ) }}

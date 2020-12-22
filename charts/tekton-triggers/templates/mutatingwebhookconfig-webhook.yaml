@@ -1,4 +1,4 @@
-{{- define "webhook-triggers" -}}
+{{- define "mutatingwebhookconfig-webhook" -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -16,4 +16,4 @@ webhooks:
     name: webhook.triggers.tekton.dev
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "webhook-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "mutatingwebhookconfig-webhook" ) }}
