@@ -79,6 +79,7 @@ rules:
       - create
       - update
       - delete
+{{- if not $.Values.config.args.read_only }}
   - apiGroups:
       - tekton.dev
     resources:
@@ -111,6 +112,7 @@ rules:
       - delete
       - patch
       - add
+{{- end }}
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole_tenant-dashboard" ) }}
