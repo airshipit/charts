@@ -1,0 +1,5 @@
+storage:
+  persistentVolumeClaim:
+    size: 10Gi
+  persistentVolumeClaim:
+    class_name: nfs-provisioner

@@ -17,7 +17,7 @@ TASK  := build
 EXCLUDES := playbooks roles doc tests tools logs tmp zuul.d releasenotes
 # FIXME(lamt): Excluding the dex-aio as there are linting errors and should be
 # fixed in follow on patch. Once that's done, this can be removed.
-EXCLUDES += dex-aio
+EXCLUDES += dex-aio loki grafana nfs
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 .PHONY: $(EXCLUDES) $(CHARTS)
