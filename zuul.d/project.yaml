@@ -13,12 +13,19 @@
 - project:
     check:
       jobs:
+        - openstack-tox-docs: &docs
+            files:
+              - ^doc/.*$
         - airship-charts-lint-and-build
         - airship-harbor-tekton
     gate:
       jobs:
+        - openstack-tox-docs: *docs
         - airship-charts-lint-and-build
         - airship-harbor-tekton
     post:
       jobs:
         - airship-charts-upload-git-mirror
+    promote:
+      jobs:
+        - promote-airship-project-docs: *docs
