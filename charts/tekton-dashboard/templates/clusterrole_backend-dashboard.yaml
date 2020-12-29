@@ -36,6 +36,7 @@ rules:
       - get
       - list
       - watch
+{{- if not $.Values.config.args.read_only }}
   - apiGroups:
       - dashboard.tekton.dev
     resources:
@@ -65,6 +66,7 @@ rules:
       - delete
       - patch
       - add
+{{- end }}
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole_backend-dashboard" ) }}
