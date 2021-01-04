@@ -9,6 +9,7 @@ set -ex
 
 : "${HTTP_PROXY:=""}"
 : "${HTTPS_PROXY:=""}"
+: "${NO_PROXY:=""}"
 
 export DEBCONF_NONINTERACTIVE_SEEN=true
 export DEBIAN_FRONTEND=noninteractive
