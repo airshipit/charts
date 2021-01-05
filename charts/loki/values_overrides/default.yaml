@@ -1,0 +1,35 @@
+loki:
+  enabled: true
+  persistence:
+    enabled: true
+  ingress:
+    enabled: true
+    hosts:
+      - host: loki.jarvis.local
+        paths: ["/"]
+    annotations:
+      cert-manager.io/cluster-issuer: jarvis-ca-issuer
+    tls:
+     - secretName: lokistack-loki-tls
+       hosts:
+         - loki.jarvis.local
+
+promtail:
+  enabled: true
+
+grafana:
+  adminPassword: password
+  enabled: true
+  persistence:
+    enabled: true
+  ingress:
+    enabled: true
+    path: /
+    hosts:
+      - grafana.jarvis.local
+    annotations:
+      cert-manager.io/cluster-issuer: jarvis-ca-issuer
+    tls:
+     - secretName: lokistack-grafana-tls
+       hosts:
+         - grafana.jarvis.local

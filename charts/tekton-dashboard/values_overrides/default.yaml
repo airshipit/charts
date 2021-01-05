@@ -1,0 +1,8 @@
+params:
+  endpoints:
+    tls:
+      enabled: true
+      issuer:
+        enabled: true
+        cluster: true
+        name: jarvis-ca-issuer

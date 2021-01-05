@@ -17,12 +17,12 @@
             files:
               - ^doc/.*$
         - airship-charts-lint-and-build
-        - airship-harbor-tekton
+        - airship-jarvis
     gate:
       jobs:
         - openstack-tox-docs: *docs
         - airship-charts-lint-and-build
-        - airship-harbor-tekton
+        - airship-jarvis
     post:
       jobs:
         - airship-charts-upload-git-mirror

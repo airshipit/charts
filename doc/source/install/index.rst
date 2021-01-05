@@ -6,4 +6,4 @@ Installation
    :maxdepth: 2
    :caption: Contents:
 
-   cicd/index
+   jarvis/index

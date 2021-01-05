@@ -4,7 +4,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: tekton-triggers-webhook-admin
-  namespace: tekton-pipelines
+  namespace: {{ $.Release.Namespace }}
   labels:
     app.kubernetes.io/instance: tekton-triggers
     app.kubernetes.io/part-of: tekton-triggers

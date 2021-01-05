@@ -9,26 +9,20 @@
       {{- $_ := set $local "merge_same_named" $.merge_same_named -}}
     {{- end -}}
   {{- end -}}
-
   {{- $_ := set $local "input" ( fromYaml ( toString ( include $.template_definition $.Global ) ) )  -}}
-
   {{- $target := dict -}}
-
-  {{ $overlay_keys := regexSplit "-+" ( trimSuffix ".yaml" ( lower ( base $.Global.Template.Name ) ) ) 2 }}
-
+  {{- $overlay_keys := regexSplit "-+" ( trimSuffix ".yaml" ( lower ( base $.Global.Template.Name ) ) ) 2 }}
   {{- $_ := set $local "overlay" dict -}}
   {{- if hasKey $.Global.Values.over_rides ( index $overlay_keys 0 ) -}}
     {{- if hasKey ( index $.Global.Values.over_rides ( index $overlay_keys 0 ) ) ( index $overlay_keys 1 ) -}}
       {{- $_ := set $local "overlay" ( index $.Global.Values.over_rides ( index $overlay_keys 0 ) ( index $overlay_keys 1 ) )  -}}
-    {{ end }}
-  {{ end }}
-
+    {{- end }}
+  {{- end }}
   {{- range $item := tuple $local.input $local.overlay -}}
     {{- $call := dict "target" $target "source" . "merge_same_named" $local.merge_same_named -}}
     {{- $_ := include "helpers._merge" $call -}}
     {{- $_ := set $local "result" $call.result -}}
   {{- end -}}
-
   {{- if kindIs "map" $ -}}
     {{- $_ := set $ "result" $local.result -}}
   {{- end -}}
@@ -37,14 +31,11 @@
 
 {{- define "helpers._merge" -}}
   {{- $local := dict -}}
-
   {{- $_ := set $ "result" $.source -}}
-
   {{/*
   TODO: Should we `fail` when trying to merge a collection (map or slice) with
   either a different kind of collection or a scalar?
   */}}
-
   {{- if and (kindIs "map" $.target) (kindIs "map" $.source) -}}
     {{- range $key, $sourceValue := $.source -}}
       {{- if not (hasKey $.target $key) -}}
@@ -77,7 +68,6 @@
             {{- $_ := set $local "has_name_key" true -}}
           {{- end -}}
         {{- end -}}
-
         {{- if $local.has_name_key -}}
           {{- if hasKey $local.named_items $item.name -}}
             {{- $named_item := index $local.named_items $item.name -}}

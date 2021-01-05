@@ -2,4 +2,8 @@
 
 # doc build environment and artifacts
 doc/build
+doc/source/_build
 .tox/
+.vscode/
+
+tools/deployment/vagrant/.vagrant

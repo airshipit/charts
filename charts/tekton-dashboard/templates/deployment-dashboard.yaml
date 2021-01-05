@@ -30,7 +30,7 @@ spec:
           image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_dashboard" ) }}
           imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
           args:
-            - --port={{ $.Values.params.endpoints.ports.web.port }}
+            - --port=8080
             - --logout-url={{ $.Values.config.args.logout_url }}
             - --pipelines-namespace={{ $.Release.Namespace }}
             - --triggers-namespace={{ $.Release.Namespace }}
@@ -49,19 +49,19 @@ spec:
                   fieldPath: metadata.namespace
           ports:
             - name: web
-              containerPort: {{ $.Values.params.endpoints.ports.web.port }}
+              containerPort: 8080
           readinessProbe:
             httpGet:
-              scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
+              scheme: HTTP
               path: /readiness
-              port: {{ $.Values.params.endpoints.ports.web.port }}
+              port: 8080
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              scheme: {{ $.Values.params.endpoints.ports.web.scheme | upper }}
+              scheme: HTTP
               path: /health
-              port: {{ $.Values.params.endpoints.ports.web.port }}
+              port: 8080
             initialDelaySeconds: 50
             periodSeconds: 20
             timeoutSeconds: 5

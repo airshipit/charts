@@ -1,0 +1,11 @@
+#NOTE(portdirect): we use the following images, untill https://gerrit-review.googlesource.com/c/k8s-gerrit/+/230465 is resolved.
+images:
+  registry:
+    name: quay.io
+  version: v0.1-191-g251041b-dirty-3.3.0
+gerrit:
+  images:
+    gerritInit: port/gerrit-init
+    gerrit: port/gerrit
+gitGC:
+  image: port/git-gc

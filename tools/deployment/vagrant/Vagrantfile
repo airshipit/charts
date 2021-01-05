@@ -1,0 +1,26 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "generic/ubuntu2004"
+
+  config.vm.synced_folder "../../../", "/airship_charts", type: '9p', disabled: false
+
+  config.vm.provider "libvirt" do |libvirt|
+    libvirt.cpus = 4
+    libvirt.memory = 8192
+  end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -ex
+    cd /airship_charts/
+    ./tools/gate/jarvis/050-setup-development-ca.sh
+    ./tools/gate/jarvis/100-deploy-k8s.sh
+    ./tools/gate/jarvis/200-deploy-support.sh
+    ./tools/gate/jarvis/300-deploy-loki.sh
+    ./tools/gate/jarvis/400-deploy-harbor.sh
+    ./tools/gate/jarvis/500-deploy-gerrit.sh
+    ./tools/gate/jarvis/600-deploy-tekton.sh
+
+  SHELL
+end

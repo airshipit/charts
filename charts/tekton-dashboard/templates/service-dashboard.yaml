@@ -10,8 +10,7 @@ spec:
   ports:
     - name: web
       protocol: TCP
-      port: {{ $.Values.params.endpoints.ports.web.port }}
-      targetPort:  {{ $.Values.params.endpoints.ports.web.port }}
+      port: 8080
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-deployment" ) }}

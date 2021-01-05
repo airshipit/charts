@@ -16,10 +16,13 @@ set -e
 
 HELM_CHART="$1"
 
-: "${HELM_CHART_ROOT_PATH:="../charts/charts"}"
+: "${HELM_CHART_ROOT_PATH:="./charts"}"
 : "${FEATURE_GATES:=""}"
-CHARTS_FEATURE_MIX="${FEATURE_GATES}"
+: "${CONTAINER_DISTRO_NAME:="default"}"
+: "${CONTAINER_DISTRO_VERSION:="default"}"
 
+CHARTS_FEATURE_MIX="${FEATURE_GATES} ${CONTAINER_DISTRO_NAME} ${CONTAINER_DISTRO_VERSION}"
+values_location="$(mktemp -d)"
 function echoerr () {
   echo "$@" 1>&2;
 }
@@ -57,10 +60,13 @@ function override_file_args () {
   echoerr "We will attempt to use values-override files with the following paths:"
   for FILE in $(combination ${1//,/ } | uniq | tac); do
     FILE_PATH="${HELM_CHART_ROOT_PATH}/${HELM_CHART}/values_overrides/${FILE}.yaml"
-    if [ -f "${FILE_PATH}" ]; then replace_variables ${FILE_PATH}
-      OVERRIDE_ARGS+=" --values=${FILE_PATH} "
+    echoerr "${FILE_PATH}"
+    if [ -f "${FILE_PATH}" ]; then
+      file_location=$(mktemp -d --tmpdir="${values_location}")
+      cp ${FILE_PATH} ${file_location}/${FILE_PATH##*/}
+      replace_variables ${file_location}/${FILE_PATH##*/}
+      OVERRIDE_ARGS+=" --values=${file_location}/${FILE_PATH##*/} "
     fi
-      echoerr "${FILE_PATH}"
   done
   echo "${OVERRIDE_ARGS}"
 }

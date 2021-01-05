@@ -17,21 +17,26 @@
     nodeset: airship-charts-single-node
 
 - job:
-    name: airship-harbor-tekton
+    name: airship-jarvis
     timeout: 7200
     pre-run:
       - playbooks/airship-setup.yaml
     run: playbooks/gate-runner.yaml
     post-run: playbooks/gather-logs.yaml
-    description: Runs Tekton charts
+    description: Perform CI on the Jarvis Suite of applications
     nodeset: airship-charts-single-node
     vars:
       aio_params:
-        feature_gates: "tls storageclass nfs harbor readonly loki-stack grafana"
+        feature_gates: ""
       collect_kubernetes_logs_namespace: tekton-pipelines
       gate_scripts:
-        - ./tools/utils/aio-setup.sh
-        - ./tools/gate/pipelines/run-test.sh
+        - ./tools/gate/jarvis/050-setup-development-ca.sh
+        - ./tools/gate/jarvis/100-deploy-k8s.sh
+        - ./tools/gate/jarvis/200-deploy-support.sh
+        - ./tools/gate/jarvis/300-deploy-loki.sh
+        - ./tools/gate/jarvis/400-deploy-harbor.sh
+        - ./tools/gate/jarvis/500-deploy-gerrit.sh
+        - ./tools/gate/jarvis/600-deploy-tekton.sh
 
 - job:
     name: airship-charts-upload-git-mirror

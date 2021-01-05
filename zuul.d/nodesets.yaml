@@ -15,7 +15,7 @@
     name: airship-charts-single-node
     nodes:
       - name: primary
-        label: ubuntu-bionic
+        label: ubuntu-focal
     groups:
       - name: primary
         nodes:

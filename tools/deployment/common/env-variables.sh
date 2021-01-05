@@ -13,5 +13,5 @@
 #  under the License.
 set -e
 
-export API_ADDR=$(kubectl get endpoints kubernetes -o json | jq -r '.subsets[0].addresses[0].ip')
-export API_PORT=$(kubectl get endpoints kubernetes -o json | jq -r '.subsets[0].ports[0].port')
+export API_ADDR=$(kubectl get endpoints kubernetes -o 'jsonpath={.subsets[0].addresses[0].ip}')
+export API_PORT=$(kubectl get endpoints kubernetes -o 'jsonpath={.subsets[0].ports[0].port}')

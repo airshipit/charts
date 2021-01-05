@@ -27,9 +27,14 @@ node_labels:
 
 params:
   endpoints:
-    ports:
-      web:
-        port: 9097
-        scheme: http
+    hostname: tekton.jarvis.local
+    tls:
+      enabled: false
+      issuer:
+        enabled: false
+        cluster: false
+        name: null
+      secret:
+        name: null
 
 over_rides: {}

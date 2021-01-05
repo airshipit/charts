@@ -1,15 +1,16 @@
 #!/bin/bash
-
 set -ex
 
-: ${HELM_VERSION:="v3.4.2"}
-: ${KUBE_VERSION:="v1.19.6"}
-: ${MINIKUBE_VERSION:="v1.16.0"}
-: ${CALICO_VERSION:="v3.17"}
+: "${HELM_VERSION:="v3.4.2"}"
+: "${KUBE_VERSION:="v1.19.6"}"
+: "${MINIKUBE_VERSION:="v1.16.0"}"
+: "${CALICO_VERSION:="v3.17"}"
 
 : "${HTTP_PROXY:=""}"
 : "${HTTPS_PROXY:=""}"
 : "${NO_PROXY:=""}"
+
+: "${LOOPBACK_DOMAIN_TO_HOST:="jarvis.local"}"
 
 export DEBCONF_NONINTERACTIVE_SEEN=true
 export DEBIAN_FRONTEND=noninteractive
@@ -18,52 +19,73 @@ export DEBIAN_FRONTEND=noninteractive
 echo "DefaultLimitMEMLOCK=16384" | sudo tee -a /etc/systemd/system.conf
 sudo systemctl daemon-reexec
 
-function configure_resolvconf {
-  # Setup resolv.conf to use the k8s api server, which is required for the
-  # kubelet to resolve cluster services.
-  sudo mv /etc/resolv.conf /etc/resolv.conf.backup
-
-  # Create symbolic link to the resolv.conf file managed by systemd-resolved, as
-  # the kubelet.resolv-conf extra-config flag is automatically executed by the
-  # minikube start command, regardless of being passed in here
-  sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
-
-  sudo bash -c "echo 'nameserver 10.96.0.10' >> /etc/resolv.conf"
-
-  # NOTE(drewwalters96): Use the Google DNS servers to prevent local addresses in
-  # the resolv.conf file unless using a proxy, then use the existing DNS servers,
-  # as custom DNS nameservers are commonly required when using a proxy server.
-  if [ -z "${HTTP_PROXY}" ]; then
-    sudo bash -c "echo 'nameserver 8.8.8.8' >> /etc/resolv.conf"
-    sudo bash -c "echo 'nameserver 8.8.4.4' >> /etc/resolv.conf"
-  else
-    sed -ne "s/nameserver //p" /etc/resolv.conf.backup | while read -r ns; do
-      sudo bash -c "echo 'nameserver ${ns}' >> /etc/resolv.conf"
-    done
+# Function to help generate a resolv.conf formatted file.
+# Arguments are positional:
+ # 1st is location of file to be generated
+ # 2nd is a custom nameserver that should be used exclusively if avalible.
+function generate_resolvconf() {
+  local target
+  target="${1}"
+  local priority_nameserver
+  priority_nameserver="${2}"
+  if [[ ${priority_nameserver} ]]; then
+  sudo -E tee "${target}" <<EOF
+nameserver ${priority_nameserver}
+EOF
   fi
-
-  sudo bash -c "echo 'search svc.cluster.local cluster.local' >> /etc/resolv.conf"
-  sudo bash -c "echo 'options ndots:5 timeout:1 attempts:1' >> /etc/resolv.conf"
-
-  sudo rm /etc/resolv.conf.backup
+  local nameservers_systemd
+  nameservers_systemd="$(awk '/^nameserver/ { print $2}' /run/systemd/resolve/resolv.conf | sed '/^127.0.0./d')"
+  if [[ ${nameservers_systemd} ]]; then
+    for nameserver in ${nameservers_systemd}; do
+      sudo -E tee --append "${target}" <<EOF
+nameserver ${nameserver}
+EOF
+    done
+  else
+    sudo -E tee --append "${target}" <<EOF
+nameserver 1.0.0.1
+nameserver 8.8.8.8
+EOF
+  fi
+  if [[ ${priority_nameserver} ]]; then
+  sudo -E tee --append "${target}" <<EOF
+options timeout:1 attempts:1'
+EOF
+  fi
 }
 
 # NOTE: Clean Up hosts file
 sudo sed -i '/^127.0.0.1/c\127.0.0.1 localhost localhost.localdomain localhost4localhost4.localdomain4' /etc/hosts
 sudo sed -i '/^::1/c\::1 localhost6 localhost6.localdomain6' /etc/hosts
 
-# Install required packages for K8s on host
-wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -
-RELEASE_NAME=$(grep 'CODENAME' /etc/lsb-release | awk -F= '{print $2}')
-sudo add-apt-repository "deb https://download.ceph.com/debian-nautilus/ ${RELEASE_NAME} main"
-
+# shellcheck disable=SC1091
 . /etc/os-release
+
+# NOTE: Add docker repo
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo apt-key fingerprint 0EBFCD88
 sudo add-apt-repository \
   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) \
   stable"
+
+# NOTE: Configure docker
+docker_resolv="$(mktemp -d)/resolv.conf"
+generate_resolvconf "${docker_resolv}"
+docker_dns_list="$(awk '/^nameserver/ { printf "%s%s",sep,"\"" $NF "\""; sep=", "} END{print ""}' "${docker_resolv}")"
+sudo -E mkdir -p /etc/docker
+sudo -E tee /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2",
+  "live-restore": true,
+  "dns": [${docker_dns_list}]
+}
+EOF
 
 sudo -E apt-get update
 sudo -E apt-get install -y \
@@ -73,14 +95,13 @@ sudo -E apt-get install -y \
   socat \
   jq \
   util-linux \
-  nfs-common \
   bridge-utils \
   iptables \
   conntrack \
   libffi-dev \
-  ipvsadm
-
-configure_resolvconf
+  ipvsadm \
+  make \
+  bc
 
 # Prepare tmpfs for etcd
 sudo mkdir -p /data
@@ -90,7 +111,6 @@ sudo mount -t tmpfs -o size=512m tmpfs /data
 URL="https://storage.googleapis.com"
 sudo -E curl -sSLo /usr/local/bin/minikube "${URL}"/minikube/releases/"${MINIKUBE_VERSION}"/minikube-linux-amd64
 sudo -E curl -sSLo /usr/local/bin/kubectl "${URL}"/kubernetes-release/release/"${KUBE_VERSION}"/bin/linux/amd64/kubectl
-
 sudo -E chmod +x /usr/local/bin/minikube
 sudo -E chmod +x /usr/local/bin/kubectl
 
@@ -98,11 +118,43 @@ sudo -E chmod +x /usr/local/bin/kubectl
 TMP_DIR=$(mktemp -d)
 sudo -E bash -c \
   "curl -sSL https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz | tar -zxv --strip-components=1 -C ${TMP_DIR}"
-
 sudo -E mv "${TMP_DIR}"/helm /usr/local/bin/helm
 rm -rf "${TMP_DIR}"
 
-# NOTE: Deploy kubenetes using minikube. A CNI that supports network policy is
+# NOTE: Setup nameservers for the kubelet to use. Configuring dnsmasq to direct all requests for a
+# domain back to the interface on the default route if required. This is useful for testing ingress
+# controllers, and/or other services which would normally be reached over an externally manged DNS
+# service (eg Gerrit SSH).
+sudo -E mkdir -p /etc/kubernetes
+if [[ ${LOOPBACK_DOMAIN_TO_HOST} ]]; then
+  default_gateway_device="$(ip -4 route list 0/0 | awk -F 'dev' '{ print $2; exit }' | awk '{ print $1 }')"
+  host_ip="$(ip -4 addr show "${default_gateway_device}" | awk '/inet/ { print $2; exit }' | awk -F "/" '{ print $1 }')"
+  # shellcheck disable=SC2140
+  sudo -E docker network create \
+    --driver=bridge \
+    --subnet=172.28.0.0/30 \
+    -o "com.docker.network.bridge.name"="docker1" \
+    dns
+  sudo -E docker run -d \
+    --name dns-loopback \
+    --restart always \
+    --network=dns \
+    quay.io/airshipit/dnsmasq:latest-ubuntu_bionic \
+      dnsmasq \
+      --no-daemon \
+      --no-hosts \
+      --bind-interfaces \
+      --address="/${LOOPBACK_DOMAIN_TO_HOST}/${host_ip}"
+  sudo tee /etc/kubernetes/kubelet_resolv.conf <<EOF
+  nameserver 172.28.0.2
+EOF
+  sudo rm -f /etc/resolv.conf
+  generate_resolvconf /etc/resolv.conf 172.28.0.2
+else
+  generate_resolvconf /etc/kubernetes/kubelet_resolv.conf
+fi
+
+# NOTE: Deploy kubernetes using minikube. A CNI that supports network policy is
 # required for validation; use calico for simplicity.
 sudo -E minikube config set kubernetes-version "${KUBE_VERSION}"
 sudo -E minikube config set vm-driver none
@@ -117,7 +169,10 @@ sudo -E minikube start \
   --network-plugin=cni \
   --extra-config=controller-manager.allocate-node-cidrs=true \
   --extra-config=controller-manager.cluster-cidr=192.168.0.0/16 \
-  --extra-config=kube-proxy.mode=ipvs
+  --extra-config=kube-proxy.mode=ipvs \
+  --extra-config=apiserver.service-node-port-range=1-65535 \
+  --extra-config=kubelet.resolv-conf=/etc/kubernetes/kubelet_resolv.conf
+sudo -E systemctl enable --now kubelet
 
 minikube addons list
 

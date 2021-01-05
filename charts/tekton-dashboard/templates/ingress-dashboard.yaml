@@ -1,0 +1,35 @@
+{{- define "ingress-dashboard" -}}
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "helpers.labels.fullname" $ }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 4 }}
+  annotations:
+    {{- if and $.Values.params.endpoints.tls.enabled $.Values.params.endpoints.tls.issuer.enabled }}
+    {{- if $.Values.params.endpoints.tls.issuer.cluster }}
+    cert-manager.io/cluster-issuer: {{ $.Values.params.endpoints.tls.issuer.name }}
+    {{- else }}
+    cert-manager.io/issuer: {{ $.Values.params.endpoints.tls.issuer.name }}
+    {{- end }}
+    {{- end }}
+spec:
+  rules:
+  - host: {{ $.Values.params.endpoints.hostname }}
+    http:
+      paths:
+      - backend:
+          serviceName: tekton-dashboard
+          servicePort: web
+        path: /
+  {{- if and $.Values.params.endpoints.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ $.Values.params.endpoints.hostname }}
+    secretName: {{ $.Values.params.endpoints.tls.secret.name | default ( include "helpers.labels.fullname" $ ) }}-cert
+  {{- end }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ingress-dashboard" ) }}
+
+

@@ -15,9 +15,8 @@ SHELL := /bin/bash
 TASK  := build
 
 EXCLUDES := playbooks roles doc tests tools logs tmp zuul.d releasenotes
-# FIXME(lamt): Excluding the dex-aio as there are linting errors and should be
-# fixed in follow on patch. Once that's done, this can be removed.
-EXCLUDES += dex-aio loki grafana nfs
+# NOTE(Portdirect): Exlude chart directories that are presnt only for the purposes of housing over-rides
+EXCLUDES += harbor loki gerrit
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 .PHONY: $(EXCLUDES) $(CHARTS)
@@ -46,12 +45,6 @@ clean:
 	rm -f */templates/_partials.tpl */templates/_globals.tpl
 	rm -f *tgz */charts/*tgz */requirements.lock
 	rm -rf */charts */tmpcharts
-
-pull-all-images:
-	@./tools/pull-images.sh
-
-pull-images:
-	@./tools/pull-images.sh $(filter-out $@,$(MAKECMDGOALS))
 
 %:
 	@:
