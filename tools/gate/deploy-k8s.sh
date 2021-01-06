@@ -77,7 +77,8 @@ sudo -E apt-get install -y \
   bridge-utils \
   iptables \
   conntrack \
-  libffi-dev
+  libffi-dev \
+  ipvsadm
 
 configure_resolvconf
 
@@ -115,7 +116,8 @@ sudo -E minikube start \
   --docker-env NO_PROXY="${NO_PROXY},10.96.0.0/12" \
   --network-plugin=cni \
   --extra-config=controller-manager.allocate-node-cidrs=true \
-  --extra-config=controller-manager.cluster-cidr=192.168.0.0/16
+  --extra-config=controller-manager.cluster-cidr=192.168.0.0/16 \
+  --extra-config=kube-proxy.mode=ipvs
 
 minikube addons list
 
