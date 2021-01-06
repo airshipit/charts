@@ -8,6 +8,9 @@ set -eux
 # executes the tekton tests
 ./tools/gate/tekton/300-test.sh
 
+# executes the loki tests
+./tools/gate/loki/300-test.sh
+
 # performs AIO integration tests
 CREDENTIAL="--username=admin --password=Harbor12345"
 
