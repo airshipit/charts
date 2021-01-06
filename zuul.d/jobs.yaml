@@ -42,3 +42,9 @@
       - name: git_mirror_credentials
         secret: airship-charts-airshipit-github-secret
         pass-to-parent: true
+
+- job:
+    name: airship-charts-publish
+    parent: publish-openstack-artifacts
+    run: playbooks/publish/run.yaml
+    post-run: playbooks/publish/post.yaml

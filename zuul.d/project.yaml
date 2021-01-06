@@ -29,3 +29,4 @@
     promote:
       jobs:
         - promote-airship-project-docs: *docs
+        - airship-charts-publish
