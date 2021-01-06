@@ -4,8 +4,6 @@ set -eux
 
 TEKTON_NS="tekton-pipelines"
 
-sleep 60
-
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/secret.yaml
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/serviceaccount.yaml
 kubectl -n $TEKTON_NS apply -f ./tools/gate/tekton/yaml/role-resources/clustertriggerbinding-roles
