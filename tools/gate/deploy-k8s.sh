@@ -2,10 +2,10 @@
 
 set -ex
 
-: ${HELM_VERSION:="v3.4.1"}
-: ${KUBE_VERSION:="v1.19.2"}
-: ${MINIKUBE_VERSION:="v1.15.1"}
-: ${CALICO_VERSION:="v3.12"}
+: ${HELM_VERSION:="v3.4.2"}
+: ${KUBE_VERSION:="v1.19.6"}
+: ${MINIKUBE_VERSION:="v1.16.0"}
+: ${CALICO_VERSION:="v3.17"}
 
 : "${HTTP_PROXY:=""}"
 : "${HTTPS_PROXY:=""}"
