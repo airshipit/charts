@@ -6,7 +6,7 @@ metadata:
   name: tekton-triggers-webhook
   labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
 spec:
-  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "webhook")| nindent 4 }}
   ports:
     - name: https-webhook
       protocol: TCP

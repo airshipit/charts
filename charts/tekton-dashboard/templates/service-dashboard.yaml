@@ -6,7 +6,7 @@ metadata:
   name: tekton-dashboard
   labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 4 }}
 spec:
-  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $) | nindent 4 }}
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "dashboard") | nindent 4 }}
   ports:
     - name: web
       protocol: TCP
