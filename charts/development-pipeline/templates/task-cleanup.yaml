@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: cleanup
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task gathers logs and cleans up the environment
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: gather-logs
+      image: {{ $.Values.tasks.cleanup.cleanupImage }}
+      script: |
+        #!/bin/sh
+        # TODO
+        echo "gather logs"
+        echo "publish logs"
+        echo "notify"
+    - name: cleanup
+      image: {{ $.Values.tasks.cleanup.cleanupImage }}
+      script: |
+        #!/bin/sh
+        if grep -i "true" "$(workspaces.k8s_cluster_data.path)/production"; then
+            echo "No cleanup is required. CI was set to false."
+            exit 0
+        fi
+        if grep "true" "$(workspaces.k8s_cluster_data.path)/cluster_exists"; then
+            # TODO
+            echo "Cleanup artifacts"
+        else
+          # TODO
+          echo "Teardown k8s cluster"
+        fi
+        # TODO Delete sensitive data from shared workspace
+        rm "$(workspaces.development_pipeline_data.path)/kubeconfig.json"

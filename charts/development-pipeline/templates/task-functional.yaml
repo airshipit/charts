@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: functional
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task will validate the k8s cluster using kubeconfig from k8s-cluster task
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: run-functional-tests
+      image: {{ $.Values.tasks.functional.validateImage }}
+      script: |
+        #!/bin/sh
+        if [ -f "$(workspaces.development_pipeline_data.path)/kubeconfig.json" ] ; then
+          echo "Kubeconfig is found, starting validation"
+        else
+          echo "Error: missing kubeconfig.json file"
+          exit 1
+        fi
+        echo "Validating cluster"
+        echo "ansible-playbook {{ $.Values.tasks.functional.playbook }}"
+        cat "$(workspaces.development_pipeline_data.path)/kubeconfig.json"

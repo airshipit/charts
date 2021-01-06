@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: k8s-cluster
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task will create a k8s cluster if needed and store kubeconfig in shared workspace
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: generate-kubeconfig
+      image: {{ $.Values.tasks.cluster.createClusterImage }}
+      script: |
+        #!/usr/bin/env sh
+        # Use provided kubeconfig for existing cluster
+        if grep -i "true" "$(workspaces.k8s_cluster_data.path)/cluster_exists"; then
+          echo "Use existing cluster."
+          cp "$(workspaces.k8s_cluster_data.path)/kubeconfig.json" "$(workspaces.development_pipeline_data.path)/kubeconfig.json"
+        # Deploy cluster and copy kubeconfig
+        else
+          echo "Create a k8s cluster"
+          # TODO
+          echo "ansible-playbook -vvv {{ $.Values.tasks.cluster.createClusterPlaybook }}  -i hosts -e @\"$(workspaces.k8s_cluster_data.path)/development.yaml\""
+          # TODO copy generated kubeconfig to shared wokspace
+          echo "New cluster's kubeconfig data" > "$(workspaces.development_pipeline_data.path)/kubeconfig.json"
+        fi
+        echo "ansible-playbook -vvv {{ $.Values.tasks.cluster.validateClusterPlaybook }}  -i hosts -e @\"$(workspaces.k8s_cluster_data.path)/development.yaml\""
+        # TODO copy JSON file to shared workspace to make it available for other tasks

@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: development-pipeline
+  namespace: {{ $.Release.Namespace }}
+spec:
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  tasks:
+    - name: deploy-k8s
+      taskRef:
+        name: k8s-cluster
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+    - name: build-image
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+      taskRef:
+        name: build-images
+    - name: build-chart
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+      taskRef:
+        name: build-charts
+    - name: deploy-artifacts
+      runAfter: [deploy-k8s,build-image,build-chart]
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+      taskRef:
+        name: deployment
+    - name: functional-testing
+      runAfter: [deploy-artifacts]
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+      taskRef:
+        name: functional
+    - name: promote-artifacts
+      runAfter: [functional-testing]
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+      taskRef:
+        name: promote
+  finally:
+    - name: cleanup
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+      taskRef:
+        name: cleanup

@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: promote
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task builds charts if source is provided
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: build-chart
+      image: {{ $.Values.tasks.promote.promoteArtifacts }}
+      script: |
+        #!/usr/bin/env sh
+        # TODO call playbook to promote artifacts generated in previous tasks
+        echo "Promote artifacts"

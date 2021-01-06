@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-development-listener
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+    - host: el-development.{{- .Release.Namespace }}.tekton.jarvis.local
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: el-development-listener
+              servicePort: 8080

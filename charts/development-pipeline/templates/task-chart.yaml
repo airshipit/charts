@@ -1,0 +1,18 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-charts
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task builds charts if source is provided
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: build-chart
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        ansible-playbook -vvv {{ $.Values.tasks.chart.buildPlaybook }}  -i hosts -e @"$(workspaces.k8s_cluster_data.path)/development.yaml"
+        # TODO copy JSON to shared workspace to make it available for other tasks

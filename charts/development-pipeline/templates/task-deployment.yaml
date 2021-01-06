@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deployment
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task deploys artifacts from produced by previous tasks
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: deploy-artifacts
+      image: {{ $.Values.tasks.deployment.deployImage }}
+      script: |
+        #!/usr/bin/env sh
+        # Artifacts details are stored in JSON files as an output of previous tasks.
+        # TODO copy logs and scan results to shared workspace
+        echo "Deploying artifacts"

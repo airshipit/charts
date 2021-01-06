@@ -1,0 +1,13 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: development-listener
+  namespace: {{ $.Release.Namespace }}
+spec:
+  serviceAccountName:  {{ $.Values.serviceAccount.name }}
+  triggers:
+    - name: development-trigger
+      bindings:
+        - ref: development-pipeline-binding
+      template:
+        name: development-pipeline-template

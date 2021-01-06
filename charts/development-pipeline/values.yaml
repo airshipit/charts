@@ -1,0 +1,43 @@
+serviceAccount:
+  create: true
+  name: sa-development-pipeline
+
+role:
+  bind: true
+  name: development-pipeline
+  create: true
+
+clusterRole:
+  bind: true
+  name: development-pipeline
+  create: true
+
+pvc:
+  storageClass: standard
+  size: 1Gi
+
+tasks:
+  cluster:
+    createClusterImage: &base_image testing2016/standard-container:1.0
+    createClusterPlaybook: /playbooks/create_cluster.yaml
+    validateClusterPlaybook: /playbooks/validate_cluster.yaml
+  image:
+    buildImage: *base_image
+    sidecarServer: docker:19-dind
+    buildPlaybook: /playbooks/build_image.yaml
+    insecureRegistry: harbor-core.jarvis.local
+  chart:
+    buildChartImage: *base_image
+    buildPlaybook: /playbooks/helm_chart.yaml
+  deployment:
+    deployImage: *base_image
+  promote:
+    promoteArtifacts: *base_image
+  functional:
+    validateImage: *base_image
+    playbook: /playbooks/functional.yaml
+  cleanup:
+    cleanupImage: *base_image
+
+trigger:
+  configMap: deployment-flow

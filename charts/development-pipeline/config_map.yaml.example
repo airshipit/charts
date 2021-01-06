@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deployment-flow
+  namespace: default
+data:
+  credentials: "Some creds"
+  kubeconfig.json: "Default kubeconfig.json"
+  cluster_exists: "true"
+  production: "false"
+  development.yaml: |
+    proxy:
+      http: ""
+      https: ""
+      noproxy: ""
+      enabled: false
+    docker_registry: "harbor-core.jarvis.local"
+    images:
+      - build_from_source: true
+        project: "test"
+        repo: "scratch"
+        tag: "1.built"
+        build:
+          git_repo: "https://review.opendev.org/airship/charts"
+          checkout_loc: "/src/checkout/scratch"
+          refspec: "refs/changes/41/770141/7"
+          version: "refs/changes/*:refs/changes/*"
+        makefile:
+          path: "tools/images"
+          target: "build"
+          file: "Makefile"
+          image_name: "scratch"
+          image_base: "scratch"
+      - build_from_source: true
+        repo: "microflow/standard-container"
+        project: "test"
+        tag: "1.built"
+        build:
+          git_repo: "https://review.opendev.org/airship/charts"
+          checkout_loc: "/src/checkout/standard-container"
+          refspec: "refs/changes/41/770141/7"
+          version: "refs/changes/*:refs/changes/*"
+        makefile:
+          path: "tools/images"
+          target: "build"
+          file: "Makefile"
+          image_name: "standard-container"
+          image_base: "ubuntu:20.04"
+      - build_from_source: false
+        remote_registry: "docker.io"
+        remote_repo: "testing2016/jrunner"
+        remote_tag: "2.0"
+        repo: "microflow/standard-container"
+        project: "test"
+        tag: "1.existing"
+    charts:
+      - name: "tekton-pipelines"
+        build_from_source: true
+        build:
+          git_repo: "https://review.opendev.org/airship/charts"
+          checkout_loc: "/src/checkout/airship/charts"
+          refspec: "master"
+        makefile:
+          path: "charts"
+          target: "tekton-pipelines"
+          file: "Makefile"
+      - name: "tekton-triggers"
+        build_from_source: true
+        build:
+          git_repo: "https://review.opendev.org/airship/charts"
+          checkout_loc: "/src/checkout/airship/charts"
+          refspec: "master"
+        makefile:
+          path: "charts"
+          target: "tekton-triggers"
+          file: "Makefile"
+      - name: "tekton-dashboard"
+        build_from_source: true
+        build:
+          git_repo: "https://review.opendev.org/airship/charts"
+          checkout_loc: "/src/checkout/airship/charts"
+          refspec: "master"
+        makefile:
+          path: "charts"
+          target: "tekton-dashboard"
+          file: "Makefile"

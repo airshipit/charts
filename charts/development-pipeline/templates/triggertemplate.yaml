@@ -1,0 +1,28 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: development-pipeline-template
+  namespace: {{ $.Release.Namespace }}
+spec:
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: development-pipeline-run
+      spec:
+        pipelineRef:
+          name: development-pipeline
+        serviceAccountName: {{ $.Values.serviceAccount.name }}
+        workspaces:
+          - name: k8s_cluster_data
+            configMap:
+              name: {{ $.Values.trigger.configMap }}
+          - name: development_pipeline_data
+            volumeClaimTemplate:
+              spec:
+                storageClassName: {{ $.Values.pvc.storageClass }}
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: {{ $.Values.pvc.size }}
