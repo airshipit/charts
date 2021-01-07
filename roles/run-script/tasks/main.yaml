@@ -18,3 +18,5 @@
     script_path: "{{ script }}"
   args:
     chdir: "{{ zuul.project.src_dir }}"
+  environment:
+    FEATURE_GATES: "{{ aio_params.feature_gates | default('') }}"

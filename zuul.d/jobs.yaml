@@ -26,6 +26,8 @@
     description: Runs Tekton charts
     nodeset: airship-charts-single-node
     vars:
+      aio_params:
+        feature_gates: "tls storageclass nfs harbor readonly loki-stack grafana"
       collect_kubernetes_logs_namespace: tekton-pipelines
       gate_scripts:
         - ./tools/utils/aio-setup.sh

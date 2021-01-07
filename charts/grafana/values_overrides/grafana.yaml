@@ -75,5 +75,5 @@ datasources:
     - name: Loki
       type: loki
       access: proxy
-      url: http://loki-stack.loki-stack:3100
+      url: http://loki.loki-stack:3100
       version: 1
