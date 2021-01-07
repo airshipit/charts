@@ -122,6 +122,10 @@ sudo -E minikube start \
 minikube addons list
 
 curl https://docs.projectcalico.org/"${CALICO_VERSION}"/manifests/calico.yaml -o /tmp/calico.yaml
+# NOTE: Changes the default repository to use quay.io. Running this script multiple times can result
+# in image pull error due to dockerhub's rate limiting policy. To avoid potential conflict,
+# use calico's quay.io repository to mitigate this issue.
+sed -i -e 's#docker.io/calico/#quay.io/calico/#g' /tmp/calico.yaml
 kubectl apply -f /tmp/calico.yaml
 
 # Note: Patch calico daemonset to enable Prometheus metrics and annotations
