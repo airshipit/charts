@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: development-pipeline-run
+spec:
+  pipelineRef:
+    name: development-pipeline
+  serviceAccountName: sa-development-pipeline
+  workspaces:
+    - name: k8s_cluster_data
+      configMap:
+        name: deployment-flow
+    - name: development_pipeline_data
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

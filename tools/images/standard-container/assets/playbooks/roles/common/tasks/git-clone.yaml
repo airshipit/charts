@@ -1,0 +1,6 @@
+#Build docker image using Makefile given git repository location to clone code from
+- git:
+    repo: "{{ build.git_repo }}"
+    dest: "{{ build.checkout_loc }}"
+    version: "{{ build.refspec }}"
+    refspec: "refs/changes/*:refs/changes/*"

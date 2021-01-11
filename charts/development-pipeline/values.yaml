@@ -7,37 +7,45 @@ role:
   name: development-pipeline
   create: true
 
-clusterRole:
-  bind: true
-  name: development-pipeline
-  create: true
-
 pvc:
   storageClass: standard
   size: 1Gi
 
 tasks:
-  cluster:
-    createClusterImage: &base_image testing2016/standard-container:1.0
-    createClusterPlaybook: /playbooks/create_cluster.yaml
-    validateClusterPlaybook: /playbooks/validate_cluster.yaml
+  kubernetes:
+    createClusterImage: &base_image standard-container:1.0
+    createClusterPlaybook: /playbooks/create-cluster.yaml
+    getKubeconfigPlaybook: /playbooks/get-kubeconfig.yaml
+    validateClusterPlaybook: /playbooks/validate-cluster.yaml
+  setup:
+    setupConfigImage: *base_image
   image:
     buildImage: *base_image
     sidecarServer: docker:19-dind
-    buildPlaybook: /playbooks/build_image.yaml
     insecureRegistry: harbor-core.jarvis.local
+    clonePlaybook: /playbooks/clone.yaml
+    buildPlaybook: /playbooks/build-image.yaml
+    pushPlaybook: /playbooks/tag-push-image.yaml
+    getScanResultsPlaybook: /playbooks/get-scan-results.yaml
+    name: standard-container.yaml
   chart:
     buildChartImage: *base_image
-    buildPlaybook: /playbooks/helm_chart.yaml
-  deployment:
-    deployImage: *base_image
+    clonePlaybook: /playbooks/clone.yaml
+    packagePlaybook: /playbooks/package-chart.yaml
+    lintdryrunPlaybook: /playbooks/lint-dryrun-chart.yaml
+    publishPlaybook: /playbooks/publish-chart.yaml
+  deploymentManifests:
+    deploymentManifestsImage: *base_image
+    deploymentManifestsPlaybook: /playbooks/deployment-manifests.yaml
   promote:
-    promoteArtifacts: *base_image
+    promoteImage: *base_image
+    promoteImagePlaybook: /playbooks/promote-image.yaml
+    promoteChartPlaybook: /playbooks/promote-chart.yaml
   functional:
-    validateImage: *base_image
-    playbook: /playbooks/functional.yaml
+    functionalDeployImage: *base_image
+    functionalTestImage: *base_image
+    functionalDeployPlaybook: /playbooks/functional-deploy.yaml
+    functionalTestPlaybook: /playbooks/functional-test.yaml
   cleanup:
     cleanupImage: *base_image
-
-trigger:
-  configMap: deployment-flow
+    cleanupPlaybook: /playbooks/cleanup.yaml

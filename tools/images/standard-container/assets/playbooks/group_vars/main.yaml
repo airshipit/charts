@@ -1,0 +1,6 @@
+proxy:
+  http: ""
+  https: ""
+  noproxy: ""
+  enabled: false
+docker_registry: "harbor-core.jarvis.local"

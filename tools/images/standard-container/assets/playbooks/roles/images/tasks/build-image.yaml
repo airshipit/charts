@@ -1,0 +1,5 @@
+#Build docker image using Makefile given git repository location to clone code from
+- name: Build Docker Image for "{{ image_name }}"
+  shell: docker build -t "{{ image_fullname }}" .
+  args:
+    chdir: "{{ build.checkout_loc }}/{{ path }}"

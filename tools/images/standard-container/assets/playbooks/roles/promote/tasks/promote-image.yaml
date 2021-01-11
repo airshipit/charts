@@ -1,0 +1,10 @@
+- name: Tag and push to promotion repository
+  docker_image:
+    pull: true
+    name: "{{ docker_registry }}/{{ project }}-staging/{{ repo }}:{{ tag }}"
+- name: Tag and push to promotion repository
+  docker_image:
+    push: true
+    name: "{{ docker_registry }}/{{ project }}-staging/{{ repo }}"
+    repository: "{{ docker_registry }}/{{ project }}/{{ repo }}"
+    tag: "{{ tag }}"
