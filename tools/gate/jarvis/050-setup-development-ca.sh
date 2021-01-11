@@ -5,8 +5,8 @@ for cfssl_bin in cfssl cfssljson; do
   if ! type -p "${cfssl_bin}"; then
     version=$(curl --silent "https://api.github.com/repos/cloudflare/cfssl/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
     version_number=${version#"v"}
-    sudo curl -L -o "/usr/local/bin/${cfssl_bin}" "https://github.com/cloudflare/cfssl/releases/download/${version}/${cfssl_bin}_${version_number}_linux_amd64"
-    sudo chmod +x "/usr/local/bin/${cfssl_bin}"
+    sudo -E curl -L -o "/usr/local/bin/${cfssl_bin}" "https://github.com/cloudflare/cfssl/releases/download/${version}/${cfssl_bin}_${version_number}_linux_amd64"
+    sudo -E chmod +x "/usr/local/bin/${cfssl_bin}"
     ls "/usr/local/bin/${cfssl_bin}"
   fi
 done

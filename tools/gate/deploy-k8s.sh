@@ -15,14 +15,16 @@ set -ex
 export DEBCONF_NONINTERACTIVE_SEEN=true
 export DEBIAN_FRONTEND=noninteractive
 
+sudo swapoff -a
+
 # Note: Including fix from https://review.opendev.org/c/openstack/openstack-helm-infra/+/763619/
 echo "DefaultLimitMEMLOCK=16384" | sudo tee -a /etc/systemd/system.conf
 sudo systemctl daemon-reexec
 
 # Function to help generate a resolv.conf formatted file.
 # Arguments are positional:
- # 1st is location of file to be generated
- # 2nd is a custom nameserver that should be used exclusively if avalible.
+#    1st is location of file to be generated
+#    2nd is a custom nameserver that should be used exclusively if avalible.
 function generate_resolvconf() {
   local target
   target="${1}"
@@ -34,7 +36,7 @@ nameserver ${priority_nameserver}
 EOF
   fi
   local nameservers_systemd
-  nameservers_systemd="$(awk '/^nameserver/ { print $2}' /run/systemd/resolve/resolv.conf | sed '/^127.0.0./d')"
+  nameservers_systemd="$(awk '/^nameserver/ { print $2 }' /run/systemd/resolve/resolv.conf | sed '/^127.0.0./d')"
   if [[ ${nameservers_systemd} ]]; then
     for nameserver in ${nameservers_systemd}; do
       sudo -E tee --append "${target}" <<EOF
@@ -49,7 +51,7 @@ EOF
   fi
   if [[ ${priority_nameserver} ]]; then
   sudo -E tee --append "${target}" <<EOF
-options timeout:1 attempts:1'
+options timeout:1 attempts:1
 EOF
   fi
 }
@@ -73,6 +75,7 @@ sudo add-apt-repository \
 docker_resolv="$(mktemp -d)/resolv.conf"
 generate_resolvconf "${docker_resolv}"
 docker_dns_list="$(awk '/^nameserver/ { printf "%s%s",sep,"\"" $NF "\""; sep=", "} END{print ""}' "${docker_resolv}")"
+
 sudo -E mkdir -p /etc/docker
 sudo -E tee /etc/docker/daemon.json <<EOF
 {
@@ -86,6 +89,16 @@ sudo -E tee /etc/docker/daemon.json <<EOF
   "dns": [${docker_dns_list}]
 }
 EOF
+
+if [ -n "${HTTP_PROXY}" ]; then
+  sudo mkdir -p /etc/systemd/system/docker.service.d
+  cat <<EOF | sudo -E tee /etc/systemd/system/docker.service.d/http-proxy.conf
+[Service]
+Environment="HTTP_PROXY=${HTTP_PROXY}"
+Environment="HTTPS_PROXY=${HTTPS_PROXY}"
+Environment="NO_PROXY=${NO_PROXY}"
+EOF
+fi
 
 sudo -E apt-get update
 sudo -E apt-get install -y \
@@ -147,7 +160,7 @@ if [[ ${LOOPBACK_DOMAIN_TO_HOST} ]]; then
       --bind-interfaces \
       --address="/${LOOPBACK_DOMAIN_TO_HOST}/${host_ip}"
   sudo tee /etc/kubernetes/kubelet_resolv.conf <<EOF
-  nameserver 172.28.0.2
+nameserver 172.28.0.2
 EOF
   sudo rm -f /etc/resolv.conf
   generate_resolvconf /etc/resolv.conf 172.28.0.2
@@ -172,7 +185,8 @@ sudo -E minikube start \
   --extra-config=controller-manager.cluster-cidr=192.168.0.0/16 \
   --extra-config=kube-proxy.mode=ipvs \
   --extra-config=apiserver.service-node-port-range=1-65535 \
-  --extra-config=kubelet.resolv-conf=/etc/kubernetes/kubelet_resolv.conf
+  --extra-config=kubelet.resolv-conf=/etc/kubernetes/kubelet_resolv.conf \
+  --extra-config=kubelet.cgroup-driver=systemd
 sudo -E systemctl enable --now kubelet
 
 minikube addons list

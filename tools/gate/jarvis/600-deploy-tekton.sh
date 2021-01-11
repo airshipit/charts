@@ -12,9 +12,27 @@ for chart in tekton-pipelines tekton-triggers tekton-dashboard; do
     $(./tools/deployment/common/get-values-overrides.sh "${chart}")
 done
 
+function get_yq() {
+  version=$(curl --silent "https://api.github.com/repos/mikefarah/yq/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+  sudo -E curl -L -o "/usr/local/bin/yq" "https://github.com/mikefarah/yq/releases/download/${version}/yq_linux_amd64"
+  sudo -E chmod +x "/usr/local/bin/yq"
+  ls "/usr/local/bin/yq"
+}
+
 ./tools/deployment/common/wait-for-pods.sh tekton-pipelines
 
 function validate() {
+
+  # if we are using the proxy we should place that into the template
+  if [ -n "${HTTP_PROXY}" ]; then
+    get_yq
+
+    # Note: This assume syntax of yq >= 4.x
+    yq eval '(.spec.resourcetemplates[].spec.params[] | select(.name=="httpProxy")).value |= env(HTTP_PROXY)' -i ./tools/gate/jarvis/resources/tekton/yaml/triggertemplates/triggertemplate.yaml
+    yq eval '(.spec.resourcetemplates[].spec.params[] | select(.name=="httpsProxy")).value |= env(HTTPS_PROXY)' -i ./tools/gate/jarvis/resources/tekton/yaml/triggertemplates/triggertemplate.yaml
+    yq eval '(.spec.resourcetemplates[].spec.params[] | select(.name=="noProxy")).value |= env(NO_PROXY)' -i ./tools/gate/jarvis/resources/tekton/yaml/triggertemplates/triggertemplate.yaml
+  fi
+
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/role-resources/secret.yaml
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/role-resources/serviceaccount.yaml
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/role-resources/clustertriggerbinding-roles

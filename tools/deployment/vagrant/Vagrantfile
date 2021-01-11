@@ -4,6 +4,16 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2004"
 
+  if Vagrant.has_plugin?("vagrant-proxyconf")
+    config.proxy.http     = ENV["HTTP_PROXY"]
+    config.proxy.https    = ENV["HTTPS_PROXY"]
+    if ENV["NO_PROXY"].nil?
+      config.proxy.no_proxy = "localhost,127.0.0.1,10.96.0.0/12,192.168.49.0/24,192.168.99.0/24,10.0.2.15,10.244.0.0/16,172.28.0.0/30,.minikube.internal,.svc,.svc.cluster.local,jarvis.local"
+    else
+      config.proxy.no_proxy = ENV["NO_PROXY"]
+    end
+  end
+
   config.vm.synced_folder "../../../", "/airship_charts"
 
   config.vm.network "private_network", ip: "192.168.56.10"
@@ -19,9 +29,10 @@ Vagrant.configure("2") do |config|
     vb.memory = 8192
   end
 
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "shell", env: {"PRIVATE_NS" => ENV["PRIVATE_NS"]}, inline: <<-SHELL
     set -ex
     cd /airship_charts/
+    ./tools/gate/jarvis/010-pre-setup.sh
     ./tools/gate/jarvis/050-setup-development-ca.sh
     ./tools/gate/jarvis/100-deploy-k8s.sh
     ./tools/gate/jarvis/200-deploy-support.sh
@@ -29,6 +40,5 @@ Vagrant.configure("2") do |config|
     ./tools/gate/jarvis/400-deploy-harbor.sh
     ./tools/gate/jarvis/500-deploy-gerrit.sh
     ./tools/gate/jarvis/600-deploy-tekton.sh
-
   SHELL
 end

@@ -25,3 +25,9 @@ spec:
         value: $(tt.params.gitrevision)
       - name: message
         value: $(tt.params.message)
+      - name: httpProxy
+        value: ""
+      - name: httpsProxy
+        value: ""
+      - name: noProxy
+        value: "172.28.0.2,localhost,127.0.0.1,10.96.0.0/12,192.168.49.0/24,192.168.99.0/24,107.124.202.156,10.0.2.15,10.244.0.0/16,.minikube.internal,.svc,.svc.cluster.local,jarvis.local,jarvis"
