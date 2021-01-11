@@ -4,11 +4,17 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2004"
 
-  config.vm.synced_folder "../../../", "/airship_charts", type: '9p', disabled: false
+  config.vm.synced_folder "../../../", "/airship_charts"
 
   config.vm.provider "libvirt" do |libvirt|
     libvirt.cpus = 4
     libvirt.memory = 8192
+  end
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = false
+    vb.cpus = 4
+    vb.memory = 8192
   end
 
   config.vm.provision "shell", inline: <<-SHELL
