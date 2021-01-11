@@ -1,10 +1,11 @@
 #!/bin/bash
 set -ex
 
-cfssl_url=https://pkg.cfssl.org/R1.2
 for cfssl_bin in cfssl cfssljson; do
   if ! type -p "${cfssl_bin}"; then
-    sudo curl -sSL -o "/usr/local/bin/${cfssl_bin}" "${cfssl_url}/${cfssl_bin}_linux-amd64"
+    version=$(curl --silent "https://api.github.com/repos/cloudflare/cfssl/releases/latest" | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+    version_number=${version#"v"}
+    sudo curl -L -o "/usr/local/bin/${cfssl_bin}" "https://github.com/cloudflare/cfssl/releases/download/${version}/${cfssl_bin}_${version_number}_linux_amd64"
     sudo chmod +x "/usr/local/bin/${cfssl_bin}"
     ls "/usr/local/bin/${cfssl_bin}"
   fi
