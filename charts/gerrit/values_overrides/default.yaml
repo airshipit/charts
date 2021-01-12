@@ -48,7 +48,7 @@ gerrit:
           listenUrl = proxy-http://*:8080/
           requestLog = true
         [sshd]
-          listenAddress = off
+          listenAddress = *:29418
         [transfer]
           timeout = 120 s
         [user]
