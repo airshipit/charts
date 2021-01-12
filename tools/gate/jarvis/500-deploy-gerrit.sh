@@ -15,6 +15,24 @@ function get_repo() {
 }
 get_repo "${gerrit_source}" "${repo_remote}" "${repo_sha}"
 
+function generate_ssh_host_key_override() {
+  local work_dir
+  work_dir="$(mktemp -d)"
+  mkdir -p "${work_dir}/etc/ssh"
+  ssh-keygen -A -f "${work_dir}"
+  local output_file
+  output_file="$(mktemp -d)/gerrit-host-rsa-key.yaml"
+  tee "${output_file}" <<EOF
+gerrit:
+  service:
+    ssh:
+      rsaKey: |-
+$(awk  '{ print "        " $0 }' "${work_dir}/etc/ssh/ssh_host_rsa_key")
+EOF
+  export ssh_host_key_override="${output_file}"
+}
+generate_ssh_host_key_override
+
 # shellcheck disable=SC2046
 helm upgrade \
     --create-namespace \
@@ -22,6 +40,7 @@ helm upgrade \
     --namespace=gerrit \
     gerrit \
     "${gerrit_source}/helm-charts/gerrit" \
+    --values="${ssh_host_key_override}" \
     $(./tools/deployment/common/get-values-overrides.sh gerrit)
 
 ./tools/deployment/common/wait-for-pods.sh gerrit
