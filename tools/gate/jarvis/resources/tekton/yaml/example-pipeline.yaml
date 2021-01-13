@@ -1,59 +1,17 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: say-hello
+  name: print-info
 spec:
   params:
-  - name: contenttype
-    description: The Content-Type of the event
-    type: string
-  resources:
-    inputs:
-      - name: git-source
-        type: git
+    - name: info
+      type: string
   steps:
-  - name: say-hi
+  - name: print-info
     image: bash
     command: ["bash", "-c"]
     args:
-      - echo -e 'Hello Triggers!\nContent-Type is $(params.contenttype)'
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: say-message
-spec:
-  params:
-  - name: message
-    description: The message to print
-    default: This is the default message
-    type: string
-  resources:
-    inputs:
-    - name: git-source
-      type: git
-  steps:
-  - name: say-message
-    image: bash
-    command: ["bash", "-c"]
-    args:
-      - echo '$(params.message)'
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: say-bye
-spec:
-  resources:
-    inputs:
-    - name: git-source
-      type: git
-  steps:
-  - name: say-bye
-    image: bash
-    command: ["bash", "-c"]
-    args:
-    - echo 'Goodbye Triggers!'
+      - echo -e '$(params.info)'
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
@@ -61,43 +19,25 @@ metadata:
   name: simple-pipeline
 spec:
   params:
+  - name: gitrepositoryurl
+  - name: gitrevision
   - name: message
-    description: The message to print
-    default: This is the default message
-    type: string
-  - name: contenttype
-    description: The Content-Type of the event
-    type: string
-  resources:
-  - name: git-source
-    type: git
   tasks:
-  - name: say-hello
+  - name: print-url
     taskRef:
-      name: say-hello
+      name: print-info
     params:
-    - name: contenttype
-      value: $(params.contenttype)
-    resources:
-      inputs:
-      - name: git-source
-        resource: git-source
-  - name: say-message
-    runAfter: [say-hello]
+    - name: info
+      value: $(params.gitrepositoryurl)
+  - name: print-revision
     taskRef:
-      name: say-message
+      name: print-info
     params:
-    - name: message
-      value: $(params.message)
-    resources:
-      inputs:
-      - name: git-source
-        resource: git-source
-  - name: say-bye
-    runAfter: [say-message]
+      - name: info
+        value: $(params.gitrevision)
+  - name: print-message
     taskRef:
-      name: say-bye
-    resources:
-      inputs:
-      - name: git-source
-        resource: git-source
+      name: print-info
+    params:
+      - name: info
+        value: $(params.message)

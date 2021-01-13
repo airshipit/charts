@@ -4,11 +4,7 @@ metadata:
   name: pipeline-binding
 spec:
   params:
-  #TODO: These have to come from the gerrit trigger.
   - name: gitrevision
-    value: master
+    value: $(body.change.id)
   - name: gitrepositoryurl
-    value: https://review.opendev.org/airship/charts.git
-  - name: contenttype
-    value: application/json
-
+    value: $(body.change.url)

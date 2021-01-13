@@ -23,11 +23,9 @@ function validate() {
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/triggerbindings/triggerbinding.yaml
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/triggerbindings/triggerbinding-message.yaml
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/eventlisteners/eventlistener.yaml
-
-  kubectl -n tekton-pipelines wait --for=condition=Ready pod --timeout=120s --all
+  kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/example-pipeline.yaml
 
   # Install the pipeline
-  kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/example-pipeline.yaml
   kubectl -n tekton-pipelines wait --for=condition=Ready pod --timeout=120s --all
 
   # Define creds to use for gerrit.
