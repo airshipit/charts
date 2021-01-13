@@ -101,7 +101,8 @@ sudo -E apt-get install -y \
   libffi-dev \
   ipvsadm \
   make \
-  bc
+  bc \
+  git-review
 
 # Prepare tmpfs for etcd
 sudo mkdir -p /data

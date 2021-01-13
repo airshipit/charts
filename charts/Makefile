@@ -16,7 +16,7 @@ TASK  := build
 
 EXCLUDES := playbooks roles doc tests tools logs tmp zuul.d releasenotes
 # NOTE(Portdirect): Exlude chart directories that are presnt only for the purposes of housing over-rides
-EXCLUDES += harbor loki gerrit
+EXCLUDES += harbor loki gerrit ldap
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 .PHONY: $(EXCLUDES) $(CHARTS)

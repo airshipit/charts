@@ -1,6 +1,18 @@
 #!/bin/bash
 set -ex
 
+helm repo add stable https://charts.helm.sh/stable
+# shellcheck disable=SC2046
+helm upgrade \
+    --create-namespace \
+    --install \
+    --namespace=ldap \
+    ldap \
+    stable/openldap \
+    $(./tools/deployment/common/get-values-overrides.sh ldap)
+
+./tools/deployment/common/wait-for-pods.sh ldap
+
 gerrit_source=$(mktemp -d)
 repo_sha="251041b192ef8acf1963d747482126d0e9e66e75"
 repo_remote="https://gerrit.googlesource.com/k8s-gerrit"
@@ -59,3 +71,70 @@ kubectl patch -n gerrit svc gerrit-gerrit-service --patch '{
     ]
   }
 }'
+
+function gerrit_bootstrap() {
+  # Define creds to use for gerrit.
+  ldap_username="jarvis"
+  ldap_password="password"
+
+  # Login to gerrit, to provision admin account
+  curl --verbose \
+    -d "username=${ldap_username}&password=${ldap_password}" \
+    -X POST \
+    https://gerrit.jarvis.local/login
+
+  # Create SSH Keys if the private key does not already exist, note this will fail if a public key already
+  # exists at the default location without a corresponding private key.
+  mkdir -p "${HOME}/.ssh"
+  if [[ ! -f "${HOME}/.ssh/id_rsa" ]]; then
+    ssh-keygen -t rsa -f "${HOME}/.ssh/id_rsa" -q -N ""
+  fi
+
+  # Add SSH Public key to gerrit
+  curl --verbose \
+    -u "${ldap_username}:${ldap_password}" \
+    -X POST \
+    -H "Content-Type: text/plain" \
+    --data "@${HOME}/.ssh/id_rsa.pub" \
+    https://gerrit.jarvis.local/a/accounts/self/sshkeys/
+
+  # Add Gerrit HostKey to SSH known hosts
+  ssh-keyscan -p 29418 -H gerrit.jarvis.local >> "${HOME}/.ssh/known_hosts"
+
+  # Validate access to gerrit via SSH
+  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit version
+
+  # Configure Git
+  git config --global user.name "Edwin Jarvis"
+  git config --global user.email "jarvis@cluster.local"
+  git config --global --add gitreview.username "jarvis"
+
+  # Clone, fetch and checkout project config repo
+  all_projects_repo=$(mktemp -d)
+  git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/All-Projects.git "${all_projects_repo}"
+  pushd "${all_projects_repo}"
+  git fetch origin refs/meta/config:refs/remotes/origin/meta/config
+  git checkout meta/config
+
+  # Configure Verified Label
+  tee --append project.config <<EOF
+[label "Verified"]
+        function = MaxWithBlock
+        defaultValue = 0
+        value = -1 Fails
+        value = 0 No score
+        value = +1 Verified
+        copyAllScoresIfNoCodeChange = true
+EOF
+
+  # Give Admins, Service Users and Project Owners voting rights for the Verified Label
+  sed -i '/\[access "refs\/heads\/\*"\]/a\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Administrators\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Service Users\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Project Owners' project.config
+
+  # Commit and push config
+  git add .
+  git commit -asm "Create Verified Label"
+  git push origin HEAD:refs/meta/config
+  popd
+}
+
+gerrit_bootstrap

@@ -1,0 +1,39 @@
+env:
+  LDAP_ORGANISATION: Jarvis CICD
+  LDAP_DOMAIN: jarvis.local
+  LDAP_BASE_DN: dc=jarvis,dc=local
+  LDAP_READONLY_USER: "true"
+  LDAP_READONLY_USER_USERNAME: readonly
+  LDAP_READONLY_USER_PASSWORD: readonly
+  LDAP_ADMIN_PASSWORD: admin
+  LDAP_TLS: "false"
+  LDAP_TLS_ENFORCE: "false"
+  LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
+customLdifFiles:
+  groups.ldif: |-
+    dn: ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: organizationalUnit
+    ou: Users
+
+    dn: ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: organizationalUnit
+    ou: Groups
+
+    dn: uid=jarvis,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: jarvis
+    sn: User
+    displayname: jarvis User
+    mail: jarvis@cluster.local
+    userpassword: {SSHA}fCJ5vuW1BQ4/OfOVkkx1qjwi7yHFuGNB
+
+    dn: cn=jarvis-admins,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfNames
+    member: uid=jarvis,ou=Users,dc=jarvis,dc=local

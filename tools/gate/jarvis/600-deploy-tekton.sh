@@ -30,16 +30,58 @@ function validate() {
   kubectl -n tekton-pipelines apply -f ./tools/gate/jarvis/resources/tekton/yaml/example-pipeline.yaml
   kubectl -n tekton-pipelines wait --for=condition=Ready pod --timeout=120s --all
 
-  kubectl get po -A
+  # Define creds to use for gerrit.
+  ldap_username="jarvis"
+  ldap_password="password"
 
-  # Trigger the sample github pipeline
-  local listener_ip
-  listener_ip="$(kubectl -n tekton-pipelines get svc el-listener -o 'jsonpath={.spec.clusterIP}')"
-  curl -X POST \
-    "http://${listener_ip}:8080" \
-    -H 'Content-Type: application/json' \
-    -H 'X-Hub-Signature: sha1=2da37dcb9404ff17b714ee7a505c384758ddeb7b' \
-    -d '{"repository":{"url": "https://github.com/tektoncd/triggers.git"}}'
+  # Create repo for Jarvis sanity testing
+  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project jarvis-sanity --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+
+  # Configure repo webhook
+  jarvis_sanity_repo=$(mktemp -d)
+  pushd "${jarvis_sanity_repo}"
+  git init
+  git remote add origin ssh://${ldap_username}@gerrit.jarvis.local:29418/jarvis-sanity.git
+  git fetch origin refs/meta/config:refs/remotes/origin/meta/config
+  git checkout meta/config
+  tee --append project.config <<EOF
+[plugin "webhooks"]
+    connectionTimeout = 3000
+    maxTries = 300
+    retryInterval = 2000
+    socketTimeout = 2500
+    threadPoolSize = 3
+EOF
+  tee webhooks.config <<EOF
+[remote "Tekton"]
+    url = http://el-listener.tekton-pipelines.svc.cluster.local:8080/
+    maxTries = 3
+    sslVerify = false
+    event = patchset-created
+    event = patchset-updated
+EOF
+  git add .
+  git commit -asm "Create Add PS Webhook Config"
+  git push origin HEAD:refs/meta/config
+  popd
+
+  # Create PS to repo to test webhook
+  jarvis_sanity_repo=$(mktemp -d)
+  git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/jarvis-sanity.git "${jarvis_sanity_repo}"
+  pushd "${jarvis_sanity_repo}"
+  tee .gitreview <<EOF
+[gerrit]
+host=gerrit.jarvis.local
+port=29418
+project=jarvis-sanity.git
+EOF
+  git review -s
+  git add .gitreview
+  git commit -asm "Add .gitreview"
+  git review
+
+  # Sleep for 5s to give time for webhook to fire, and be responded to
+  sleep 5
 
   # Ensure the run is successful
   kubectl -n tekton-pipelines wait --for=condition=Succeeded pipelineruns --timeout=120s --all

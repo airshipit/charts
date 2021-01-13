@@ -17,6 +17,14 @@ ingress:
       name: gerrit-tls
 
 gerrit:
+  plugins:
+    packaged:
+      - commit-message-length-validator
+      - download-commands
+      - replication
+      - reviewnotes
+      - webhooks
+      - delete-project
   service:
     ssh:
       enabled: true
@@ -42,7 +50,18 @@ gerrit:
           type = LUCENE
           onlineUpgrade = false # FIXED
         [auth]
-          type = DEVELOPMENT_BECOME_ANY_ACCOUNT
+          type = LDAP
+          gitBasicAuthPolicy = LDAP
+        [ldap]
+          server = ldap://ldap-openldap.ldap.svc.cluster.local
+          username = cn=readonly,dc=jarvis,dc=local
+          password = readonly
+          accountBase = ou=Users,dc=jarvis,dc=local
+          accountPattern = (&(objectClass=inetOrgPerson)(uid=${username}))
+          accountFullName = ${cn}
+          groupBase = ou=Groups,dc=jarvis,dc=local
+          groupMemberPattern = (member=${dn})
+          localUsernameToLowerCase = true
         [httpd]
           # If using an ingress use proxy-http or proxy-https
           listenUrl = proxy-http://*:8080/
