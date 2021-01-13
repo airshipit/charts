@@ -25,6 +25,7 @@ gerrit:
       - reviewnotes
       - webhooks
       - delete-project
+      - gitiles
   service:
     ssh:
       enabled: true
