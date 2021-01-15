@@ -4,6 +4,9 @@
 doc/build
 doc/source/_build
 .tox/
+
+# IDE files
 .vscode/
+.idea/
 
 tools/deployment/vagrant/.vagrant
