@@ -1,0 +1,41 @@
+{{- define "EventListener-system" -}}
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: EventListener
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+spec:
+  serviceAccountName: {{ template "helpers.labels.fullname" . }}-el
+  triggers:
+    - name: jarvis-create
+      interceptors:
+        - cel:
+            filter: >-
+              header.match('X-Jarvis', 'create')
+      bindings:
+        - ref: {{ template "helpers.labels.fullname" . }}-create
+      template:
+        ref: {{ template "helpers.labels.fullname" . }}-create
+    - name: jarvis-create-success
+      interceptors:
+        - cel:
+            filter: >-
+              header.match('Ce-Type', 'dev.tekton.event.pipelinerun.successful.v1') &&
+              body.pipelineRun.metadata.labels['triggers.tekton.dev/trigger'] == 'jarvis-create'
+      bindings:
+        - ref: {{ template "helpers.labels.fullname" . }}-createresult
+      template:
+        ref: {{ template "helpers.labels.fullname" . }}-createsuccess
+    - name: jarvis-create-failure
+      interceptors:
+        - cel:
+            filter: >-
+              header.match('Ce-Type', 'dev.tekton.event.pipelinerun.failed.v1') &&
+              body.pipelineRun.metadata.labels['triggers.tekton.dev/trigger'] == 'jarvis-create'
+      bindings:
+        - ref: {{ template "helpers.labels.fullname" . }}-createresult
+      template:
+        ref: {{ template "helpers.labels.fullname" . }}-createfailure
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "EventListener-system" ) }}

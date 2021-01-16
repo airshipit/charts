@@ -54,15 +54,15 @@ images:
     tekton_controller:
       name: tektoncd/triggers/cmd/controller
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.1
+      tag: v0.10.2
     tekton_eventlistener:
       name: tektoncd/triggers/cmd/eventlistenersink
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.1
+      tag: v0.10.2
     tekton_webhook:
       name: tektoncd/triggers/cmd/webhook
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.1
+      tag: v0.10.2
   pull:
     policy: IfNotPresent
 

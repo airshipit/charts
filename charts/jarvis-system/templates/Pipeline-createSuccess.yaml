@@ -1,0 +1,31 @@
+{{- define "Pipeline-createSuccess" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-createsuccess
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+  tasks:
+    - name: createsuccess
+      taskRef:
+        name: {{ template "helpers.labels.fullname" . }}-createsuccess
+      params:
+        - name: repoRoot
+          value: $(params.repoRoot)
+        - name: project
+          value: $(params.project)
+        - name: changeNumber
+          value: $(params.changeNumber)
+        - name: patchSetNumber
+          value: $(params.patchSetNumber)
+        - name: checkerUUID
+          value: $(params.checkerUUID)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Pipeline-createSuccess" ) }}

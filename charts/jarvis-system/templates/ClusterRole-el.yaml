@@ -1,15 +1,17 @@
-kind: Role
+{{- define "ClusterRole-el" -}}
+---
+kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: tekton-triggers-example-minimal
+  name: {{ template "helpers.labels.fullname" . }}-el
 rules:
 # Permissions for every EventListener deployment to function
 - apiGroups: ["triggers.tekton.dev"]
-  resources: ["eventlisteners", "triggerbindings", "triggertemplates", "triggers"]
+  resources: ["clustertriggerbindings", "eventlisteners", "triggerbindings", "triggertemplates", "triggers"]
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
   # secrets are only needed for GitHub/GitLab interceptors
-  resources: ["configmaps", "secrets"]
+  resources: ["configmaps"]
   verbs: ["get", "list", "watch"]
 # Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
@@ -18,3 +20,6 @@ rules:
 - apiGroups: [""]
   resources: ["serviceaccounts"]
   verbs: ["impersonate"]
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ClusterRole-el" ) }}

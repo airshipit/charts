@@ -1,0 +1,59 @@
+{{- define "Task-createSuccess" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-createsuccess
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+  steps:
+    - name: createsuccess
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_curl" ) }}
+      env:
+        - name: "JARVIS_TASKRUN_NAMESPACE"
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: "JARVIS_TASKRUN_NAME"
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tekton.dev/taskRun']
+      volumeMounts:
+        - name: gerrit-netrc
+          mountPath: /run/jarvis/gerrit-netrc
+          subPath: gerrit-netrc
+      script: |
+        #!/bin/sh
+        set -eu -o pipefail -x
+
+        curl \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --fail \
+          --insecure \
+          -L \
+          -H "Content-Type: application/json; charset=UTF-8" \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/revisions/$(params.patchSetNumber)/checks/ \
+          --data-binary @- << EOF
+        {
+          "checker_uuid": "$(params.checkerUUID)",
+          "state": "SUCCESSFUL",
+          "url": "http://{{ .Values.params.tekton.dashboard.host }}/#/namespaces/${JARVIS_TASKRUN_NAMESPACE}/taskruns/${JARVIS_TASKRUN_NAME}",
+          "message": "Jarvis has successfully processed the run for change #$(params.changeNumber) ps #$(params.patchSetNumber) to the $(params.project) repo"
+        }
+        EOF
+  volumes:
+    - name: gerrit-netrc
+      secret:
+        secretName: {{ template "helpers.labels.fullname" . }}-gerrit
+        defaultMode: 0444
+        items:
+          - key: gerrit-netrc
+            path: gerrit-netrc
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Task-createSuccess" ) }}

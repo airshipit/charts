@@ -1,0 +1,69 @@
+{{- define "Task-createCheckoutRepo" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-createcheckoutrepo
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this workspace
+  results:
+    - name: commit
+      description: The precise commit SHA that was fetched by this Task
+  steps:
+    - name: checkout-repo
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_git" ) }}
+      script: |
+        #!/bin/sh
+        set -eu -o pipefail -x
+
+        # A change ref has the format refs/changes/X/Y/Z where X is
+        # the last two digits of the change number, Y is the entire
+        # change number, and Z is the patch set. For example, if
+        # the change number is 263270, the ref would be
+        # refs/changes/70/263270/2 for the second patch set.
+        change_ref="refs/changes/$(echo "0$(params.changeNumber)" | awk '{ print substr( $0, length($0) - 1, length($0) ) }')/$(params.changeNumber)/$(params.patchSetNumber)"
+        echo $change_ref
+
+
+        CHECKOUT_DIR="$(workspaces.output.path)"
+
+        cleandir() {
+          # Delete any existing contents of the repo directory if it exists.
+          #
+          # We don't just "rm -rf $CHECKOUT_DIR" because $CHECKOUT_DIR might be "/"
+          # or the root of a mounted volume.
+          if [[ -d "$CHECKOUT_DIR" ]] ; then
+            # Delete non-hidden files and directories
+            rm -rf "$CHECKOUT_DIR"/*
+            # Delete files and directories starting with . but excluding ..
+            rm -rf "$CHECKOUT_DIR"/.[!.]*
+            # Delete files and directories starting with .. plus any other character
+            rm -rf "$CHECKOUT_DIR"/..?*
+          fi
+        }
+        cleandir
+
+        cd ${CHECKOUT_DIR}
+        git init
+        git config http.sslVerify "false"
+        git config advice.detachedHead "false"
+        git fetch $(params.repoRoot)/$(params.project) $change_ref
+        git checkout FETCH_HEAD
+
+        RESULT_SHA="$(git rev-parse HEAD)"
+        EXIT_CODE="$?"
+        if [ "$EXIT_CODE" != 0 ] ; then
+          exit $EXIT_CODE
+        fi
+
+        echo -n "$RESULT_SHA" > $(results.commit.path)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Task-createCheckoutRepo" ) }}

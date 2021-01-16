@@ -1,0 +1,80 @@
+{{- define "Job-project" -}}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+{{ include "helpers.pod.node_selector" ( dict "Global" $ "Application" "project" ) | nindent 8 }}
+      containers:
+        - name: project
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "project" ) }}
+          imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+          env:
+            - name: SSL_CERT_FILE
+              value: /usr/local/share/ca-certificates/ca.crt
+            - name: JARVIS_PROJECT_NAME
+              value: {{ .Release.Name }}
+            - name: GERRIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "helpers.labels.fullname" . }}
+                  key: gerrit-username
+            - name: GERRIT_HOST
+              value: {{ .Values.params.gerrit.host }}
+            - name: GERRIT_URL
+              value: "https://{{ .Values.params.gerrit.host }}"
+          command:
+            - sh
+            - -cex
+            - |
+
+              # Create gerrit repo
+              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null -p 29418 -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" gerrit ls-projects -r "^$JARVIS_PROJECT_NAME\$" | grep -q "^${JARVIS_PROJECT_NAME}\$" || \
+                ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null -p 29418 -i /run/jarvis/secret/gerrit-ssh-key ${GERRIT_USERNAME}@${GERRIT_HOST} gerrit create-project "${JARVIS_PROJECT_NAME}" --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+
+              # Set up checks on the repo
+              jarvis-connector --auth_file /run/jarvis/gerrit-authfile --gerrit $GERRIT_URL --update --repo "${JARVIS_PROJECT_NAME}" --prefix jarvispipeline || \
+                jarvis-connector --auth_file /run/jarvis/gerrit-authfile --gerrit $GERRIT_URL --register --repo "${JARVIS_PROJECT_NAME}" --prefix jarvispipeline
+
+              # TODO: Add setup for harbor repo.
+          volumeMounts:
+            - name: gerrit-creds
+              mountPath: /run/jarvis/gerrit-authfile
+              subPath: gerrit-authfile
+            - name: gerrit-creds
+              mountPath: /run/jarvis/secret/gerrit-ssh-key
+              subPath: gerrit-ssh-key
+            - name: jarvis-ca-crt
+              mountPath: /usr/local/share/ca-certificates/ca.crt
+              subPath: ca.crt
+      volumes:
+        - name: gerrit-creds
+          secret:
+            secretName: {{ template "helpers.labels.fullname" . }}
+            defaultMode: 0400
+            items:
+              - key: gerrit-ssh-key
+                path: gerrit-ssh-key
+              - key: gerrit-authfile
+                path: gerrit-authfile
+        # NOTE: We are making the assumption that the ca for gerrit is the same as that for the tekton eventlistener
+        - name: jarvis-ca-crt
+          secret:
+            secretName: {{ template "helpers.labels.fullname" . }}-project-tls
+            items:
+              - key: ca.crt
+                path: ca.crt
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Job-project" ) }}

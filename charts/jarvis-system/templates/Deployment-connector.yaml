@@ -1,0 +1,66 @@
+{{- define "Deployment-connector" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" . | nindent 8 }}
+    spec:
+      nodeSelector:
+{{ include "helpers.pod.node_selector" ( dict "Global" $ "Application" "connector" ) | nindent 8 }}
+      containers:
+        - name: connector
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "connector" ) }}
+          imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+          env:
+            - name: SSL_CERT_FILE
+              value: /usr/local/share/ca-certificates/ca.crt
+            - name: GERRIT_URL
+              value: "https://{{ .Values.params.gerrit.host }}"
+            - name: EVENTLISTENER_URL
+              value: "http://el-{{ template "helpers.labels.fullname" . }}.{{ .Release.Namespace }}.svc:8080"
+          command:
+            - /usr/bin/jarvis-connector
+          args:
+            - --auth_file
+            - /run/jarvis/gerrit-authfile
+            - --gerrit
+            - "$(GERRIT_URL)"
+            - --event_listener
+            - "$(EVENTLISTENER_URL)"
+          volumeMounts:
+            - name: gerrit-authfile
+              mountPath: /run/jarvis/gerrit-authfile
+              subPath: gerrit-authfile
+            - name: jarvis-ca-crt
+              mountPath: /usr/local/share/ca-certificates/ca.crt
+              subPath: ca.crt
+      volumes:
+        - name: gerrit-authfile
+          secret:
+            secretName: {{ template "helpers.labels.fullname" . }}-gerrit
+            defaultMode: 0444
+            items:
+              - key: gerrit-authfile
+                path: gerrit-authfile
+        # NOTE: We are making the assumption that the ca for gerrit is the same as that for the tekton eventlistener
+        - name: jarvis-ca-crt
+          secret:
+            secretName: {{ template "helpers.labels.fullname" . }}-el-tls
+            items:
+              - key: ca.crt
+                path: ca.crt
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Deployment-connector" ) }}

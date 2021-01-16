@@ -1,0 +1,4 @@
+controller:
+  conf:
+    defaults:
+      default_cloud_events_sink: http://el-jarvis-system.jarvis-system.svc.cluster.local:8080/

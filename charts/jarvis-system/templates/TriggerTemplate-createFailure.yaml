@@ -1,0 +1,35 @@
+{{- define "TriggerTemplate-createFailure" -}}
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-createfailure
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: {{ template "helpers.labels.fullname" . }}-createfailure-
+      spec:
+        pipelineRef:
+          name: {{ template "helpers.labels.fullname" . }}-createfailure
+        params:
+          - name: repoRoot
+            value: $(tt.params.repoRoot)
+          - name: project
+            value: $(tt.params.project)
+          - name: changeNumber
+            value: $(tt.params.changeNumber)
+          - name: patchSetNumber
+            value: $(tt.params.patchSetNumber)
+          - name: checkerUUID
+            value: $(tt.params.checkerUUID)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "TriggerTemplate-createFailure" ) }}

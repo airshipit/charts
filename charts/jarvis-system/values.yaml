@@ -1,0 +1,43 @@
+# Default values for dex-aio.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+images:
+  applications:
+    connector:
+      tag: latest
+      name: attcomdev/jarvis-connector
+      repo: quay.io
+    task_git:
+      tag: v0.18.1
+      name: tekton-releases/github.com/tektoncd/pipeline/cmd/git-init
+      repo: gcr.io
+    task_curl:
+      tag: "3.8"
+      name: evl.ms/curl
+      repo: quay.io
+  pull:
+    policy: Always
+
+node_labels:
+  connector:
+    key: kubernetes.io/os
+    value: linux
+
+over_rides: {}
+
+params:
+  gerrit:
+    user: jarvis
+    password: password
+    host: gerrit.jarvis.local
+  tekton:
+    dashboard:
+      host: tekton.jarvis.local
+  endpoints:
+    hostname: el-jarvis-system.jarvis-system.svc.cluster.local
+    tls:
+      cert_manager: true
+      issuer:
+        name: jarvis-ca-issuer
+        kind: ClusterIssuer

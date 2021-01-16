@@ -1,8 +1,9 @@
-#NOTE(portdirect): we use the following images, untill https://gerrit-review.googlesource.com/c/k8s-gerrit/+/230465 is resolved.
+# NOTE(portdirect): images from rebuilt on ubuntu, and have the checks plugin pre-installed
+# https://github.com/portdirect/gerrit-k8s/commit/cbbe103d552af84885289aeb81dd09b1195c5e8b
 images:
   registry:
     name: quay.io
-  version: v0.1-191-g251041b-dirty-3.3.0
+  version: v0.1-194-gcbbe103-3.3.1
 gerrit:
   images:
     gerritInit: port/gerrit-init

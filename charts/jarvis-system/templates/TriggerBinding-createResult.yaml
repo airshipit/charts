@@ -1,0 +1,21 @@
+{{- define "TriggerBinding-createResult" -}}
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-createresult
+spec:
+  params:
+    - name: repoRoot
+      value: $(body.pipelineRun.spec.params[?(@.name=='repoRoot')].value)
+    - name: project
+      value: $(body.pipelineRun.spec.params[?(@.name=='project')].value)
+    - name: changeNumber
+      value: $(body.pipelineRun.spec.params[?(@.name=='changeNumber')].value)
+    - name: patchSetNumber
+      value: $(body.pipelineRun.spec.params[?(@.name=='patchSetNumber')].value)
+    - name: checkerUUID
+      value: $(body.pipelineRun.spec.params[?(@.name=='checkerUUID')].value)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "TriggerBinding-createResult" ) }}

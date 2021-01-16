@@ -1,0 +1,21 @@
+{{- define "TriggerBinding-create" -}}
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-create
+spec:
+  params:
+    - name: repoRoot
+      value: $(body.repoRoot)
+    - name: project
+      value: $(body.project)
+    - name: changeNumber
+      value: $(body.changeNumber)
+    - name: patchSetNumber
+      value: $(body.patchSetNumber)
+    - name: checkerUUID
+      value: $(body.checkerUUID)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "TriggerBinding-create" ) }}

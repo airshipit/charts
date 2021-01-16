@@ -1,0 +1,48 @@
+{{- define "Pipeline-create" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-create
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+  workspaces:
+    - name: output
+  tasks:
+    - name: createregisterscheduled
+      taskRef:
+        name: {{ template "helpers.labels.fullname" . }}-createregisterscheduled
+      params:
+        - name: repoRoot
+          value: $(params.repoRoot)
+        - name: project
+          value: $(params.project)
+        - name: changeNumber
+          value: $(params.changeNumber)
+        - name: patchSetNumber
+          value: $(params.patchSetNumber)
+        - name: checkerUUID
+          value: $(params.checkerUUID)
+    - name: createcheckoutrepo
+      taskRef:
+        name: {{ template "helpers.labels.fullname" . }}-createcheckoutrepo
+      params:
+        - name: repoRoot
+          value: $(params.repoRoot)
+        - name: project
+          value: $(params.project)
+        - name: changeNumber
+          value: $(params.changeNumber)
+        - name: patchSetNumber
+          value: $(params.patchSetNumber)
+      workspaces:
+        - name: output
+          workspace: output
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Pipeline-create" ) }}

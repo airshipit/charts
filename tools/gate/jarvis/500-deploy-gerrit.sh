@@ -15,6 +15,28 @@ function get_repo() {
 }
 get_repo "${gerrit_source}" "${repo_remote}" "${repo_sha}"
 
+# TODO: This needs fixed upstream
+patch ${gerrit_source}/helm-charts/gerrit/templates/gerrit.stateful-set.yaml <<'EOF'
+--- /tmp/tmp.8ZADMTe64b/helm-charts/gerrit/templates/gerrit.stateful-set.yaml   2021-01-16 21:33:32.331105033 +0000
++++ /tmp/tmp.z8R6CX0Gqg/helm-charts/gerrit/templates/gerrit.stateful-set.yaml   2021-01-16 20:11:36.275929405 +0000
+@@ -57,9 +57,14 @@
+         imagePullPolicy: {{ .Values.images.imagePullPolicy }}
+         command:
+         - /bin/ash
+-        - -ce
++        - -cex
+         args:
+         - |
++          python3 /var/tools/gerrit-initializer \
++            -c /var/config/gerrit-init.yaml \
++            -s /var/gerrit \
++            init
++
+           symlink_config_to_site(){
+             for file in /var/mnt/etc/config/* /var/mnt/etc/secret/*; do
+               ln -sf $file /var/gerrit/etc/$(basename $file)
+EOF
+
 function generate_ssh_host_key_override() {
   local work_dir
   work_dir="$(mktemp -d)"
@@ -59,6 +81,7 @@ kubectl patch -n gerrit svc gerrit-gerrit-service --patch '{
     ]
   }
 }'
+sleep 30
 
 function gerrit_bootstrap() {
   # Define creds to use for gerrit.
@@ -117,6 +140,9 @@ EOF
 
   # Give Admins, Service Users and Project Owners voting rights for the Verified Label
   sed -i '/\[access "refs\/heads\/\*"\]/a\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Administrators\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Service Users\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Project Owners' project.config
+
+  # Give Admins, Service Users and Project Owners voting rights for the Verified Label
+  sed -i '/\[capability\]/a\ \ \ \ \ \ \ \ checks-administrateCheckers = group Administrators' project.config
 
   # Commit and push config
   git add .
