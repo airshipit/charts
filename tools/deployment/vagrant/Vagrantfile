@@ -35,6 +35,7 @@ Vagrant.configure("2") do |config|
     ./tools/gate/jarvis/010-pre-setup.sh
     ./tools/gate/jarvis/050-setup-development-ca.sh
     ./tools/gate/jarvis/100-deploy-k8s.sh
+    ./tools/gate/jarvis/150-deploy-gatekeeper.sh
     ./tools/gate/jarvis/200-deploy-support.sh
     ./tools/gate/jarvis/300-deploy-loki.sh
     ./tools/gate/jarvis/400-deploy-harbor.sh
