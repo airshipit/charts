@@ -22,19 +22,29 @@ spec:
       - name: tekton-pipelines-controller
         image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "controller" ) }}
         imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
-        args: [
+        args:
           # These images are built on-demand by `ko resolve` and are replaced
           # by image references by digest.
-          '-kubeconfig-writer-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "kubeconfig_writer_image" ) }}',
-          '-creds-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "creds_image" ) }}',
-          '-git-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "git_image" ) }}',
-          '-entrypoint-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "entrypoint_image" ) }}',
-          '-nop-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "nop_image" ) }}',
-          '-imagedigest-exporter-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "imagedigest_exporter_image" ) }}',
-          '-pr-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "pr_image" ) }}',
-          '-build-gcs-fetcher-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "build_gcs_fetcher_image" ) }}',
-          '-gsutil-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "gsutil_image" ) }}',
-          '-shell-image', '{{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "shell_image" ) }}']
+          - -kubeconfig-writer-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "kubeconfig_writer_image" ) }}
+          - -creds-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "creds_image" ) }}
+          - -git-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "git_image" ) }}
+          - -entrypoint-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "entrypoint_image" ) }}
+          - -nop-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "nop_image" ) }}
+          - -imagedigest-exporter-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "imagedigest_exporter_image" ) }}
+          - -pr-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "pr_image" ) }}
+          - -build-gcs-fetcher-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "build_gcs_fetcher_image" ) }}
+          - -gsutil-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "gsutil_image" ) }}
+          - -shell-image
+          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "shell_image" ) }}
         volumeMounts:
         - name: config-logging
           mountPath: /etc/config-logging
