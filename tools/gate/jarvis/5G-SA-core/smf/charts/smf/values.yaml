@@ -1,0 +1,636 @@
+images:
+  applications:
+    smf:
+      tag: latest
+      name: port/open5gs-smf
+      repo: quay.io
+  pull:
+    policy: IfNotPresent
+
+node_labels:
+  smf:
+    key: kubernetes.io/os
+    value: linux
+
+config:
+  smf.yaml:
+    #
+    # logger:
+    #
+    #  o Set OGS_LOG_INFO to all domain level
+    #   - If `level` is omitted, the default level is OGS_LOG_INFO)
+    #   - If `domain` is omitted, the all domain level is set from 'level'
+    #    (Nothing is needed)
+    #
+    #  o Set OGS_LOG_ERROR to all domain level
+    #   - `level` can be set with none, fatal, error, warn, info, debug, trace
+    #    level: error
+    #
+    #  o Set OGS_LOG_DEBUG to mme/emm domain level
+    #    level: debug
+    #    domain: mme,emm
+    #
+    #  o Set OGS_LOG_TRACE to all domain level
+    #    level: trace
+    #    domain: core,pfcp,fd,pfcp,gtp,smf,event,tlv,mem,sock
+    #
+    logger:
+        file: /dev/stdout
+        level: debug
+    #
+    # smf:
+    #
+    #  <SBI Server>
+    #
+    #  o SBI Server(http://<all address available>:80)
+    #    sbi:
+    #
+    #  o SBI Server(http://<any address>:80)
+    #    sbi:
+    #      - addr:
+    #          - 0.0.0.0
+    #          - ::0
+    #        port: 7777
+    #
+    #  o SBI Server(https://<all address avaiable>:443)
+    #    sbi:
+    #        tls:
+    #          key: smf.key
+    #          pem: smf.pem
+    #
+    #  o SBI Server(https://127.0.0.4:443, http://[::1]:80)
+    #    sbi:
+    #      - addr: 127.0.0.4
+    #        tls:
+    #          key: smf.key
+    #          pem: smf.pem
+    #      - addr: ::1
+    #
+    #  o SBI Server(http://smf.open5gs.org:80)
+    #    sbi:
+    #      name: smf.open5gs.org
+    #
+    #  o SBI Server(http://127.0.0.4:7777)
+    #    sbi:
+    #      - addr: 127.0.0.4
+    #        port: 7777
+    #
+    #  o SBI Server(http://<eth0 IP address>:80)
+    #    sbi:
+    #      dev: eth0
+    #
+    #  <PFCP Server>
+    #
+    #  o PFCP Server(127.0.0.4:8805, ::1:8805)
+    #    pfcp:
+    #      - addr: 127.0.0.4
+    #      - addr: ::1
+    #
+    #  <GTP-C Server>
+    #
+    #  o GTP-C Server(127.0.0.4:2123, [fe80::3%lo]:2123)
+    #    gtpc:
+    #      addr:
+    #        - 127.0.0.4
+    #        - fe80::3%lo
+    #
+    #  o On SMF, Same configuration
+    #    (127.0.0.4:2123, [fe80::3%lo]:2123).
+    #    gtpc:
+    #      - addr: 127.0.0.4
+    #      - addr: fe80::3%lo
+    #
+    #  <PDN Configuration with UE Pool>
+    #
+    #  o IPv4 Pool
+    #    pdn:
+    #      addr: 10.45.0.1/16
+    #
+    #  o IPv4/IPv6 Pool
+    #    pdn:
+    #      - addr: 10.45.0.1/16
+    #      - addr: cafe:1::1/64
+    #
+    #
+    #  o Specific DNN/APN(e.g 'ims') uses 10.46.0.1/16, cafe:2::1/64
+    #    pdn:
+    #      - addr: 10.45.0.1/16
+    #        dnn: internet
+    #      - addr: cafe:1::1/64
+    #        dnn: internet
+    #      - addr: 10.46.0.1/16
+    #        dnn: ims
+    #      - addr: cafe:2::1/64
+    #        dnn: ims
+    #
+    #  o Multiple Devices (default: ogstun)
+    #    pdn:
+    #      - addr: 10.45.0.1/16
+    #        dnn: internet
+    #      - addr: cafe:1::1/64
+    #        dnn: internet
+    #        dev: ogstun2
+    #      - addr: 10.46.0.1/16
+    #        dnn: ims
+    #        dev: ogstun3
+    #      - addr: cafe:2::1/64
+    #        dnn: ims
+    #        dev: ogstun3
+    #
+    #  o Pool Range Sample
+    #    pdn:
+    #      - addr: 10.45.0.1/24
+    #        range: 10.45.0.100-10.45.0.200
+    #
+    #    pdn:
+    #      - addr: 10.45.0.1/24
+    #        range:
+    #          - 10.45.0.5-10.45.0.50
+    #          - 10.45.0.100-
+    #
+    #    pdn:
+    #      - addr: 10.45.0.1/24
+    #        range:
+    #          - -10.45.0.200
+    #          - 10.45.0.210-10.45.0.220
+    #
+    #    pdn:
+    #      - addr: 10.45.0.1/16
+    #        range:
+    #          - 10.45.0.100-10.45.0.200
+    #          - 10.45.1.100-10.45.1.200
+    #      - addr: cafe::1/64
+    #        range:
+    #          - cafe::a0-cafe:b0
+    #          - cafe::c0-cafe:d0
+    #
+    #  <Domain Name Server>
+    #
+    #  o Primary/Secondary can be configured. Others are ignored.
+    #
+    #  <MTU Size>
+    #
+    #  o Provisioning a limit on the size of the packets sent by the MS
+    #    to avoid packet fragmentation in the backbone network
+    #    between the MS and the GGSN/PGW and/or across the (S)Gi reference point)
+    #    when some of the backbone links does not support
+    #    packets larger then 1500 octets
+    #
+    #  <P-CSCF>
+    #
+    #  o Proxy Call Session Control Function
+    #
+    #    p-cscf:
+    #      - 127.0.0.1
+    #      - ::1
+    #
+    smf:
+        sbi:
+          addr:
+            - 0.0.0.0
+          port: 7777
+        gtpc:
+          - addr: 127.0.0.4
+        pfcp:
+          - addr: 127.0.0.4
+        pdn:
+          - addr: 10.45.0.1/16
+        dns:
+          - 8.8.8.8
+          - 8.8.4.4
+        mtu: 1400
+        freeDiameter: /etc/freeDiameter/smf.conf
+
+    #
+    # nrf:
+    #
+    #  <SBI Client>>
+    #
+    #  o SBI Client(http://127.0.0.1:7777)
+    #    sbi:
+    #      addr: 127.0.0.10
+    #      port: 7777
+    #
+    #  o SBI Client(https://127.0.0.10:443, http://nrf.open5gs.org:80)
+    #    sbi:
+    #      - addr: 127.0.0.10
+    #        tls:
+    #          key: nrf.key
+    #          pem: nrf.pem
+    #      - name: nrf.open5gs.org
+    #
+    #  o SBI Client(http://[fe80::1%lo]:80)
+    #    If prefer_ipv4 is true, http://127.0.0.10:80 is selected.
+    #
+    #    sbi:
+    #      addr:
+    #        - 127.0.0.10
+    #        - fe80::1%lo
+    #
+    nrf:
+        sbi:
+          - name: nrf
+            port: 7777
+
+    #
+    # upf:
+    #
+    #  <PFCP Client>>
+    #
+    #  o PFCP Client(127.0.0.7:8805)
+    #
+    #    pfcp:
+    #      addr: 127.0.0.7
+    #
+    #  <UPF_SELECTION_MODE - EPC only>
+    #
+    # o Round-Robin
+    #   (note that round robin can be disabled for a particular node
+    #     by setting flag 'rr' to 0)
+    #
+    #  upf:
+    #    pfcp:
+    #      - addr: 127.0.0.7
+    #      - addr: 127.0.0.12
+    #        rr: 0
+    #      - addr: 127.0.0.19
+    #
+    # o UPF selection by eNodeB TAC
+    #   (either single TAC or multiple TACs, DECIMAL representation)
+    #
+    #  upf:
+    #    pfcp:
+    #      - addr: 127.0.0.7
+    #        tac: 1
+    #      - addr: 127.0.0.12
+    #        tac: [3,5,8]
+    #
+    # o UPF selection by UE's DNN/APN (either single DNN/APN or multiple DNNs/APNs)
+    #
+    #  upf:
+    #    pfcp:
+    #      - addr: 127.0.0.7
+    #        dnn: ims
+    #      - addr: 127.0.0.12
+    #        dnn: [internet, web]
+    #
+    # o UPF selection by CellID(e_cell_id: 28bit, nr_cell_id: 36bit)
+    #   (either single enb_id or multiple enb_ids, HEX representation)
+    #
+    #  upf:
+    #    pfcp:
+    #      - addr: 127.0.0.7
+    #        e_cell_id: 463
+    #      - addr: 127.0.0.12
+    #        nr_cell_id: [123456789, 9413]
+    #
+    upf:
+        pfcp:
+          - addr: 127.0.0.7
+
+    #
+    # parameter:
+    #
+    #  o Number of output streams per SCTP associations.
+    #      sctp_streams: 30
+    #
+    #  o Disable use of IPv4 addresses (only IPv6)
+    #      no_ipv4: true
+    #
+    #  o Disable use of IPv6 addresses (only IPv4)
+    #      no_ipv6: true
+    #
+    #  o Prefer IPv4 instead of IPv6 for estabishing new GTP connections.
+    #      prefer_ipv4: true
+    #
+    #  o Enable Multicast traffic to the UE
+    #      multicast: true
+    #
+    #  o Disable Stateless Address Autoconfiguration for IPv6
+    #      no_slaac: true
+    #
+    parameter:
+
+    #
+    # max:
+    #
+    # o Maximum Number of UE per AMF/MME
+    #    ue: 1024
+    # o Maximum Number of gNB/eNB per AMF/MME
+    #    gnb: 32
+    #
+    max:
+
+    #
+    # pool:
+    #
+    # o The default memory pool size was set assuming 1024 UEs.
+    #   To connect more UEs, you need to increase the size further.
+    #
+    #   - Pool-size 128         => 65536 Number
+    #   - Pool-size 256         => 8192 Number
+    #   - Pool-size 512         => 4096 Number
+    #   - Pool-size 1024        => 1024 Number
+    #   - Pool-size 2048        => 512 Number
+    #   - Pool-size 8192        => 128 Number
+    #   - Pool-size 1024*1024   => 8 Number
+    #
+    #    128:  65536
+    #    256:  8192
+    #    512:  4096
+    #    1024: 1024
+    #    2048: 512
+    #    8192: 128
+    #    big:  8
+    #
+    pool:
+
+    #
+    # time:
+    #
+    #  o NF Instance Heartbeat (Default : 0)
+    #    NFs will not send heart-beat timer in NFProfile
+    #    NRF will send heart-beat timer in NFProfile
+    #
+    #  o NF Instance Heartbeat (20 seconds)
+    #    NFs will send heart-beat timer (20 seconds) in NFProfile
+    #    NRF can change heart-beat timer in NFProfile
+    #
+    #    nf_instance:
+    #      heartbeat: 20
+    #
+    #  o Message Wait Duration (Default : 10,000 ms = 10 seconds)
+    #
+    #  o Message Wait Duration (3000 ms)
+    #    message:
+    #        duration: 3000
+    time:
+  smf.conf: |
+    # This is a sample configuration file for freeDiameter daemon.
+
+    # Most of the options can be omitted, as they default to reasonable values.
+    # Only TLS-related options must be configured properly in usual setups.
+
+    # It is possible to use "include" keyword to import additional files
+    # e.g.: include "/etc/freeDiameter.d/*.conf"
+    # This is exactly equivalent as copy & paste the content of the included file(s)
+    # where the "include" keyword is found.
+
+
+    ##############################################################
+    ##  Peer identity and realm
+
+    # The Diameter Identity of this daemon.
+    # This must be a valid FQDN that resolves to the local host.
+    # Default: hostname's FQDN
+    #Identity = "aaa.koganei.freediameter.net";
+    Identity = "smf.localdomain";
+
+    # The Diameter Realm of this daemon.
+    # Default: the domain part of Identity (after the first dot).
+    #Realm = "koganei.freediameter.net";
+    Realm = "localdomain";
+
+    ##############################################################
+    ##  Transport protocol configuration
+
+    # The port this peer is listening on for incoming connections (TCP and SCTP).
+    # Default: 3868. Use 0 to disable.
+    #Port = 3868;
+
+    # The port this peer is listening on for incoming TLS-protected connections (TCP and SCTP).
+    # See TLS_old_method for more information about TLS flavours.
+    # Note: we use TLS/SCTP instead of DTLS/SCTP at the moment. This will change in future version of freeDiameter.
+    # Default: 5868. Use 0 to disable.
+    #SecPort = 5868;
+
+    # Use RFC3588 method for TLS protection, where TLS is negociated after CER/CEA exchange is completed
+    # on the unsecure connection. The alternative is RFC6733 mechanism, where TLS protects also the
+    # CER/CEA exchange on a dedicated secure port.
+    # This parameter only affects outgoing connections.
+    # The setting can be also defined per-peer (see Peers configuration section).
+    # Default: use RFC6733 method with separate port for TLS.
+    #TLS_old_method;
+
+    # Disable use of TCP protocol (only listen and connect over SCTP)
+    # Default : TCP enabled
+    #No_TCP;
+
+    # Disable use of SCTP protocol (only listen and connect over TCP)
+    # Default : SCTP enabled
+    #No_SCTP;
+    # This option is ignored if freeDiameter is compiled with DISABLE_SCTP option.
+
+    # Prefer TCP instead of SCTP for establishing new connections.
+    # This setting may be overwritten per peer in peer configuration blocs.
+    # Default : SCTP is attempted first.
+    #Prefer_TCP;
+
+    # Default number of streams per SCTP associations.
+    # This setting may be overwritten per peer basis.
+    # Default : 30 streams
+    #SCTP_streams = 30;
+
+    ##############################################################
+    ##  Endpoint configuration
+
+    # Disable use of IP addresses (only IPv6)
+    # Default : IP enabled
+    #No_IP;
+
+    # Disable use of IPv6 addresses (only IP)
+    # Default : IPv6 enabled
+    #No_IPv6;
+
+    # Specify local addresses the server must bind to
+    # Default : listen on all addresses available.
+    #ListenOn = "202.249.37.5";
+    #ListenOn = "2001:200:903:2::202:1";
+    #ListenOn = "fe80::21c:5ff:fe98:7d62%eth0";
+    ListenOn = "127.0.0.4";
+
+
+    ##############################################################
+    ##  Server configuration
+
+    # How many Diameter peers are allowed to be connecting at the same time ?
+    # This parameter limits the number of incoming connections from the time
+    # the connection is accepted until the first CER is received.
+    # Default: 5 unidentified clients in paralel.
+    #ThreadsPerServer = 5;
+
+    ##############################################################
+    ##  TLS Configuration
+
+    # TLS is managed by the GNUTLS library in the freeDiameter daemon.
+    # You may find more information about parameters and special behaviors
+    # in the relevant documentation.
+    # http://www.gnu.org/software/gnutls/manual/
+
+    # Credentials of the local peer
+    # The X509 certificate and private key file to use for the local peer.
+    # The files must contain PKCS-1 encoded RSA key, in PEM format.
+    # (These parameters are passed to gnutls_certificate_set_x509_key_file function)
+    # Default : NO DEFAULT
+    #TLS_Cred = "<x509 certif file.PEM>" , "<x509 private key file.PEM>";
+    #TLS_Cred = "/etc/ssl/certs/freeDiameter.pem", "/etc/ssl/private/freeDiameter.key";
+    TLS_Cred = "/etc/freeDiameter/smf.cert.pem", "/etc/freeDiameter/smf.key.pem";
+
+    # Certificate authority / trust anchors
+    # The file containing the list of trusted Certificate Authorities (PEM list)
+    # (This parameter is passed to gnutls_certificate_set_x509_trust_file function)
+    # The directive can appear several times to specify several files.
+    # Default : GNUTLS default behavior
+    #TLS_CA = "<file.PEM>";
+    TLS_CA = "/etc/freeDiameter/cacert.pem";
+
+    # Certificate Revocation List file
+    # The information about revoked certificates.
+    # The file contains a list of trusted CRLs in PEM format. They should have been verified before.
+    # (This parameter is passed to gnutls_certificate_set_x509_crl_file function)
+    # Note: openssl CRL format might have interoperability issue with GNUTLS format.
+    # Default : GNUTLS default behavior
+    #TLS_CRL = "<file.PEM>";
+
+    # GNU TLS Priority string
+    # This string allows to configure the behavior of GNUTLS key exchanges
+    # algorithms. See gnutls_priority_init function documentation for information.
+    # You should also refer to the Diameter required TLS support here:
+    #   http://tools.ietf.org/html/rfc6733#section-13.1
+    # Default : "NORMAL"
+    # Example: TLS_Prio = "NONE:+VERS-TLS1.1:+AES-128-CBC:+RSA:+SHA1:+COMP-NULL";
+    #TLS_Prio = "NORMAL";
+
+    # Diffie-Hellman parameters size
+    # Set the number of bits for generated DH parameters
+    # Valid value should be 768, 1024, 2048, 3072 or 4096.
+    # (This parameter is passed to gnutls_dh_params_generate2 function,
+    # it usually should match RSA key size)
+    # Default : 1024
+    #TLS_DH_Bits = 1024;
+
+    # Alternatively, you can specify a file to load the PKCS#3 encoded
+    # DH parameters directly from. This accelerates the daemon start
+    # but is slightly less secure. If this file is provided, the
+    # TLS_DH_Bits parameters has no effect.
+    # Default : no default.
+    #TLS_DH_File = "<file.PEM>";
+
+
+    ##############################################################
+    ##  Timers configuration
+
+    # The Tc timer of this peer.
+    # It is the delay before a new attempt is made to reconnect a disconnected peer.
+    # The value is expressed in seconds. The recommended value is 30 seconds.
+    # Default: 30
+    #TcTimer = 30;
+
+    # The Tw timer of this peer.
+    # It is the delay before a watchdog message is sent, as described in RFC 3539.
+    # The value is expressed in seconds. The default value is 30 seconds. Value must
+    # be greater or equal to 6 seconds. See details in the RFC.
+    # Default: 30
+    #TwTimer = 30;
+
+    ##############################################################
+    ##  Applications configuration
+
+    # Disable the relaying of Diameter messages?
+    # For messages not handled locally, the default behavior is to forward the
+    # message to another peer if any is available, according to the routing
+    # algorithms. In addition the "0xffffff" application is advertised in CER/CEA
+    # exchanges.
+    # Default: Relaying is enabled.
+    #NoRelay;
+
+    # Number of server threads that can handle incoming messages at the same time.
+    # Default: 4
+    #AppServThreads = 4;
+
+    # Other applications are configured by loaded extensions.
+
+    ##############################################################
+    ##  Extensions configuration
+
+    #  The freeDiameter framework merely provides support for
+    # Diameter Base Protocol. The specific application behaviors,
+    # as well as advanced functions, are provided
+    # by loadable extensions (plug-ins).
+    #  These extensions may in addition receive the name of a
+    # configuration file, the format of which is extension-specific.
+    #
+    # Format:
+    #LoadExtension = "/path/to/extension" [ : "/optional/configuration/file" ] ;
+    #
+    # Examples:
+    #LoadExtension = "extensions/sample.fdx";
+    #LoadExtension = "extensions/sample.fdx":"conf/sample.conf";
+
+    # Extensions are named as follow:
+    # dict_* for extensions that add content to the dictionary definitions.
+    # dbg_*  for extensions useful only to retrieve more information on the framework execution.
+    # acl_*  : Access control list, to control which peers are allowed to connect.
+    # rt_*   : routing extensions that impact how messages are forwarded to other peers.
+    # app_*  : applications, these extensions usually register callbacks to handle specific messages.
+    # test_* : dummy extensions that are useful only in testing environments.
+
+
+    # The dbg_msg_dump.fdx extension allows you to tweak the way freeDiameter displays some
+    # information about some events. This extension does not actually use a configuration file
+    # but receives directly a parameter in the string passed to the extension. Here are some examples:
+    ## LoadExtension = "dbg_msg_dumps.fdx" : "0x1111"; # Removes all default hooks, very quiet even in case of errors.
+    ## LoadExtension = "dbg_msg_dumps.fdx" : "0x2222"; # Display all events with few details.
+    ## LoadExtension = "dbg_msg_dumps.fdx" : "0x0080"; # Dump complete information about sent and received messages.
+    # The four digits respectively control: connections, routing decisions, sent/received messages, errors.
+    # The values for each digit are:
+    #  0 - default - keep the default behavior
+    #  1 - quiet   - remove any specific log
+    #  2 - compact - display only a summary of the information
+    #  4 - full    - display the complete information on a single long line
+    #  8 - tree    - display the complete information in an easier to read format spanning several lines.
+
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dbg_msg_dumps.fdx" : "0x8888";
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dict_rfc5777.fdx";
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dict_mip6i.fdx";
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dict_nasreq.fdx";
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dict_nas_mipv6.fdx";
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dict_dcca.fdx";
+    LoadExtension = "/usr/lib/x86_64-linux-gnu/freeDiameter/dict_dcca_3gpp.fdx";
+
+
+    ##############################################################
+    ##  Peers configuration
+
+    #  The local server listens for incoming connections. By default,
+    # all unknown connecting peers are rejected. Extensions can override this behavior (e.g., acl_wl).
+    #
+    #  In addition to incoming connections, the local peer can
+    # be configured to establish and maintain connections to some
+    # Diameter nodes and allow connections from these nodes.
+    #  This is achieved with the ConnectPeer directive described below.
+    #
+    # Note that the configured Diameter Identity MUST match
+    # the information received inside CEA, or the connection will be aborted.
+    #
+    # Format:
+    #ConnectPeer = "diameterid" [ { parameter1; parameter2; ...} ] ;
+    # Parameters that can be specified in the peer's parameter list:
+    #  No_TCP; No_SCTP; No_IP; No_IPv6; Prefer_TCP; TLS_old_method;
+    #  No_TLS;       # assume transparent security instead of TLS. DTLS is not supported yet (will change in future versions).
+    #  Port = 5868;  # The port to connect to
+    #  TcTimer = 30;
+    #  TwTimer = 30;
+    #  ConnectTo = "202.249.37.5";
+    #  ConnectTo = "2001:200:903:2::202:1";
+    #  TLS_Prio = "NORMAL";
+    #  Realm = "realm.net"; # Reject the peer if it does not advertise this realm.
+    # Examples:
+    #ConnectPeer = "aaa.wide.ad.jp";
+    #ConnectPeer = "old.diameter.serv" { TcTimer = 60; TLS_old_method; No_SCTP; Port=3868; } ;
+    ConnectPeer = "pcrf.localdomain" { ConnectTo = "127.0.0.9"; No_TLS; };
+
+
+    ##############################################################
+
+over_rides: {}

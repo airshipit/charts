@@ -1,0 +1,14 @@
+{{- define "ConfigMap-UDR" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+data:
+{{- range $key, $value := .Values.config }}
+{{- include "helpers.config.renderer" (dict "Global" $ "key" $key) | indent 2 }}
+{{- end }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ConfigMap-UDR" ) }}
