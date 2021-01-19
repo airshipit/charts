@@ -1,18 +1,6 @@
 #!/bin/bash
 set -ex
 
-helm repo add stable https://charts.helm.sh/stable
-# shellcheck disable=SC2046
-helm upgrade \
-    --create-namespace \
-    --install \
-    --namespace=ldap \
-    ldap \
-    stable/openldap \
-    $(./tools/deployment/common/get-values-overrides.sh ldap)
-
-./tools/deployment/common/wait-for-pods.sh ldap
-
 gerrit_source=$(mktemp -d)
 repo_sha="251041b192ef8acf1963d747482126d0e9e66e75"
 repo_remote="https://gerrit.googlesource.com/k8s-gerrit"

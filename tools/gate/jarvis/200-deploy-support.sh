@@ -48,3 +48,15 @@ helm upgrade \
     --set controller.service.nodePorts.https=443
 
 ./tools/deployment/common/wait-for-pods.sh ingress-nginx
+
+helm repo add stable https://charts.helm.sh/stable
+# shellcheck disable=SC2046
+helm upgrade \
+    --create-namespace \
+    --install \
+    --namespace=ldap \
+    ldap \
+    stable/openldap \
+    $(./tools/deployment/common/get-values-overrides.sh ldap)
+
+./tools/deployment/common/wait-for-pods.sh ldap
