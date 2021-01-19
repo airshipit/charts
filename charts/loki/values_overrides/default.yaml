@@ -22,6 +22,11 @@ grafana:
   enabled: true
   persistence:
     enabled: true
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_name: Main Org.
+      org_role: Viewer
   ingress:
     enabled: true
     path: /
