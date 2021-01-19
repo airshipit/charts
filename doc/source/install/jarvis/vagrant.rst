@@ -4,6 +4,15 @@ Jarvis AIO Vagrant
 
 .. _aio-installation:
 
+Checkout Repository
+===================
+
+Checkout the Jarvis AIO repository using ``git``:
+
+.. code:: bash
+
+  git clone "https://review.opendev.org/airship/charts"
+
 Installation
 ============
 
