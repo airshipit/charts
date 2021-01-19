@@ -10,7 +10,7 @@
 
 - name: Gather kubernetes logs
   shell: |
-    set -xe;
+    set -x;
     ./tools/gate/gather-pod-logs.sh
     ./tools/gate/gather-objects.sh
   environment:
