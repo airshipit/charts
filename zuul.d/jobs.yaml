@@ -29,6 +29,7 @@
       aio_params:
         feature_gates: ""
       collect_kubernetes_logs_namespace: tekton-pipelines
+      gate_scripts_relative_path: ../charts
       gate_scripts:
         - ./tools/gate/jarvis/050-setup-development-ca.sh
         - ./tools/gate/jarvis/100-deploy-k8s.sh
@@ -54,6 +55,7 @@
       aio_params:
         feature_gates: ""
       collect_kubernetes_logs_namespace: tekton-pipelines
+      gate_scripts_relative_path: ../charts
       gate_scripts:
         - ./tools/gate/jarvis/050-setup-development-ca.sh
         - ./tools/gate/jarvis/100-deploy-k8s.sh
