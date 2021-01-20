@@ -1,0 +1,39 @@
+config:
+  test:
+    ldap_username: jarvis
+    ldap_password: password
+  harbor:
+    # NOTE(lamt): this url should include the scheme (http or https) and should
+    # exclude trailing "/"
+    api_url: https://harbor-harbor-core.harbor.svc.cluster.local
+    admin_password: Harbor12345
+  ldap:
+    enabled: true
+    data:
+      auth_mode: ldap_auth
+      ldap_base_dn: 'dc=jarvis,dc=local'
+      ldap_search_dn: 'cn=readonly,dc=jarvis,dc=local'
+      ldap_search_password: readonly
+      ldap_uid: uid
+      ldap_url: 'ldap://ldap-openldap.ldap.svc.cluster.local'
+
+params: {}
+
+images:
+  applications:
+    harbor_ldap_job_init:
+      name: kubernetes-entrypoint
+      repo: quay.io/airshipit
+      tag: v1.0.0
+    harbor_ldap_job:
+      name: curl
+      repo: quay.io/stannum
+      tag: 7.74.0
+    harbor_ldap_test:
+      name: curl
+      repo: quay.io/stannum
+      tag: 7.74.0
+  pull:
+    policy: IfNotPresent
+
+over_rides: {}

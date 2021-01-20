@@ -1,17 +1,18 @@
-harborAdminPassword: Harbor12345
-secretKey: not-a-secure-key
-externalURL: https://harbor-core.jarvis.local
-expose:
-  ingress:
-    hosts:
-      core: harbor-core.jarvis.local
-      notary: harbor-notary.jarvis.local
-    annotations:
-      cert-manager.io/cluster-issuer: jarvis-ca-issuer
-  tls:
-    certSource: secret
-    secret:
-      secretName: harbor-core-tls
-      notarySecretName: harbor-notary-tls
-internalTLS:
-  enabled: true
+harbor:
+  harborAdminPassword: Harbor12345
+  secretKey: not-a-secure-key
+  externalURL: https://harbor-core.jarvis.local
+  expose:
+    ingress:
+      hosts:
+        core: harbor-core.jarvis.local
+        notary: harbor-notary.jarvis.local
+      annotations:
+        cert-manager.io/cluster-issuer: jarvis-ca-issuer
+    tls:
+      certSource: secret
+      secret:
+        secretName: harbor-core-tls
+        notarySecretName: harbor-notary-tls
+  internalTLS:
+    enabled: true

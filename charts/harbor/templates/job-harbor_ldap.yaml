@@ -1,0 +1,86 @@
+{{- define "job-harbor_ldap" -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: harbor-ldap-job
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "harbor") | nindent 4 }}
+spec:
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "harbor") | nindent 8 }}
+    spec:
+      serviceAccount: harbor-ldap
+      restartPolicy: OnFailure
+      initContainers:
+        - name: init
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "harbor_ldap_job_init" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: PATH
+              value: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/
+            - name: DEPENDENCY_SERVICE
+              value: {{ printf "%s:%s" $.Release.Namespace "harbor-harbor-core" | quote }}
+            - name: DEPENDENCY_JOBS
+              value: ""
+            - name: DEPENDENCY_DAEMONSET
+              value: ""
+            - name: DEPENDENCY_CONTAINER
+              value: ""
+            - name: DEPENDENCY_POD_JSON
+              value: ""
+            - name: DEPENDENCY_CUSTOM_RESOURCE
+              value: ""
+          command:
+            - kubernetes-entrypoint
+          volumeMounts:
+            []
+      containers:
+        - name: config
+          image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "harbor_ldap_job" ) }}
+          imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+          env:
+            - name: HARBOR_API_URL
+              value: {{ printf "%s/api/v2.0/configurations" $.Values.config.harbor.api_url | quote }}
+          command:
+            - /tmp/harbor-ldap-setup.sh
+          volumeMounts:
+            - name: pod-tmp
+              mountPath: /tmp
+            - name: harbor-bin
+              mountPath: /tmp/harbor-ldap-setup.sh
+              subPath: harbor-ldap-setup.sh
+              readOnly: true
+            - name: config
+              mountPath: /config/config.json
+              subPath: config.json
+              readOnly: true
+            - name: adminrc
+              mountPath: /etc/harbor
+              readOnly: true
+      volumes:
+        - name: pod-tmp
+          emptyDir: {}
+        - name: harbor-bin
+          configMap:
+            name: harbor-ldap-bin
+            defaultMode: 0555
+        - name: config
+          secret:
+            secretName: harbor-ldap-etc
+        - name: adminrc
+          secret:
+            secretName: harbor-adminrc
+{{- end -}}
+{{- if $.Values.config.ldap.enabled }}
+{{- include "helpers.template.overlay" (dict "Global" $ "template_definition" "job-harbor_ldap") }}
+{{- end }}
