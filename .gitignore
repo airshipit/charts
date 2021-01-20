@@ -10,3 +10,6 @@ doc/source/_build
 .idea/
 
 tools/deployment/vagrant/.vagrant
+
+# Helm dependencies lock file
+Chart.lock

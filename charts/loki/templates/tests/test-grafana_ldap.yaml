@@ -1,0 +1,43 @@
+{{- define "test-grafana_ldap" -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: grafana-ldap-test
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "grafana" ) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  restartPolicy: Never
+  containers:
+    - name: grafana-ldap-test
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "grafana_ldap_test" ) }}
+      imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+      env:
+        - name: GRAFANA_URI
+          value: {{ $.Values.config.test.grafana_uri | quote }}
+      command:
+        - /tmp/grafana-ldap-test.sh
+      volumeMounts:
+        - name: pod-tmp
+          mountPath: /tmp
+        - name: loki-bin
+          mountPath: /tmp/grafana-ldap-test.sh
+          subPath: grafana-ldap-test.sh
+          readOnly: true
+        - name: netrc
+          mountPath: /etc/loki
+          readOnly: true
+  volumes:
+    - name: pod-tmp
+      emptyDir: {}
+    - name: netrc
+      secret:
+        secretName: loki-netrc
+    - name: loki-bin
+      configMap:
+        name: loki-ldap-bin
+        defaultMode: 0555
+{{- end -}}
+{{- if (index $.Values "loki-stack" "grafana" "ldap" "enabled") }}
+{{- include "helpers.template.overlay" (dict "Global" $ "template_definition" "test-grafana_ldap") }}
+{{- end }}

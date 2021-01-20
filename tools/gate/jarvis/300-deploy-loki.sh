@@ -1,7 +1,9 @@
 #!/bin/bash
 set -ex
 
-helm repo add grafana https://grafana.github.io/helm-charts
+cd ./charts/loki
+helm dep up
+cd -
 
 # shellcheck disable=SC2046
 helm upgrade \
@@ -9,7 +11,9 @@ helm upgrade \
     --install \
     --namespace=loki \
     loki \
-    grafana/loki-stack \
+    ./charts/loki \
     $(./tools/deployment/common/get-values-overrides.sh loki)
 
 ./tools/deployment/common/wait-for-pods.sh loki
+
+helm -n loki test loki --logs

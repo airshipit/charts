@@ -1,0 +1,18 @@
+config:
+  test:
+    ldap_username: jarvis
+    ldap_password: password
+    grafana_uri: http://loki-grafana.loki.svc.cluster.local
+
+params: {}
+
+images:
+  applications:
+    grafana_ldap_test:
+      name: curl
+      repo: quay.io/stannum
+      tag: 7.74.0
+  pull:
+    policy: IfNotPresent
+
+over_rides: {}
