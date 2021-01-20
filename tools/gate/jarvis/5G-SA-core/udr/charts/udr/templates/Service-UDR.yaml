@@ -1,0 +1,16 @@
+{{- define "Service-UDR" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ index $.Values.config "udr.yaml" "udr" "sbi" "port" }}
+    protocol: TCP
+  selector: {{- include "helpers.labels.matchLabels" . | nindent 4 }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Service-UDR" ) }}

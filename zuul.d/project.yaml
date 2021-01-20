@@ -18,11 +18,13 @@
               - ^doc/.*$
         - airship-charts-lint-and-build
         - airship-jarvis
+        - airship-jarvis-sample-workload-validation
     gate:
       jobs:
         - openstack-tox-docs: *docs
         - airship-charts-lint-and-build
         - airship-jarvis
+        - airship-jarvis-sample-workload-validation
     post:
       jobs:
         - airship-charts-upload-git-mirror

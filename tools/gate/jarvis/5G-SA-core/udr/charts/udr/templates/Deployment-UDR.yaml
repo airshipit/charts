@@ -1,0 +1,54 @@
+{{- define "Deployment-UDR" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+  annotations:
+    scheduler.alpha.kubernetes.io/critical-pod: ''
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" . | nindent 8 }}
+      annotations:
+       checksum/config: {{ include "helpers.config.hash" ( dict "Global" $ "TemplateName" "ConfigMap-UDR.yaml" ) }}
+    spec:
+      nodeSelector:
+{{ include "helpers.pod.node_selector" ( dict "Global" $ "Application" "udr" ) | nindent 8 }}
+      containers:
+      - name: udr
+        image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "udr" ) }}
+        imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+        command:
+          - /usr/bin/open5gs-udrd
+        args:
+          - -c
+          - /etc/open5gs/udr.yaml
+        volumeMounts:
+          - name: config
+            mountPath: /etc/open5gs/udr.yaml
+            subPath: udr.yaml
+        livenessProbe:
+          tcpSocket:
+            port: {{ index $.Values.config "udr.yaml" "udr" "sbi" "port" }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ index $.Values.config "udr.yaml" "udr" "sbi" "port" }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: udr.yaml
+            path: udr.yaml
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Deployment-UDR" ) }}

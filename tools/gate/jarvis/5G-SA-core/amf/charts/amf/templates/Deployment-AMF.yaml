@@ -1,0 +1,52 @@
+{{- define "Deployment-AMF" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" . | nindent 8 }}
+      annotations:
+       checksum/config: {{ include "helpers.config.hash" ( dict "Global" $ "TemplateName" "ConfigMap-AMF.yaml" ) }}
+    spec:
+      nodeSelector:
+{{ include "helpers.pod.node_selector" ( dict "Global" $ "Application" "amf" ) | nindent 8 }}
+      containers:
+      - name: amf
+        image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "amf" ) }}
+        imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+        command:
+          - /usr/bin/open5gs-amfd
+        args:
+          - -c
+          - /etc/open5gs/amf.yaml
+        volumeMounts:
+          - name: config
+            mountPath: /etc/open5gs/amf.yaml
+            subPath: amf.yaml
+        livenessProbe:
+          tcpSocket:
+            port: {{ index $.Values.config "amf.yaml" "amf" "sbi" "port" }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ index $.Values.config "amf.yaml" "amf" "sbi" "port" }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: amf.yaml
+            path: amf.yaml
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Deployment-AMF" ) }}

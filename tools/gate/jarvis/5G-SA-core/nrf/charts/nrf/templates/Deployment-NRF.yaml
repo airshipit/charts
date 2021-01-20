@@ -1,0 +1,52 @@
+{{- define "Deployment-NRF" -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}
+  labels: {{- include "helpers.labels.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  minReadySeconds: 30
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "helpers.labels.labels" . | nindent 8 }}
+      annotations:
+       checksum/config: {{ include "helpers.config.hash" ( dict "Global" $ "TemplateName" "ConfigMap-NRF.yaml" ) }}
+    spec:
+      nodeSelector:
+{{ include "helpers.pod.node_selector" ( dict "Global" $ "Application" "nrf" ) | nindent 8 }}
+      containers:
+      - name: nrf
+        image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "nrf" ) }}
+        imagePullPolicy: {{ .Values.images.pull.policy | quote }}
+        command:
+          - /usr/bin/open5gs-nrfd
+        args:
+          - -c
+          - /etc/open5gs/nrf.yaml
+        volumeMounts:
+          - name: config
+            mountPath: /etc/open5gs/nrf.yaml
+            subPath: nrf.yaml
+        livenessProbe:
+          tcpSocket:
+            port: {{ index $.Values.config "nrf.yaml" "nrf" "sbi" "port" }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ index $.Values.config "nrf.yaml" "nrf" "sbi" "port" }}
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "helpers.labels.fullname" . }}
+          items:
+          - key: nrf.yaml
+            path: nrf.yaml
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Deployment-NRF" ) }}
