@@ -41,6 +41,10 @@ function validate() {
     sudo -E docker pull debian:buster-slim
     sudo -E docker tag debian:buster-slim harbor-core.jarvis.local/library/debian:buster-slim
     sudo -E docker push harbor-core.jarvis.local/library/debian:buster-slim
+
+    # Test that we can download an image
+    sudo -E docker rmi harbor-core.jarvis.local/library/debian:buster-slim
+    sudo -E docker pull harbor-core.jarvis.local/library/debian:buster-slim
 }
 
 validate
