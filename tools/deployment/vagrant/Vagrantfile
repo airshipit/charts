@@ -29,7 +29,7 @@ Vagrant.configure("2") do |config|
     vb.memory = 8192
   end
 
-  config.vm.provision "shell", env: {"PRIVATE_NS" => ENV["PRIVATE_NS"]}, inline: <<-SHELL
+  config.vm.provision "shell", privileged: false, env: {"PRIVATE_NS" => ENV["PRIVATE_NS"]}, inline: <<-SHELL
     set -ex
     cd /airship_charts/
     ./tools/gate/jarvis/010-pre-setup.sh
