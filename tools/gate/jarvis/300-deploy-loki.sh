@@ -1,9 +1,7 @@
 #!/bin/bash
 set -ex
 
-cd ./charts/loki
-helm dep up
-cd -
+make -C ./charts loki
 
 # shellcheck disable=SC2046
 helm upgrade \

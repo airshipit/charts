@@ -1,9 +1,7 @@
 #!/bin/bash
 set -ex
 
-cd ./charts/harbor
-helm dep up
-cd -
+make -C ./charts harbor
 
 # shellcheck disable=SC2046
 helm upgrade \

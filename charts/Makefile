@@ -16,7 +16,7 @@ TASK  := build
 
 EXCLUDES := playbooks roles doc tests tools logs tmp zuul.d releasenotes
 # NOTE(Portdirect): Exlude chart directories that are presnt only for the purposes of housing over-rides
-EXCLUDES += harbor loki gerrit ldap
+EXCLUDES += gerrit ldap
 CHARTS := $(filter-out $(EXCLUDES), $(patsubst %/.,%,$(wildcard */.)))
 
 .PHONY: $(EXCLUDES) $(CHARTS)
@@ -32,13 +32,13 @@ $(CHARTS):
 
 init-%:
 	if [ -f $*/Makefile ]; then make -C $*; fi
-	if [ -f $*/requirements.yaml ]; then helm dep up $*; fi
+	helm dependency update $*
 
 lint-%: init-%
-	if [ -d $* ]; then helm lint $*; fi
+	helm lint $*
 
 build-%: lint-%
-	if [ -d $* ]; then helm package $*; fi
+	helm package $*
 
 clean:
 	@echo "Clean all build artifacts"
