@@ -1,0 +1,14 @@
+{{- define "configmap-harbor_ldap" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: harbor-ldap-bin
+data:
+  harbor-ldap-test.sh: |
+    {{- tpl (.Files.Get "bin/harbor-ldap-test.sh") . | nindent 4 }}
+  harbor-ldap-setup.sh: |
+    {{- tpl (.Files.Get "bin/harbor-ldap-setup.sh") . | nindent 4 }}
+{{- end -}}
+{{- if $.Values.config.ldap.enabled }}
+{{- include "helpers.template.overlay" (dict "Global" $ "template_definition" "configmap-harbor_ldap") }}
+{{- end }}

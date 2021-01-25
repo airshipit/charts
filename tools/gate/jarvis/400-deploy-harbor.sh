@@ -1,6 +1,9 @@
 #!/bin/bash
 set -ex
-helm repo add harbor https://helm.goharbor.io
+
+cd ./charts/harbor
+helm dep up
+cd -
 
 # shellcheck disable=SC2046
 helm upgrade \
@@ -8,10 +11,12 @@ helm upgrade \
     --install \
     --namespace=harbor \
     harbor \
-    harbor/harbor \
+    ./charts/harbor \
     $(./tools/deployment/common/get-values-overrides.sh harbor)
 
 ./tools/deployment/common/wait-for-pods.sh harbor
+
+helm -n harbor test harbor --logs
 
 function validate() {
     helm plugin update push || helm plugin install https://github.com/chartmuseum/helm-push

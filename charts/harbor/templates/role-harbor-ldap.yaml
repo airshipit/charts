@@ -1,0 +1,24 @@
+{{- define "role-harbor_ldap" -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ printf "%s-%s-%s" $.Release.Name $.Release.Namespace "harbor-ldap" }}
+  namespace: {{ $.Release.Namespace }}
+rules:
+  - apiGroups:
+      - ""
+      - extensions
+      - batch
+      - apps
+    verbs:
+      - get
+      - list
+    resources:
+      - services
+      - endpoints
+      - jobs
+      - pods
+{{- end -}}
+{{- if $.Values.config.ldap.enabled }}
+{{- include "helpers.template.overlay" (dict "Global" $ "template_definition" "role-harbor_ldap") }}
+{{- end }}

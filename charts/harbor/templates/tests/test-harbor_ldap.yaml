@@ -1,0 +1,43 @@
+{{- define "test-harbor_ldap" -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-harbor-ldap
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "harbor" ) | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  restartPolicy: Never
+  containers:
+    - name: harbor-ldap-test
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "harbor_ldap_test" ) }}
+      imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
+      env:
+        - name: HARBOR_API_URL
+          value: {{ $.Values.config.harbor.api_url | quote }}
+      command:
+        - /tmp/harbor-ldap-test.sh
+      volumeMounts:
+        - name: pod-tmp
+          mountPath: /tmp
+        - name: harbor-bin
+          mountPath: /tmp/harbor-ldap-test.sh
+          subPath: harbor-ldap-test.sh
+          readOnly: true
+        - name: netrc
+          mountPath: /etc/harbor
+          readOnly: true
+  volumes:
+    - name: pod-tmp
+      emptyDir: {}
+    - name: harbor-bin
+      configMap:
+        name: harbor-ldap-bin
+        defaultMode: 0555
+    - name: netrc
+      secret:
+        secretName: harbor-netrc
+{{- end -}}
+{{- if $.Values.config.ldap.enabled }}
+{{- include "helpers.template.overlay" (dict "Global" $ "template_definition" "test-harbor_ldap") }}
+{{- end }}
