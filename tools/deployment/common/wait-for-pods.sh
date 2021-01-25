@@ -44,6 +44,6 @@ while true; do
         fi
         [ $READY == "False" ] && echo "Some pods are not ready"
         [ $JOBR == "False" ] && echo "Some jobs have not succeeded"
-        exit -1
+        exit 1
     fi
 done
