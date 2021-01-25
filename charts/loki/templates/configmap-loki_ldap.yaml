@@ -1,0 +1,12 @@
+{{- define "configmap-loki_ldap" -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-ldap-bin
+data:
+  grafana-ldap-test.sh: |
+    {{- tpl (.Files.Get "bin/grafana-ldap-test.sh") . | nindent 4 }}
+{{- end -}}
+{{- if (index $.Values "loki-stack" "grafana" "ldap" "enabled") }}
+{{- include "helpers.template.overlay" (dict "Global" $ "template_definition" "configmap-loki_ldap") }}
+{{- end }}
