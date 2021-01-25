@@ -30,3 +30,17 @@ Jarvis AIO.
 .. note:: This document does not cover the installation of vagrant.
   Please refer to the instructions at
   `Vagrant's page <https://www.vagrantup.com/docs/installation>`_.
+
+
+Host Setup
+==========
+
+To access the exposed Jarvis services in the Vagrant box, update the
+``/etc/hosts`` file with:
+
+.. code::
+
+  192.168.56.10 gerrit.jarvis.local harbor-core.jarvis.local harbor-notary.jarvis.local loki.jarvis.local grafana.jarvis.local
+
+.. note:: Replace ``jarvis.local`` with the appropriate host and domain name if
+  those are overwritten.
