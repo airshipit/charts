@@ -9,4 +9,5 @@ Contents:
    introduction
    requirements-and-host-config
    vagrant
+   ldap
    proxy
