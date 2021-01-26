@@ -16,6 +16,15 @@ config:
       ldap_search_password: readonly
       ldap_uid: uid
       ldap_url: 'ldap://ldap-openldap.ldap.svc.cluster.local'
+      ldap_group_membership_attribute: memberof
+      ldap_group_attribute_name: cn
+      ldap_group_admin_dn: 'cn=jarvis-admins,ou=Groups,dc=jarvis,dc=local'
+      ldap_group_base_dn: 'ou=Groups,dc=jarvis,dc=local'
+      # Scope values: 0=Base, 1=OneLevel, 2=Subtree
+      ldap_scope: 2
+      ldap_group_search_scope: 2
+      ldap_verify_cert: false
+      ldap_group_search_filter: "objectClass=groupOfUniqueNames"
 
 params: {}
 

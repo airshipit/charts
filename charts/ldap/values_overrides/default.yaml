@@ -35,5 +35,7 @@ customLdifFiles:
     dn: cn=jarvis-admins,ou=Groups,dc=jarvis,dc=local
     changetype: add
     objectClass: top
-    objectClass: groupOfNames
-    member: uid=jarvis,ou=Users,dc=jarvis,dc=local
+    objectClass: groupOfUniqueNames
+    cn: jarvis-admins
+    description: Jarvis Administrators
+    uniqueMember: uid=jarvis,ou=Users,dc=jarvis,dc=local
