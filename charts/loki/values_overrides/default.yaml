@@ -647,7 +647,7 @@ loki-stack:
                     "useTags": false
                   },
                   {
-                    "allValue": ".*",
+                    "allValue": "^$namespace.*",
                     "current": {
                       "selected": false,
                       "text": "All",
@@ -664,7 +664,7 @@ loki-stack:
                     "options": [],
                     "query": "label_values(mixin_pod_workload{namespace=\"namespace\"}, tekton_dev_pipeline)",
                     "refresh": 1,
-                    "regex": "",
+                    "regex": "^$namespace.*",
                     "skipUrlSync": false,
                     "sort": 5,
                     "tagValuesQuery": "",
@@ -674,7 +674,7 @@ loki-stack:
                     "useTags": false
                   },
                   {
-                    "allValue": ".*",
+                    "allValue": "^$namespace.*",
                     "current": {
                       "selected": false,
                       "text": "All",
@@ -691,7 +691,7 @@ loki-stack:
                     "options": [],
                     "query": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_pipelineRun)",
                     "refresh": 1,
-                    "regex": "",
+                    "regex": "^$namespace.*",
                     "skipUrlSync": false,
                     "sort": 5,
                     "tagValuesQuery": "",
@@ -701,7 +701,7 @@ loki-stack:
                     "useTags": false
                   },
                   {
-                    "allValue": ".*",
+                    "allValue": "^$namespace.*",
                     "current": {
                       "selected": false,
                       "text": "All",
@@ -718,7 +718,7 @@ loki-stack:
                     "options": [],
                     "query": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_taskRun)",
                     "refresh": 1,
-                    "regex": "",
+                    "regex": "^$namespace.*",
                     "skipUrlSync": false,
                     "sort": 5,
                     "tagValuesQuery": "",
