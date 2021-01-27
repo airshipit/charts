@@ -767,8 +767,8 @@ loki-stack:
                 ]
               },
               "timezone": "",
-              "title": "Tekton Logs Dashboard",
-              "uid": "tektonDash",
+              "title": "Loki Pipeline Logs Dashboard",
+              "uid": "lokiPipelineDash",
               "variables": {
                 "list": []
               },

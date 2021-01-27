@@ -11,18 +11,12 @@ spec:
     - name: changeNumber
     - name: patchSetNumber
     - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
   steps:
     - name: createsuccess
       image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_curl" ) }}
-      env:
-        - name: "JARVIS_TASKRUN_NAMESPACE"
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
-        - name: "JARVIS_TASKRUN_NAME"
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.labels['tekton.dev/taskRun']
       volumeMounts:
         - name: gerrit-netrc
           mountPath: /run/jarvis/gerrit-netrc
@@ -42,7 +36,7 @@ spec:
         {
           "checker_uuid": "$(params.checkerUUID)",
           "state": "SUCCESSFUL",
-          "url": "http://{{ .Values.params.tekton.dashboard.host }}/#/namespaces/${JARVIS_TASKRUN_NAMESPACE}/taskruns/${JARVIS_TASKRUN_NAME}",
+          "url": "https://{{ .Values.params.grafana.dashboard.host }}/d/{{ .Values.params.grafana.dashboard.uid }}/{{ .Values.params.grafana.dashboard.title }}?orgId={{ .Values.params.grafana.dashboard.orgid }}&var-namespace=$(params.pipelineRunNamespace)&var-tekton_dev_pipeline=$(params.pipelineName)&var-tekton_dev_pipelineRun=$(params.pipelineRunName)&var-tekton_dev_taskRun=All",
           "message": "Jarvis has successfully processed the run for change #$(params.changeNumber) ps #$(params.patchSetNumber) to the $(params.project) repo"
         }
         EOF

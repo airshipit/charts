@@ -16,6 +16,12 @@ spec:
       value: $(body.pipelineRun.spec.params[?(@.name=='patchSetNumber')].value)
     - name: checkerUUID
       value: $(body.pipelineRun.spec.params[?(@.name=='checkerUUID')].value)
+    - name: pipelineName
+      value: $(body.pipelineRun.spec.pipelineRef.name)
+    - name: pipelineRunName
+      value: $(body.pipelineRun.metadata.name)
+    - name: pipelineRunNamespace
+      value: $(body.pipelineRun.metadata.namespace)
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "TriggerBinding-createResult" ) }}

@@ -41,3 +41,9 @@ params:
       issuer:
         name: jarvis-ca-issuer
         kind: ClusterIssuer
+  grafana:
+    dashboard:
+      host: grafana.jarvis.local
+      title: loki-pipeline-logs-dashboard
+      uid: lokiPipelineDash
+      orgid: 1

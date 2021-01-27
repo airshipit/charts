@@ -11,6 +11,9 @@ spec:
     - name: changeNumber
     - name: patchSetNumber
     - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
   resourcetemplates:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
@@ -30,6 +33,12 @@ spec:
             value: $(tt.params.patchSetNumber)
           - name: checkerUUID
             value: $(tt.params.checkerUUID)
+          - name: pipelineName
+            value: $(tt.params.pipelineName)
+          - name: pipelineRunName
+            value: $(tt.params.pipelineRunName)
+          - name: pipelineRunNamespace
+            value: $(tt.params.pipelineRunNamespace)
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "TriggerTemplate-createSuccess" ) }}

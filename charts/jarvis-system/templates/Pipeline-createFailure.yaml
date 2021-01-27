@@ -11,6 +11,9 @@ spec:
     - name: changeNumber
     - name: patchSetNumber
     - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
   tasks:
     - name: createfailure
       taskRef:
@@ -26,6 +29,12 @@ spec:
           value: $(params.patchSetNumber)
         - name: checkerUUID
           value: $(params.checkerUUID)
+        - name: pipelineName
+          value: $(params.pipelineName)
+        - name: pipelineRunName
+          value: $(params.pipelineRunName)
+        - name: pipelineRunNamespace
+          value: $(params.pipelineRunNamespace)
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Pipeline-createFailure" ) }}
