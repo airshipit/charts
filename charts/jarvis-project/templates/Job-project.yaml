@@ -34,6 +34,8 @@ spec:
               value: {{ .Values.params.gerrit.host }}
             - name: GERRIT_URL
               value: "https://{{ .Values.params.gerrit.host }}"
+            - name: HARBOR_URL
+              value: "https://{{ .Values.params.harbor.host }}"
           command:
             - sh
             - -cex
@@ -47,7 +49,29 @@ spec:
               jarvis-connector --auth_file /run/jarvis/gerrit-authfile --gerrit $GERRIT_URL --update --repo "${JARVIS_PROJECT_NAME}" --prefix jarvispipeline || \
                 jarvis-connector --auth_file /run/jarvis/gerrit-authfile --gerrit $GERRIT_URL --register --repo "${JARVIS_PROJECT_NAME}" --prefix jarvispipeline
 
-              # TODO: Add setup for harbor repo.
+              # Create project in harbor if it doesn't already exists
+              project_in_harbor(){
+                for PROJECT_NAME; do
+                  PROJECT_CHECK_RESP=`curl -s -o /dev/null -I -w "%{http_code}" \
+                  "${HARBOR_URL}/api/v2.0/projects?project_name=${PROJECT_NAME}" \
+                  --netrc-file /run/jarvis/harbor-netrc/harbor-netrc \
+                  -H 'accept: application/json'`
+
+                  case "${PROJECT_CHECK_RESP}" in
+                  "200") echo "${PROJECT_NAME} project already in harbor" ;;
+                  "404") `curl -X POST "${HARBOR_URL}/api/v2.0/projects" \
+                  --netrc-file /run/jarvis/harbor-netrc/harbor-netrc \
+                  -H "accept: application/json" \
+                  -H "Content-Type: application/json" \
+                  -d "{ \"project_name\": \"${PROJECT_NAME}\", \"public\": true, \"metadata\": { \"auto_scan\": \"true\" }}"` ;;
+                  *) echo "Unable to retrieve projects in harbor: ${PROJECT_CHECK_RESP} response code."; exit 1
+                  esac
+                done
+              }
+              # Add project and staging project in harbor
+              project_in_harbor "${JARVIS_PROJECT_NAME}" "${JARVIS_PROJECT_NAME}-staging"
+
+
           volumeMounts:
             - name: gerrit-creds
               mountPath: /run/jarvis/gerrit-authfile
@@ -58,6 +82,8 @@ spec:
             - name: jarvis-ca-crt
               mountPath: /usr/local/share/ca-certificates/ca.crt
               subPath: ca.crt
+            - name: netrc
+              mountPath: /run/jarvis/harbor-netrc
       volumes:
         - name: gerrit-creds
           secret:
@@ -75,6 +101,9 @@ spec:
             items:
               - key: ca.crt
                 path: ca.crt
+        - name: netrc
+          secret:
+            secretName: {{ template "helpers.labels.fullname" . }}-netrc
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Job-project" ) }}
