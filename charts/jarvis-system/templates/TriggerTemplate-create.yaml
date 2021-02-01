@@ -17,6 +17,7 @@ spec:
       metadata:
         generateName: {{ template "helpers.labels.fullname" . }}-create-
       spec:
+        serviceAccountName: jarvis-system-el
         pipelineRef:
           name: {{ template "helpers.labels.fullname" . }}-create
         params:

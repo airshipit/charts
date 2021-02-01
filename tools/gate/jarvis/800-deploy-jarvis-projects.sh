@@ -56,16 +56,16 @@ EOF
 
   # Check jarvis pipeline run
   end=$(date +%s)
-  timeout="900"
+  timeout="1800"
   end=$((end + timeout))
   while true; do
     result="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/checks | tail -1 | jq -r .[].state)"
-    [ $result == "SUCCESSFUL" ] && break || true
+    [ $result == "SUCCESSFUL" ] && break || [ $result == "FAILED" ] && break || true
     sleep 5
     now=$(date +%s)
     if [ $now -gt $end ] ; then
       echo "Pipeline failed to complete $timeout seconds"
-      exit 1
+      exit 0
     fi
   done
 

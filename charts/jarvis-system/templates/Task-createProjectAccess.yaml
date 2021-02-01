@@ -1,0 +1,150 @@
+{{- define "Task-createProjectAccess" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-createprojectaccess
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this workspace
+  results:
+    - name: commit
+      description: The precise commit SHA that was fetched by this Task
+  steps:
+    - name: create-namespace
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_create_namespace" ) }}
+      script: |
+        #!/bin/bash
+        create_namespace() {
+          if ! [[ $(kubectl get ns jarvis-$(params.changeNumber)-$(params.patchSetNumber)) ]] ; then
+            kubectl create ns jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+            echo "Created namespace jarvis-$(params.changeNumber)-$(params.patchSetNumber)"
+          else
+            echo "Namespace already exists"
+            exit
+          fi
+        }
+        create_namespace
+    - name: create-k8s-objects
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_create_namespace" ) }}
+      script: |
+        #Service account creation
+        cat > $(workspaces.output.path)/service-account.yaml <<EOF
+        apiVersion: v1
+        kind: ServiceAccount
+        metadata:
+          name: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+          namespace: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+        EOF
+        #Role creation
+        cat > $(workspaces.output.path)/role.yaml <<EOF
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: Role
+        metadata:
+          name: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+          namespace: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+        rules:
+        # EventListeners need to be able to fetch all namespaced resources
+          - apiGroups: ["triggers.tekton.dev"]
+            resources: ["eventlisteners", "triggerbindings", "triggertemplates", "triggers"]
+            verbs: ["get", "list", "watch"]
+          - apiGroups: [""]
+            resources: ["configmaps"]
+            verbs: ["get", "list", "watch"]
+            # Permissions to execute helm dry-run TODO restrict to specific namespace
+          - apiGroups: [""]
+            resources: ["secrets", "services"]
+            verbs: ["get"]
+          - apiGroups: ["apps"]
+            resources: ["deployments"]
+            verbs: ["get"]
+          - apiGroups: ["rbac.authorization.k8s.io"]
+            resources: ["roles", "rolebindings"]
+            verbs: ["get"]
+        EOF
+        #Rolebinding creation
+        cat > $(workspaces.output.path)/rolebinding.yaml <<EOF
+        apiVersion: rbac.authorization.k8s.io/v1
+        kind: RoleBinding
+        metadata:
+          name: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+          namespace: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+        subjects:
+          - kind: ServiceAccount
+            name: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+        roleRef:
+          apiGroup: rbac.authorization.k8s.io
+          kind: Role
+          name: jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+        EOF
+        #!/bin/bash
+        cat $(workspaces.output.path)/service-account.yaml | kubectl apply -f -
+        cat $(workspaces.output.path)/role.yaml | kubectl apply -f -
+        cat $(workspaces.output.path)/rolebinding.yaml | kubectl apply -f -
+
+    - name: checkout-repo
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_git" ) }}
+      script: |
+        #!/bin/sh
+        set -eu -o pipefail -x
+
+        # A change ref has the format refs/changes/X/Y/Z where X is
+        # the last two digits of the change number, Y is the entire
+        # change number, and Z is the patch set. For example, if
+        # the change number is 263270, the ref would be
+        # refs/changes/70/263270/2 for the second patch set.
+        change_ref="refs/changes/$(echo "0$(params.changeNumber)" | awk '{ print substr( $0, length($0) - 1, length($0) ) }')/$(params.changeNumber)/$(params.patchSetNumber)"
+        echo $change_ref
+
+
+        CHECKOUT_DIR="$(workspaces.output.path)"
+
+        cleandir() {
+          # Delete any existing contents of the repo directory if it exists.
+          #
+          # We don't just "rm -rf $CHECKOUT_DIR" because $CHECKOUT_DIR might be "/"
+          # or the root of a mounted volume.
+          if [[ -d "$CHECKOUT_DIR" ]] ; then
+            # Delete non-hidden files and directories
+            rm -rf "$CHECKOUT_DIR"/*
+            # Delete files and directories starting with . but excluding ..
+            rm -rf "$CHECKOUT_DIR"/.[!.]*
+            # Delete files and directories starting with .. plus any other character
+            rm -rf "$CHECKOUT_DIR"/..?*
+          fi
+        }
+        cleandir
+
+        cd ${CHECKOUT_DIR}
+        git init
+        git config http.sslVerify "false"
+        git config advice.detachedHead "false"
+        git fetch $(params.repoRoot)/$(params.project) $change_ref
+        git checkout FETCH_HEAD
+
+        RESULT_SHA="$(git rev-parse HEAD)"
+        EXIT_CODE="$?"
+        if [ "$EXIT_CODE" != 0 ] ; then
+          exit $EXIT_CODE
+        fi
+
+        echo -n "$RESULT_SHA" > $(results.commit.path)
+    - name: create-secrets
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_secrets" ) }}
+      script: |
+        #!/bin/sh
+
+        kubectl create secret generic harbor-ca --from-file=harbor-ca=/etc/jarvis/certs/ca/ca.pem -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) || true
+        kubectl create secret generic kubeconfig-secret --from-file=kubeconfig=$HOME/.kube/config -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) || true
+        #Required to know what authentication to use when pushing to Harbor, should have a different ID then admin in future.
+        kubectl create secret generic harbor-basic-auth --from-literal=username='admin' --from-literal=password='Harbor12345' -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) || true
+        kubectl create secret docker-registry harbor-docker-auth --docker-username=admin --docker-password=Harbor12345 --docker-email=example@gmail.com --docker-server=harbor-core.jarvis.local -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) || true
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Task-createProjectAccess" ) }}
