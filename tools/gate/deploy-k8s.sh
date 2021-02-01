@@ -181,6 +181,8 @@ sudo -E minikube start \
   --docker-env HTTPS_PROXY="${HTTPS_PROXY}" \
   --docker-env NO_PROXY="${NO_PROXY},10.96.0.0/12" \
   --network-plugin=cni \
+  --wait=apiserver,system_pods \
+  --apiserver-names="$(hostname -f)" \
   --extra-config=controller-manager.allocate-node-cidrs=true \
   --extra-config=controller-manager.cluster-cidr=192.168.0.0/16 \
   --extra-config=kube-proxy.mode=ipvs \
@@ -189,7 +191,7 @@ sudo -E minikube start \
   --extra-config=kubelet.cgroup-driver=systemd
 sudo -E systemctl enable --now kubelet
 
-minikube addons list
+sudo -E minikube addons list
 
 curl https://docs.projectcalico.org/"${CALICO_VERSION}"/manifests/calico.yaml -o /tmp/calico.yaml
 # NOTE: Changes the default repository to use quay.io. Running this script multiple times can result
@@ -214,9 +216,10 @@ spec:
               value: "true"
             - name: FELIX_PROMETHEUSMETRICSPORT
               value: "9091"
+            - name: FELIX_IGNORELOOSERPF
+              value: "true"
 EOF
 kubectl -n kube-system patch daemonset calico-node --patch "$(cat /tmp/calico-node.yaml)"
-kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
 
 kubectl get pod -A
 kubectl -n kube-system get pod -l k8s-app=kube-dns
