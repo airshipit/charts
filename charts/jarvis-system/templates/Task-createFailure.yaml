@@ -47,6 +47,21 @@ spec:
           "finished": "$(date --utc '+%F %T.%N')"
         }
         EOF
+
+        curl \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --fail \
+          --insecure \
+          -L \
+          -H "Content-Type: application/json; charset=UTF-8" \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/revisions/$(params.patchSetNumber)/review/ \
+          --data-binary @- << EOF
+        {
+          "labels": {
+            "Verified": "-1"
+          }
+        }
+        EOF
   volumes:
     - name: gerrit-netrc
       secret:
