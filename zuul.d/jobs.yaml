@@ -38,6 +38,7 @@
         - ./tools/gate/jarvis/400-deploy-harbor.sh
         - ./tools/gate/jarvis/500-deploy-gerrit.sh
         - ./tools/gate/jarvis/600-deploy-tekton.sh
+        - ./tools/gate/jarvis/650-temporary-setup.sh
         - ./tools/gate/jarvis/700-deploy-jarvis-system.sh
         - ./tools/gate/jarvis/800-deploy-jarvis-projects.sh
 

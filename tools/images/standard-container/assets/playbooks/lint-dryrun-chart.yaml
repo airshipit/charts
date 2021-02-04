@@ -1,0 +1,5 @@
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Chart lint and dry-run
+      include_tasks: ./roles/charts/tasks/lint-dryrun-chart.yaml

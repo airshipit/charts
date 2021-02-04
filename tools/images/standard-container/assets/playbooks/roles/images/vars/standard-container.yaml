@@ -1,0 +1,15 @@
+build_from_source: true
+repo: "microflow/standard-container"
+project: "test"
+tag: "1.built"
+build:
+  git_repo: "https://review.opendev.org/airship/charts"
+  checkout_loc: "/src/checkout/standard-container"
+  refspec: "refs/changes/41/770141/7"
+  version: "refs/changes/*:refs/changes/*"
+makefile:
+  path: "tools/images"
+  target: "build"
+  file: "Makefile"
+  image_name: "standard-container"
+  image_base: "ubuntu:20.04"

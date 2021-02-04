@@ -1,0 +1,7 @@
+- hosts: localhost
+  become: yes
+  vars:
+    image_status: "Success"
+  tasks:
+    - name: Push Image for scanning to Docker Repository
+      include_tasks: ./roles/images/tasks/tag-push-image.yaml

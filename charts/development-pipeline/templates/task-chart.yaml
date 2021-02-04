@@ -10,9 +10,57 @@ spec:
     - name: k8s_cluster_data
     - name: development_pipeline_data
   steps:
-    - name: build-chart
+    - name: clone
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.chart.buildPlaybook }}  -i hosts -e @"$(workspaces.k8s_cluster_data.path)/development.yaml"
-        # TODO copy JSON to shared workspace to make it available for other tasks
+        ansible-playbook -vvv  {{ $.Values.tasks.chart.clonePlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: set-chart-output
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        cat "$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: lint-chart
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        ansible-playbook -vvv {{ $.Values.tasks.chart.lintdryrunPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: set-chart-output-after-lint-dryrun
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        cat "$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: package-chart
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        ansible-playbook -vvv {{ $.Values.tasks.chart.packagePlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: set-chart-output-after-packaging
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        cat "$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: publish-chart
+      volumeMounts:
+        - mountPath: /usr/local/share/ca-certificates/harbor-ca.crt
+          name: harbor-ca
+          subPath: harbor-ca
+        - mountPath: /workspace/helm-creds
+          name: helm-publish-creds
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        update-ca-certificates
+        ansible-playbook -vvv {{ $.Values.tasks.chart.publishPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: set-chart-output-after-publish
+      image: {{ $.Values.tasks.chart.buildChartImage }}
+      script: |
+        #!/usr/bin/env sh
+        cat "$(workspaces.development_pipeline_data.path)/chart.json"
+  volumes:
+    - name: helm-publish-creds
+      secret:
+        secretName: harbor-basic-auth
+    - name: harbor-ca
+      secret:
+        secretName: harbor-ca

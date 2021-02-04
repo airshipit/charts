@@ -8,7 +8,41 @@ spec:
     - name: k8s_cluster_data
     - name: development_pipeline_data
   tasks:
-    - name: deploy-k8s
+    - name: microflow-setup-cluster-config
+      taskRef:
+        name: setup-cluster-config
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+    - name: microflow-setup-image-config
+      taskRef:
+        name: setup-image-config
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+    - name: microflow-setup-chart-config
+      taskRef:
+        name: setup-chart-config
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+    - name: microflow-setup-cleanup-config
+      taskRef:
+        name: setup-cleanup-config
+      workspaces:
+        - name: k8s_cluster_data
+          workspace: k8s_cluster_data
+        - name: development_pipeline_data
+          workspace: development_pipeline_data
+    - name: microflow-k8s
+      runAfter:
+        - microflow-setup-cluster-config
       taskRef:
         name: k8s-cluster
       workspaces:
@@ -16,7 +50,9 @@ spec:
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
-    - name: build-image
+    - name: microflow-images
+      runAfter:
+        - microflow-setup-image-config
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
@@ -24,7 +60,9 @@ spec:
           workspace: development_pipeline_data
       taskRef:
         name: build-images
-    - name: build-chart
+    - name: microflow-charts
+      runAfter:
+        - microflow-setup-chart-config
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
@@ -32,17 +70,20 @@ spec:
           workspace: development_pipeline_data
       taskRef:
         name: build-charts
-    - name: deploy-artifacts
-      runAfter: [deploy-k8s,build-image,build-chart]
+    - name: microflow-deployment-manifests
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
       taskRef:
-        name: deployment
-    - name: functional-testing
-      runAfter: [deploy-artifacts]
+        name: deployment-manifests
+    - name: microflow-functional
+      runAfter:
+        - microflow-deployment-manifests
+        - microflow-k8s
+        - microflow-images
+        - microflow-charts
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
@@ -50,8 +91,9 @@ spec:
           workspace: development_pipeline_data
       taskRef:
         name: functional
-    - name: promote-artifacts
-      runAfter: [functional-testing]
+    - name: microflow-promote-artifacts
+      runAfter:
+        - microflow-functional
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
@@ -60,7 +102,7 @@ spec:
       taskRef:
         name: promote
   finally:
-    - name: cleanup
+    - name: microflow-cleanup
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data

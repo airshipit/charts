@@ -1,0 +1,7 @@
+build_from_source: false
+remote_registry: "docker.io"
+remote_repo: "testing2016/jrunner"
+remote_tag: "2.0"
+repo: "microflow/standard-container"
+project: "test"
+tag: "1.existing"

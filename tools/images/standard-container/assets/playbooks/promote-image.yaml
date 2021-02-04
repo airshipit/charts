@@ -1,0 +1,5 @@
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Promote images after testing is successful
+      include_tasks: ./roles/promote/tasks/promote-image.yaml
