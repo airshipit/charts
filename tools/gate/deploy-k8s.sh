@@ -118,8 +118,8 @@ sudo -E apt-get install -y \
   git-review
 
 # Prepare tmpfs for etcd
-sudo mkdir -p /data
-sudo mount -t tmpfs -o size=512m tmpfs /data
+sudo mkdir -p /var/lib/minikube/etcd
+sudo mount -t tmpfs -o size=512m tmpfs /var/lib/minikube/etcd
 
 # Install minikube and kubectl
 URL="https://storage.googleapis.com"
