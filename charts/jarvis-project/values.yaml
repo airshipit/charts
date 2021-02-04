@@ -24,6 +24,8 @@ params:
     password: ""
     ssh_key: ""
     host: gerrit.jarvis.local
+  harbor:
+    host: harbor-core.jarvis.local
   endpoints:
     hostname: localhost
     tls:
@@ -31,4 +33,9 @@ params:
       issuer:
         name: jarvis-ca-issuer
         kind: ClusterIssuer
+
+config:
+  test:
+    ldap_username: jarvis
+    ldap_password: password
 
