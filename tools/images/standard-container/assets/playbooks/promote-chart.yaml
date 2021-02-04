@@ -1,5 +1,0 @@
-- hosts: localhost
-  become: yes
-  tasks:
-    - name: Promote charts after testing is successful
-      include_tasks: ./roles/promote/tasks/promote-chart.yaml

@@ -1,5 +1,0 @@
-- hosts: localhost
-  become: yes
-  tasks:
-    - name: Test deployed CNF
-      include_tasks: ./roles/functional/tasks/functional-test.yaml

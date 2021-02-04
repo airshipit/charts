@@ -23,12 +23,13 @@ spec:
       script: |
         #!/bin/sh
         update-ca-certificates
-        ansible-playbook -vvv "{{ $.Values.tasks.functional.functionalDeployPlaybook }}"  -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/cluster.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.functional.functionalPlaybook }} -i hosts -e '{"stage":"deploy"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/cluster.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: run-helm-tests
       image: {{ $.Values.tasks.functional.functionalTestImage }}
       script: |
         #!/bin/sh
-        ansible-playbook -vvv "{{ $.Values.tasks.functional.functionalTestPlaybook }}"  -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.functional.functionalPlaybook }} -i hosts -e '{"stage":"test"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/cluster.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
   volumes:
     - name: helm-publish-creds
       secret:

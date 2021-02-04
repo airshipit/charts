@@ -16,6 +16,7 @@ spec:
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
+
     - name: microflow-setup-image-config
       taskRef:
         name: setup-image-config
@@ -24,6 +25,7 @@ spec:
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
+
     - name: microflow-setup-chart-config
       taskRef:
         name: setup-chart-config
@@ -32,6 +34,7 @@ spec:
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
+
     - name: microflow-setup-cleanup-config
       taskRef:
         name: setup-cleanup-config
@@ -40,6 +43,7 @@ spec:
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
+
     - name: microflow-k8s
       runAfter:
         - microflow-setup-cluster-config
@@ -50,6 +54,7 @@ spec:
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
+
     - name: microflow-images
       runAfter:
         - microflow-setup-image-config
@@ -59,7 +64,8 @@ spec:
         - name: development_pipeline_data
           workspace: development_pipeline_data
       taskRef:
-        name: build-images
+        name: image-tasks
+
     - name: microflow-charts
       runAfter:
         - microflow-setup-chart-config
@@ -69,8 +75,14 @@ spec:
         - name: development_pipeline_data
           workspace: development_pipeline_data
       taskRef:
-        name: build-charts
+        name: chart-tasks
+
     - name: microflow-deployment-manifests
+      runAfter:
+        - microflow-setup-image-config
+        - microflow-setup-chart-config
+        - microflow-setup-cluster-config
+        - microflow-setup-cleanup-config
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
@@ -78,6 +90,7 @@ spec:
           workspace: development_pipeline_data
       taskRef:
         name: deployment-manifests
+
     - name: microflow-functional
       runAfter:
         - microflow-deployment-manifests
@@ -91,6 +104,7 @@ spec:
           workspace: development_pipeline_data
       taskRef:
         name: functional
+
     - name: microflow-promote-artifacts
       runAfter:
         - microflow-functional

@@ -1,8 +1,0 @@
-- hosts: localhost
-  become: yes
-  vars:
-    image_status: "Success"
-  tasks:
-    - name: Run git clone task
-      include_tasks: ./roles/common/tasks/git-clone.yaml
-      when: "{{ build_from_source }}"

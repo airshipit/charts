@@ -1,7 +1,0 @@
-- hosts: localhost
-  become: yes
-  vars:
-    image_status: "Success"
-  tasks:
-    - name: Get Scan Results
-      include_tasks: ./roles/images/tasks/get-scan-results.yaml

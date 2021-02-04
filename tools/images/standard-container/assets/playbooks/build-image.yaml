@@ -1,8 +1,0 @@
-- hosts: localhost
-  become: yes
-  vars:
-    image_status: "Success"
-  tasks:
-    - name: Build image
-      include_tasks: ./roles/images/tasks/build-image.yaml
-      when: "{{ build_from_source }}"

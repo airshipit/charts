@@ -19,33 +19,27 @@ tasks:
     validateClusterPlaybook: /playbooks/validate-cluster.yaml
   setup:
     setupConfigImage: *base_image
+  git:
+    gitPlaybook: /playbooks/git-microflow.yaml
   image:
     buildImage: *base_image
     sidecarServer: docker:19-dind
     insecureRegistry: harbor-core.jarvis.local
-    clonePlaybook: /playbooks/clone.yaml
-    buildPlaybook: /playbooks/build-image.yaml
-    pushPlaybook: /playbooks/tag-push-image.yaml
-    getScanResultsPlaybook: /playbooks/get-scan-results.yaml
+    imagePlaybook: /playbooks/images-microflow.yaml
     name: standard-container.yaml
   chart:
     buildChartImage: *base_image
-    clonePlaybook: /playbooks/clone.yaml
-    packagePlaybook: /playbooks/package-chart.yaml
-    lintdryrunPlaybook: /playbooks/lint-dryrun-chart.yaml
-    publishPlaybook: /playbooks/publish-chart.yaml
+    chartPlaybook: /playbooks/charts-microflow.yaml
   deploymentManifests:
     deploymentManifestsImage: *base_image
     deploymentManifestsPlaybook: /playbooks/deployment-manifests.yaml
   promote:
     promoteImage: *base_image
-    promoteImagePlaybook: /playbooks/promote-image.yaml
-    promoteChartPlaybook: /playbooks/promote-chart.yaml
+    promotePlaybook: /playbooks/promote-microflow.yaml
   functional:
     functionalDeployImage: *base_image
     functionalTestImage: *base_image
-    functionalDeployPlaybook: /playbooks/functional-deploy.yaml
-    functionalTestPlaybook: /playbooks/functional-test.yaml
+    functionalPlaybook: /playbooks/functional-microflow.yaml
   cleanup:
     cleanupImage: *base_image
     cleanupPlaybook: /playbooks/cleanup.yaml

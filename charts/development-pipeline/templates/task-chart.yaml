@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-charts
+  name: chart-tasks
   namespace: {{ $.Release.Namespace }}
 spec:
   description: >-
@@ -14,32 +14,38 @@ spec:
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv  {{ $.Values.tasks.chart.clonePlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.git.gitPlaybook }} -i hosts -e '{"stage":"clone"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: set-chart-output
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
         cat "$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: lint-chart
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.chart.lintdryrunPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.chart.chartPlaybook }} -i hosts -e '{"stage":"lint"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: set-chart-output-after-lint-dryrun
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
         cat "$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: package-chart
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.chart.packagePlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.chart.chartPlaybook }} -i hosts -e '{"stage":"package"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: set-chart-output-after-packaging
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |
         #!/usr/bin/env sh
         cat "$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: publish-chart
       volumeMounts:
         - mountPath: /usr/local/share/ca-certificates/harbor-ca.crt
@@ -51,7 +57,8 @@ spec:
       script: |
         #!/usr/bin/env sh
         update-ca-certificates
-        ansible-playbook -vvv {{ $.Values.tasks.chart.publishPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.chart.chartPlaybook }} -i hosts -e '{"stage":"publish"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+
     - name: set-chart-output-after-publish
       image: {{ $.Values.tasks.chart.buildChartImage }}
       script: |

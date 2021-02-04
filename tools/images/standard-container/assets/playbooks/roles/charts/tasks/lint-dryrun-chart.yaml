@@ -1,9 +1,0 @@
-- name: Helm lint "{{ chart_name }}"
-  command: "helm lint {{ chart_name }}"
-  args:
-    chdir: "{{ build.checkout_loc }}/{{ path }}"
-
-- name: Helm Dry-run "{{ chart_name }}"
-  command: "helm install --dry-run {{ chart_name }} {{ chart_name }}"
-  args:
-    chdir: "{{ build.checkout_loc }}/{{ path }}"

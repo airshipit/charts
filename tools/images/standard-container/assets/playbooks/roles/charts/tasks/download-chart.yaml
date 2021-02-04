@@ -1,6 +1,0 @@
-#Helm Chart is upstream already packaged and versioned
-- name: Existing helm_chart
-  block:
-    - name: Download helm_chart
-      get_url:
-        name: "{{ remote_url }}"

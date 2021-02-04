@@ -1,0 +1,27 @@
+- name: Functional Deploy
+  when: ("{{ stage }}" == "deploy")
+  block:
+    #Deploy CNF
+    - name: Get harbor username
+      shell: cat {{ harbor_secret_mounted_path }}/username
+      register: harbor_username
+
+    - name: Get harbor password
+      shell: cat {{ harbor_secret_mounted_path }}/password
+      register: harbor_password
+
+    #TODO dex-aio doesn't install, look into another test chart
+    - name: Add Harbor Helm repository and Test repository
+      shell: helm repo add "{{ chart_repository }}-staging" "https://{{ docker_registry }}/chartrepo/{{ project }}-staging" --username={{ harbor_username.stdout }} --password={{ harbor_password.stdout }}
+
+    - name: Deploy chart "{{ chart_name }}"
+      #shell: echo "Deploy after mongodb"
+      shell: helm upgrade --install --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" "{{ release_name }}" "{{ chart_repository }}-staging/{{ chart_name }}" --version="{{ version }}" --namespace="{{ namespace }}" --username="{{ harbor_username.stdout }}" --password="{{ harbor_password.stdout }}" --create-namespace
+  become: true
+
+- name: Functional Test
+  when: ( stage == "test")
+  block:
+    #Test Deployed CNF
+    - name: Chart currently has no Helm Tests, echo for now
+      shell: echo "There are no helm tests yet"

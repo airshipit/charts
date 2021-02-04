@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: build-images
+  name: image-tasks
   namespace: {{ $.Release.Namespace }}
 spec:
   description: >-
@@ -17,15 +17,14 @@ spec:
           name: dind-certs
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv  {{ $.Values.tasks.image.clonePlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
-        #docker images
-        # TODO copy JSON file to shared workspace to make it available for other tasks
-        # TODO copy logs and scan results to shared location
+        ansible-playbook -vvv {{ $.Values.tasks.git.gitPlaybook }} -i hosts -e '{"stage":"clone"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: set-image-output
       image: {{ $.Values.tasks.image.buildImage }}
       script: |
         #!/usr/bin/env sh
         cat "$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: docker-build
       image: {{ $.Values.tasks.image.buildImage }}
       volumeMounts:
@@ -43,15 +42,14 @@ spec:
         value: /certs/client
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv  {{ $.Values.tasks.image.buildPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
-        docker images
-        # TODO copy JSON file to shared workspace to make it available for other tasks
-        # TODO copy logs and scan results to shared location
+        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"build"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: set-image-build-output-after-build
       image: {{ $.Values.tasks.image.buildImage }}
       script: |
         #!/usr/bin/env sh
         cat "$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: publish-and-scan-image
       image: {{ $.Values.tasks.image.buildImage }}
       volumeMounts:
@@ -72,12 +70,14 @@ spec:
         value: /certs/client
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv  {{ $.Values.tasks.image.pushPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"push"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: set-image-output-after-publish-scan
       image: {{ $.Values.tasks.image.buildImage }}
       script: |
         #!/usr/bin/env sh
         cat "$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: get-scan-results
       image: {{ $.Values.tasks.image.buildImage }}
       volumeMounts:
@@ -85,7 +85,8 @@ spec:
           name: dind-certs
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv  {{ $.Values.tasks.image.getScanResultsPlaybook }} -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"scan_results"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+
     - name: set-image-output-set-scan-results
       image: {{ $.Values.tasks.image.buildImage }}
       script: |
@@ -99,6 +100,7 @@ spec:
         - --userland-proxy=false
         - --debug
         - --insecure-registry={{ $.Values.tasks.image.insecureRegistry }}
+      ##TODO: Get rid of privileged true
       securityContext:
         privileged: true
       env:

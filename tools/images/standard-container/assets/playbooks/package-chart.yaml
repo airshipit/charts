@@ -1,6 +1,0 @@
-- hosts: localhost
-  become: yes
-  tasks:
-    - name: Package Helm Chart
-      include_tasks: ./roles/charts/tasks/package-chart.yaml
-      when: "{{ build_from_source }}"

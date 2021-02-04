@@ -1,6 +1,0 @@
-- name: Tag and push to internal test repository for vulnerability scanning
-  docker_image:
-    push: true
-    name: "{{ image_fullname }}"
-    repository: "{{ docker_registry }}/{{ project }}-staging/{{ repo }}"
-    tag: "{{ tag }}"

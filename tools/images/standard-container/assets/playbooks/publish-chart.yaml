@@ -1,5 +1,0 @@
-- hosts: localhost
-  become: yes
-  tasks:
-    - name: Publish Helm Chart
-      include_tasks: ./roles/charts/tasks/publish-chart.yaml

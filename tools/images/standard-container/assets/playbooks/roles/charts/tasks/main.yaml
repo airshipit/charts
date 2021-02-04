@@ -1,0 +1,43 @@
+- name: Helm Lint and Dry-Run
+  when: ( stage == "lint")
+  block:
+    - name: Helm lint "{{ chart_name }}"
+      command: "helm lint {{ chart_name }}"
+      args:
+        chdir: "{{ build.checkout_loc }}/{{ path }}"
+
+    - name: Helm Dry-run "{{ chart_name }}"
+      command: "helm install --dry-run {{ chart_name }} {{ chart_name }}"
+      args:
+        chdir: "{{ build.checkout_loc }}/{{ path }}"
+  become: true
+
+- name: Helm Package
+  when: ( stage == "package")
+  block:
+    - name: Package Helm Chart
+      shell: helm package "{{ chart_name }}"
+      args:
+        chdir: "{{ build.checkout_loc }}/{{ path }}"
+
+- name: Helm Publish
+  when: ( stage == "publish")
+  block:
+    - name: Install Plugin
+      shell: helm plugin update push || helm plugin install https://github.com/chartmuseum/helm-push || true
+
+    - name: Get harbor username
+      shell: cat {{ harbor_secret_mounted_path }}/username
+      register: harbor_username
+
+    - name: Get harbor password
+      shell: cat {{ harbor_secret_mounted_path }}/password
+      register: harbor_password
+
+    - name: Add Harbor Helm repository and Test repository
+      shell: helm repo add "{{ chart_repository }}-staging" "https://{{ docker_registry }}/chartrepo/{{ chart_name }}-staging" --username={{ harbor_username.stdout }} --password={{ harbor_password.stdout }}
+
+    - name: Push chart "{{ chart_name }}" to Harbor staging registry
+      command: helm push "{{ chart_name }}-{{ version }}".tgz "{{ chart_repository }}-staging"
+      args:
+        chdir: "{{ build.checkout_loc }}/{{ path }}"

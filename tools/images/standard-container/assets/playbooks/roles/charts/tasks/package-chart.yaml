@@ -1,4 +1,0 @@
-- name: Package Helm Chart
-  shell: helm package "{{ chart_name }}"
-  args:
-    chdir: "{{ build.checkout_loc }}/{{ path }}"

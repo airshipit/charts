@@ -1,0 +1,48 @@
+
+- name: Image Build
+  when: ("{{ stage }}" == "build")
+  block:
+    #Build docker image using Makefile given git repository location to clone code from
+    - name: Build Docker Image for "{{ image_name }}"
+      shell: docker build -t "{{ image_fullname }}" .
+      args:
+        chdir: "{{ build.checkout_loc }}/{{ path }}"
+  become: true
+
+- name: Tag and Push Image
+  when: ( stage == "push")
+  block:
+    - name: Tag and push to internal test repository for vulnerability scanning
+      docker_image:
+        push: true
+        name: "{{ image_fullname }}"
+        repository: "{{ docker_registry }}/{{ project }}-staging/{{ repo }}"
+        tag: "{{ tag }}"
+
+- name: Get Scan Results
+  when: ( stage  == "scan_results")
+  block:
+    #Scan results may take some time, putting in some retries and a delay to determine if scan results get finished
+    - name: output the request
+      shell: echo "https://{{ docker_registry }}/api/v2.0/projects/{{ project }}-staging/repositories/{{ repo | replace('/','%2F') }}/artifacts/{{ tag }}?page=1&page_size=10&with_tag=true&with_label=false&with_scan_overview=true&with_signature=false&with_immutable_status=false"
+
+    - name: Get Scan Results
+      uri:
+        validate_certs: false
+        url: "https://{{ docker_registry }}/api/v2.0/projects/{{ project }}-staging/repositories/{{ repo | replace('/','%2F') }}/artifacts/{{ tag }}?page=1&page_size=10&with_tag=true&with_label=false&with_scan_overview=true&with_signature=false&with_immutable_status=false"
+        method: GET
+        body_format: "json"
+        headers:
+          accept: "application/json"
+          X-Request-Id: "12345"
+          #Change to encoded from configmap
+          authorization: "Basic YWRtaW46SGFyYm9yMTIzNDU="
+      register: result
+      until: result.json.scan_overview["application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0"].scan_status == "Success"
+      retries: 5
+      delay: 30
+
+    - name: Check Scan Results Summary for High and Critical CVE
+      set_fact:
+        image_status: "Vulnerable"
+      when: result.json.scan_overview["application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0"].severity in ("High","Critical")
