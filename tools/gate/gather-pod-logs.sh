@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ux
+set -x
 
 export PARALLELISM_FACTOR=2
 

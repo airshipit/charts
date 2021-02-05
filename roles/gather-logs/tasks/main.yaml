@@ -17,6 +17,7 @@
     LOGDIR: "{{ logs_dir }}"
   args:
     chdir: "{{ zuul.project.src_dir }}/{{ gate_scripts_relative_path | default('') }}"
+  ignore_errors: True
 
 - name: Upload the logs
   synchronize:

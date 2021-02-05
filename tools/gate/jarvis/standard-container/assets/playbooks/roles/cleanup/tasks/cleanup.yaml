@@ -1,0 +1,3 @@
+#Remove any resources deployed
+- name: Remove test release
+  shell: helm delete --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" "{{ release_name }}" -n "{{ namespace }}"

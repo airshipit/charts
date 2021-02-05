@@ -1,0 +1,41 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: functional
+  namespace: {{ $.Release.Namespace }}
+spec:
+  description: >-
+    This task will deploy the CNF and run any tests specified
+  workspaces:
+    - name: k8s_cluster_data
+    - name: development_pipeline_data
+  steps:
+    - name: deploy-helm-charts
+      image: {{ $.Values.tasks.functional.functionalDeployImage }}
+      volumeMounts:
+        - mountPath: /usr/local/share/ca-certificates/harbor-ca.crt
+          name: harbor-ca
+          subPath: harbor-ca
+        - mountPath: /workspace/helm-creds
+          name: helm-publish-creds
+        - mountPath: $(workspaces.development_pipeline_data.path)/config
+          name:  kubeconfig
+      script: |
+        #!/bin/sh
+        update-ca-certificates
+        ansible-playbook -vvv {{ $.Values.tasks.functional.functionalPlaybook }} -i hosts -e '{"stage":"deploy"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/cluster.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+    - name: run-helm-tests
+      image: {{ $.Values.tasks.functional.functionalTestImage }}
+      script: |
+        #!/bin/sh
+        ansible-playbook -vvv {{ $.Values.tasks.functional.functionalPlaybook }} -i hosts -e '{"stage":"test"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/cluster.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+  volumes:
+    - name: helm-publish-creds
+      secret:
+        secretName: harbor-basic-auth
+    - name: harbor-ca
+      secret:
+        secretName: harbor-ca
+    - name: kubeconfig
+      secret:
+        secretName: kubeconfig-secret

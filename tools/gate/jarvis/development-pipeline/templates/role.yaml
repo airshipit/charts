@@ -1,0 +1,29 @@
+{{- if $.Values.role.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $.Values.role.name }}
+  namespace: {{ $.Release.Namespace }}
+rules:
+  # EventListeners need to be able to fetch all namespaced resources
+  - apiGroups: ["triggers.tekton.dev"]
+    resources: ["eventlisteners", "triggerbindings", "triggertemplates", "triggers"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+   # Permissions to create resources in associated TriggerTemplates
+  - apiGroups: [""]
+    resources: ["serviceaccounts"]
+    verbs: ["impersonate", "get"]
+   # Permissions to execute helm dry-run
+  - apiGroups: [""]
+    resources: ["secrets", "services"]
+    verbs: ["get"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get"]
+{{- end }}

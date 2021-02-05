@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: deployment-flow
+data:
+  cluster.json: |
+    {
+     "use_existing_cluster": "true"
+    }
+  image.json: |
+    {
+     "build_from_source": true,
+     "image_from": "harbor-core.jarvis.local/library/ubuntu:focal",
+     "image_name": "pcf",
+     "project": "pcf",
+     "repo": "pcf",
+     "tag": "1.built",
+     "image_fullname": "cnf/pcf:1.0",
+     "path": "images/pcf",
+     "build": {
+        "git_repo": "{{ $.Values.git_repo }}",
+        "checkout_loc": "/src/checkout/pcf",
+        "refspec": "{{ $.Values.refspec }}",
+        "version": "refs/changes/*:refs/changes/*"
+     }
+    }
+  chart.json: |
+    {
+      "chart_name": "pcf",
+      "project": "pcf",
+      "repo": "pcf",
+      "version": "0.1.0",
+      "build_from_source": true,
+      "path": "charts",
+      "build": {
+        "git_repo": "{{ $.Values.git_repo }}",
+        "checkout_loc": "/src/checkout/airship/charts",
+        "refspec": "{{ $.Values.refspec }}",
+        "version": "refs/changes/*:refs/changes/*"
+      },
+      "namespace": "development-pipeline",
+      "release_name": "pcf",
+      "images": {
+        "applications": {
+          "pcf": {
+            "tag": "1.0",
+            "name": "pcf",
+            "repo": "pcf"
+          }
+        }
+      }
+    }
+  default.json: |
+    {
+      "proxy": {
+        "http": "",
+        "https": "",
+        "noproxy": "",
+        "enabled": false
+      },
+     "chart_registry_url": "harbor-core.jarvis.local/chartrepo",
+     "chart_repository": "jarvis-harbor",
+     "docker_registry": "harbor-core.jarvis.local",
+     "harbor_secret_mounted_path": "/workspace/helm-creds"
+    }
+  cleanup.json: |
+    {
+     "remove_artifacts": "true"
+    }
