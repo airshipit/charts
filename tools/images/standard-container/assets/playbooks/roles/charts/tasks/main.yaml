@@ -1,24 +1,41 @@
 - name: Helm Lint and Dry-Run
-  when: ( stage == "lint")
+  when:
+    - stage == "lint"
+    - build_from_source
   block:
     - name: Helm lint "{{ chart_name }}"
       command: "helm lint {{ chart_name }}"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
+        chdir: "{{ build.target_loc }}/{{ path }}"
 
     - name: Helm Dry-run "{{ chart_name }}"
       command: "helm install --dry-run {{ chart_name }} {{ chart_name }}"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
+        chdir: "{{ build.target_loc }}/{{ path }}"
   become: true
 
 - name: Helm Package
-  when: ( stage == "package")
+  when:
+    - stage == "package"
+    - build_from_source
   block:
     - name: Package Helm Chart
       shell: helm package "{{ chart_name }}"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
+        chdir: "{{ build.target_loc }}/{{ path }}"
+
+- name: Fetch Package
+  when:
+    - stage == "package"
+    - not build_from_source
+  block:
+    - name: Add remote helm repo
+      shell: helm repo add remote_{{ chart_name }} {{ build.repo }} && helm repo update
+
+    - name: Fetch {{ chart_name }}-{{ version }}
+      shell: helm fetch remote_{{ chart_name }}/{{ chart_name }} --version {{ version }}
+      args:
+        chdir: "{{ build.target_loc }}/{{ path }}"
 
 - name: Helm Publish
   when: ( stage == "publish")
@@ -35,9 +52,9 @@
       register: harbor_password
 
     - name: Add Harbor Helm repository and Test repository
-      shell: helm repo add "{{ chart_repository }}-staging" "https://{{ docker_registry }}/chartrepo/{{ chart_name }}-staging" --username={{ harbor_username.stdout }} --password={{ harbor_password.stdout }}
+      shell: helm repo add "{{ chart_repository }}-staging" "https://{{ docker_registry }}/chartrepo/{{ project }}-staging" --username={{ harbor_username.stdout }} --password={{ harbor_password.stdout }}
 
     - name: Push chart "{{ chart_name }}" to Harbor staging registry
       command: helm push "{{ chart_name }}-{{ version }}".tgz "{{ chart_repository }}-staging"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
+        chdir: "{{ build.target_loc }}/{{ path }}"

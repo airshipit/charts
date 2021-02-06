@@ -57,6 +57,7 @@ spec:
 
     - name: microflow-images
       runAfter:
+        - microflow-setup-cluster-config
         - microflow-setup-image-config
       workspaces:
         - name: k8s_cluster_data
@@ -68,6 +69,7 @@ spec:
 
     - name: microflow-charts
       runAfter:
+        - microflow-setup-cluster-config
         - microflow-setup-chart-config
       workspaces:
         - name: k8s_cluster_data

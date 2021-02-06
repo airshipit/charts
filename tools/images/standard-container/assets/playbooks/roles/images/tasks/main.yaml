@@ -1,12 +1,27 @@
 
 - name: Image Build
-  when: ("{{ stage }}" == "build")
+  when:
+    -  stage == "build"
+    - build_from_source
   block:
     #Build docker image using Makefile given git repository location to clone code from
     - name: Build Docker Image for "{{ image_name }}"
       shell: docker build -t "{{ image_fullname }}" .
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
+        chdir: "{{ build.target_loc }}/{{ path }}"
+  become: true
+
+- name: Image Pull
+  when:
+    - stage == "build"
+    - not build_from_source
+  block:
+    #Build docker image using Makefile given git repository location to clone code from
+    - name: Pull Docker image "{{ build.repo }}:{{ build.tag }}"
+      docker_image:
+        pull: true
+        repository: "{{ image_fullname }}"
+        name: "{{ build.repo }}:{{ build.tag }}"
   become: true
 
 - name: Tag and Push Image

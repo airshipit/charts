@@ -1,9 +1,11 @@
 #Build docker image using Makefile given git repository location to clone code from
 - name: Clone repository
-  when: ( stage == "clone")
+  when:
+    - stage == "clone"
+    - build_from_source
   block:
     - git:
-        repo: "{{ build.git_repo }}"
-        dest: "{{ build.checkout_loc }}"
+        repo: "{{ build.repo }}"
+        dest: "{{ build.target_loc }}"
         version: "{{ build.refspec }}"
         refspec: "refs/changes/*:refs/changes/*"

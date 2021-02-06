@@ -39,8 +39,8 @@ spec:
         jq '.image_fullname="test/scan-image:$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
         echo "Set tag to context $(context.taskRun.uid)"
         jq '.tag="$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
-        echo "Set checkout location for git repository to $(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
-        jq '.build.checkout_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
+        echo "Set target location for git repository to $(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
+        jq '.build.target_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -58,12 +58,12 @@ spec:
       image: {{ $.Values.tasks.setup.setupConfigImage }}
       script: |
         #!/usr/bin/env sh
-        cp "$(workspaces.k8s_cluster_data.path)/default.json" "$(workspaces.development_pipeline_data.path)/default.json"
         cp "$(workspaces.k8s_cluster_data.path)/chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
         echo "Set tag to context $(context.taskRun.uid)"
         jq '.tag="$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
-        echo "Set checkout location for git repository to $(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
-        jq '.build.checkout_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
+        mkdir "$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
+        echo "Set target location for git repository to $(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
+        jq '.build.target_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
