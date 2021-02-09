@@ -1,5 +1,16 @@
 - hosts: localhost
   become: yes
   tasks:
-    - name: Clean up release
+    - name: Get list of charts
+      shell: "jq -c '.[]' {{ loop_chart_source }}"
+      register: data
+
+    - set_fact:
+        chart_async_batch_size: 20
+        stage: "default"
+
+    - vars:
+        charts: "{{ item }}"
       include_tasks: ./roles/cleanup/tasks/cleanup.yaml
+      when: data.stdout_lines |length > 0
+      loop: "{{ data.stdout_lines | map('from_json') | batch(chart_async_batch_size) | list }}"

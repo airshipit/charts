@@ -19,8 +19,8 @@ spec:
         #!/bin/sh
         ansible-playbook -vvv "{{ $.Values.tasks.cleanup.cleanupPlaybook }}" -i hosts \
         -e @"$(workspaces.development_pipeline_data.path)/default.json" \
-        -e @"$(workspaces.development_pipeline_data.path)/chart.json" \
-        -e @"$(workspaces.development_pipeline_data.path)/image.json" \
+        -e 'loop_chart_source="$(workspaces.development_pipeline_data.path)/chart.json"' \
+        -e 'loop_image_source="$(workspaces.development_pipeline_data.path)/image.json"' \
         -e @"$(workspaces.development_pipeline_data.path)/cluster.json"
   volumes:
     - name: kubeconfig

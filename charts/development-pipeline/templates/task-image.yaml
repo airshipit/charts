@@ -17,7 +17,7 @@ spec:
           name: dind-certs
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.git.gitPlaybook }} -i hosts -e '{"stage":"clone"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+        ansible-playbook -vvv {{ $.Values.tasks.git.gitPlaybook }} -i hosts -e '{"stage":"clone"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e 'loop_source="$(workspaces.development_pipeline_data.path)/image.json"'
 
     - name: set-image-output
       image: {{ $.Values.tasks.image.buildImage }}
@@ -42,7 +42,7 @@ spec:
         value: /certs/client
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"build"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"build"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e 'loop_source="$(workspaces.development_pipeline_data.path)/image.json"'
 
     - name: set-image-build-output-after-build
       image: {{ $.Values.tasks.image.buildImage }}
@@ -70,7 +70,7 @@ spec:
         value: /certs/client
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"push"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"push"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e 'loop_source="$(workspaces.development_pipeline_data.path)/image.json"'
 
     - name: set-image-output-after-publish-scan
       image: {{ $.Values.tasks.image.buildImage }}
@@ -85,7 +85,7 @@ spec:
           name: dind-certs
       script: |
         #!/usr/bin/env sh
-        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"scan_results"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
+        ansible-playbook -vvv {{ $.Values.tasks.image.imagePlaybook }} -i hosts -e '{"stage":"scan_results"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e 'loop_source="$(workspaces.development_pipeline_data.path)/image.json"'
 
     - name: set-image-output-set-scan-results
       image: {{ $.Values.tasks.image.buildImage }}

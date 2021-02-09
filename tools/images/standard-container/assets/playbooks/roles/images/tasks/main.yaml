@@ -1,27 +1,52 @@
+- set_fact:
+    _async: "{{ image_async | default(1200) }}"
+    _delay: "{{ image_check_status_delay | default(20) }}"
 
 - name: Image Build
   when:
-    -  stage == "build"
-    - build_from_source
+    - stage == "build"
   block:
     #Build docker image using Makefile given git repository location to clone code from
-    - name: Build Docker Image for "{{ image_name }}"
-      shell: docker build -t "{{ image_fullname }}" .
+    - name: Build Docker Image
+      shell: docker build -t "{{ image.image_fullname }}" .
       args:
-        chdir: "{{ build.target_loc }}/{{ path }}"
+        chdir: "{{ image.build.target_loc }}/{{ image.path }}"
+      loop: "{{ images | selectattr('build_from_source', 'equalto', True) | list }}"
+      loop_control:
+        pause: 5
+        loop_var: "image"
+      async: "{{ _async }}"
+      poll: 0
+      register: build_async_results
+
+    - name: Wait for Build Docker Image results
+      vars:
+        async_results: "{{ build_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
   become: true
 
 - name: Image Pull
   when:
     - stage == "build"
-    - not build_from_source
   block:
     #Build docker image using Makefile given git repository location to clone code from
-    - name: Pull Docker image "{{ build.repo }}:{{ build.tag }}"
+    - name: Pull Docker image
       docker_image:
         pull: true
-        repository: "{{ image_fullname }}"
-        name: "{{ build.repo }}:{{ build.tag }}"
+        repository: "{{ image.image_fullname }}"
+        name: "{{ image.build.repo }}:{{ image.build.tag }}"
+      loop: "{{ images | selectattr('build_from_source', 'equalto', False) | list }}"
+      loop_control:
+        pause: 5
+        loop_var: "image"
+      async: "{{ _async }}"
+      poll: 0
+      register: pull_async_results
+
+    - name: Wait for Docker Pull Image results
+      vars:
+        async_results: "{{ pull_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
   become: true
 
 - name: Tag and Push Image
@@ -30,21 +55,36 @@
     - name: Tag and push to internal test repository for vulnerability scanning
       docker_image:
         push: true
-        name: "{{ image_fullname }}"
-        repository: "{{ docker_registry }}/{{ project }}-staging/{{ repo }}"
-        tag: "{{ tag }}"
+        name: "{{ image.image_fullname }}"
+        repository: "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}"
+        tag: "{{ image.tag }}"
+      loop: "{{ images }}"
+      loop_control:
+        pause: 5
+        loop_var: "image"
+      async: "{{ _async }}"
+      poll: 0
+      register: tag_async_results
+
+    - name: Wait for Docker Tag Images results
+      vars:
+        async_results: "{{ tag_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
 
 - name: Get Scan Results
   when: ( stage  == "scan_results")
   block:
     #Scan results may take some time, putting in some retries and a delay to determine if scan results get finished
     - name: output the request
-      shell: echo "https://{{ docker_registry }}/api/v2.0/projects/{{ project }}-staging/repositories/{{ repo | replace('/','%2F') }}/artifacts/{{ tag }}?page=1&page_size=10&with_tag=true&with_label=false&with_scan_overview=true&with_signature=false&with_immutable_status=false"
+      shell: echo "https://{{ docker_registry }}/api/v2.0/projects/{{ image.project }}-staging/repositories/{{ image.repo | replace('/','%2F') }}/artifacts/{{ image.tag }}?page=1&page_size=10&with_tag=true&with_label=false&with_scan_overview=true&with_signature=false&with_immutable_status=false"
+      loop: "{{ images }}"
+      loop_control:
+        loop_var: "image"
 
     - name: Get Scan Results
       uri:
         validate_certs: false
-        url: "https://{{ docker_registry }}/api/v2.0/projects/{{ project }}-staging/repositories/{{ repo | replace('/','%2F') }}/artifacts/{{ tag }}?page=1&page_size=10&with_tag=true&with_label=false&with_scan_overview=true&with_signature=false&with_immutable_status=false"
+        url: "https://{{ docker_registry }}/api/v2.0/projects/{{ image.project }}-staging/repositories/{{ image.repo | replace('/','%2F') }}/artifacts/{{ image.tag }}?page=1&page_size=10&with_tag=true&with_label=false&with_scan_overview=true&with_signature=false&with_immutable_status=false"
         method: GET
         body_format: "json"
         headers:
@@ -52,6 +92,9 @@
           X-Request-Id: "12345"
           #Change to encoded from configmap
           authorization: "Basic YWRtaW46SGFyYm9yMTIzNDU="
+      loop: "{{ images }}"
+      loop_control:
+        loop_var: "image"
       register: result
       until: result.json.scan_overview["application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0"].scan_status == "Success"
       retries: 5
@@ -61,3 +104,6 @@
       set_fact:
         image_status: "Vulnerable"
       when: result.json.scan_overview["application/vnd.scanner.adapter.vuln.report.harbor+json; version=1.0"].severity in ("High","Critical")
+      loop: "{{ result.results }}"
+      loop_control:
+        loop_var: "result"

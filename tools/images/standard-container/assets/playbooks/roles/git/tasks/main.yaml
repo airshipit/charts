@@ -1,11 +1,26 @@
 #Build docker image using Makefile given git repository location to clone code from
-- name: Clone repository
+- set_fact:
+    _async: "{{ git_async | default(600) }}"
+    _delay: "{{ git_check_status_delay | default(3) }}"
+
+- name: Run async git clone
+  git:
+    repo: "{{ repo.build.repo }}"
+    dest: "{{ repo.build.target_loc }}"
+    version: "{{ repo.build.refspec }}"
+    refspec: "refs/changes/*:refs/changes/*"
+  async: "{{ _async }}"
+  poll: 0
+  loop: "{{ repos }}"
+  loop_control:
+    loop_var: "repo"
+  register: git_async_results
   when:
     - stage == "clone"
-    - build_from_source
-  block:
-    - git:
-        repo: "{{ build.repo }}"
-        dest: "{{ build.target_loc }}"
-        version: "{{ build.refspec }}"
-        refspec: "refs/changes/*:refs/changes/*"
+
+- name: Wait for git clone results
+  vars:
+    async_results: "{{ git_async_results }}"
+  include_tasks: ./roles/common/tasks/check_sync_status.yaml
+  when:
+    - stage == "clone"
