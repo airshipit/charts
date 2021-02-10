@@ -18,7 +18,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'airship-charts'
-copyright = '2020, Airship Charts Authors'
+copyright = '2020-2021, Airship Charts Authors'
 author = 'Airship Charts Authors'
 
 
