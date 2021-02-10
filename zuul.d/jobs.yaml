@@ -41,6 +41,7 @@
         - ./tools/gate/jarvis/650-temporary-setup.sh
         - ./tools/gate/jarvis/700-deploy-jarvis-system.sh
         - ./tools/gate/jarvis/800-deploy-jarvis-projects.sh
+        - ./tools/gate/jarvis/900-development-pipeline.sh
 
 - job:
     name: airship-jarvis-sample-workload-validation
