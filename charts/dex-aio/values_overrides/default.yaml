@@ -1,0 +1,6 @@
+params:
+    tls:
+      cert_manager: true
+      issuer:
+        name: dex-ca-issuer
+        kind: ClusterIssuer
