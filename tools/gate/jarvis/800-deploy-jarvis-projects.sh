@@ -68,4 +68,10 @@ EOF
       exit 1
     fi
   done
+
+  # Ensure that the patch set has been labelled `Verified` by the Jarvis System
+  VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+  if [ "$VERIFIED" -ne 1 ]; then
+    exit 1
+  fi
 done
