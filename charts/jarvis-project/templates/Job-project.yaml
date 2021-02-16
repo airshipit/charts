@@ -40,10 +40,20 @@ spec:
             - sh
             - -cex
             - |
-
               # Create gerrit repo
-              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null -p 29418 -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" gerrit ls-projects -r "^$JARVIS_PROJECT_NAME\$" | grep -q "^${JARVIS_PROJECT_NAME}\$" || \
-                ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null -p 29418 -i /run/jarvis/secret/gerrit-ssh-key ${GERRIT_USERNAME}@${GERRIT_HOST} gerrit create-project "${JARVIS_PROJECT_NAME}" --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
+                -p 29418 \
+                -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
+                gerrit ls-projects -r "^$JARVIS_PROJECT_NAME\$" | grep -q "^${JARVIS_PROJECT_NAME}\$" \
+              || \
+              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
+                -p 29418 \
+                -i /run/jarvis/secret/gerrit-ssh-key ${GERRIT_USERNAME}@${GERRIT_HOST} \
+                gerrit create-project "${JARVIS_PROJECT_NAME}" \
+                --owner Administrators \
+                {{ if eq $.Values.config.ci.verify true }} --parent Verified-Label-Projects {{ else }} --parent Non-Verified-Label-Projects {{ end }} \
+                --submit-type MERGE_IF_NECESSARY \
+                --empty-commit
 
               # Set up checks on the repo
               jarvis-connector --auth_file /run/jarvis/gerrit-authfile --gerrit $GERRIT_URL --update --repo "${JARVIS_PROJECT_NAME}" --prefix jarvispipeline || \

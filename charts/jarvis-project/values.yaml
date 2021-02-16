@@ -35,6 +35,8 @@ params:
         kind: ClusterIssuer
 
 config:
+  ci:
+    verify: true
   test:
     ldap_username: jarvis
     ldap_password: password
