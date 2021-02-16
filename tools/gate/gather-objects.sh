@@ -3,7 +3,7 @@ set -ux
 
 export PARALLELISM_FACTOR=2
 export OBJECT_TYPE=node,clusterrole,clusterrolebinding,storageclass,namespace,crd
-export NS_OBJECT_TYPE=configmaps,cronjobs,daemonsets,deployment,endpoints,ingresses,jobs,networkpolicies,pods,podsecuritypolicies,persistentvolumeclaims,rolebindings,roles,secrets,serviceaccounts,services,statefulsets
+export NS_OBJECT_TYPE=configmaps,cronjobs,daemonsets,deployment,endpoints,ingresses,jobs,networkpolicies,pods,podsecuritypolicies,persistentvolumeclaims,rolebindings,roles,secrets,serviceaccounts,services,statefulsets,pipeline,pipelinerun,tasks,taskruns,eventlistener
 
 function get_namespaces {
   kubectl get namespaces -o name | awk -F '/' '{ print $NF }'
