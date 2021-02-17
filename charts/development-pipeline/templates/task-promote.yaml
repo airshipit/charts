@@ -37,8 +37,8 @@ spec:
         #!/usr/bin/env sh
         set -ex
         update-ca-certificates
-        ansible-playbook -vvv {{ $.Values.tasks.promote.promotePlaybook }} -i hosts -e '{"stage":"promote_image"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/image.json"
-        ansible-playbook -vvv {{ $.Values.tasks.promote.promotePlaybook }} -i hosts -e '{"stage":"promote_chart"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/chart.json"
+        ansible-playbook -vvv {{ $.Values.tasks.promote.promotePlaybook }} -i hosts -e '{"stage":"promote_image"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e 'loop_source="$(workspaces.development_pipeline_data.path)/image.json"'
+        ansible-playbook -vvv {{ $.Values.tasks.promote.promotePlaybook }} -i hosts -e '{"stage":"promote_chart"}' -e @"$(workspaces.development_pipeline_data.path)/default.json" -e 'loop_source="$(workspaces.development_pipeline_data.path)/chart.json"'
   sidecars:
     - image: {{ $.Values.tasks.image.sidecarServer }}
       name: server

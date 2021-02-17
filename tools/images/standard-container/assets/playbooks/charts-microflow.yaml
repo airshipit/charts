@@ -1,4 +1,32 @@
 ---
 - hosts: localhost
-  roles:
-    - { role: charts, vars: { stage: "default" } }
+  tasks:
+    - name: Get list of charts
+      shell: "jq -c '.[]' {{ loop_source }}"
+      register: data
+
+    - set_fact:
+        chart_async_batch_size: 20
+        stage: "default"
+
+    - name: Get list of remote repos
+      when: (stage == "package")
+      shell: "jq -c '.[] | select(.build_from_source==false) |  {repo: .build.repo, secret: .build.secret, name: .build.local_repo}'  {{ loop_source }}  | sort | uniq"
+      register: external_repos
+
+    - name: Get list of internal repos
+      when: (stage == "publish")
+      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project+\"-staging\"), secret: \"{{ harbor_secret_mounted_path }}\", name:  (.project+\"-staging\")}'  {{ loop_source }}  | sort | uniq"
+      register: internal_repos
+
+    - include_tasks: ./roles/charts/tasks/setup_helm_repo.yaml
+      when: (stage == "package") or (stage == "publish")
+      vars:
+        repo: "{{ item }}"
+      loop: "{{ external_repos.stdout_lines if stage == 'package' else internal_repos.stdout_lines}}"
+
+    - include_tasks: ./roles/charts/tasks/main.yaml
+      when: data.stdout_lines |length > 0
+      loop: "{{ data.stdout_lines | map('from_json') | batch(chart_async_batch_size) | list }}"
+      loop_control:
+        loop_var: "charts"

@@ -1,4 +1,27 @@
 ---
 - hosts: localhost
-  roles:
-    - { role: functional, vars: { stage: "default" } }
+  tasks:
+    - name: Get list of charts
+      shell: "jq -c '.[]' {{ loop_source }}"
+      register: data
+
+    - set_fact:
+        chart_async_batch_size: 20
+        stage: "default"
+
+    - name: Get list of internal repos
+      when: (stage == 'deploy')
+      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project+\"-staging\"), secret: \"{{ harbor_secret_mounted_path }}\", name:  (.project+\"-staging\")}'  {{ loop_source }}  | sort | uniq"
+      register: internal_repos
+
+    - include_tasks: ./roles/charts/tasks/setup_helm_repo.yaml
+      when: (stage == 'deploy')
+      loop: "{{ internal_repos.stdout_lines }}"
+      vars:
+        repo: "{{ item }}"
+
+    - include_tasks: ./roles/functional/tasks/main.yaml
+      when: data.stdout_lines |length > 0
+      loop: "{{ data.stdout_lines | map('from_json') | batch(chart_async_batch_size) | list }}"
+      loop_control:
+        loop_var: "charts"

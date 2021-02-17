@@ -1,0 +1,17 @@
+- name: Get harbor username
+  when: repo.secret
+  shell: cat {{ repo.secret }}/username
+  register: repo_username
+
+- name: Get harbor password
+  when: repo.secret
+  shell: cat {{ repo.secret }}/password
+  register: repo_password
+
+- name: Add Harbor Helm repository and Test repository
+  when: repo.secret
+  shell: helm repo add "{{ repo.name }}" "{{ repo.repo }}" --username={{ repo_username.stdout }} --password={{ repo_password.stdout }}
+
+- name: Add Harbor Helm repository and Test repository
+  when: repo.secret is none
+  shell: helm repo add "{{ repo.name }}" "{{ repo.repo }}"

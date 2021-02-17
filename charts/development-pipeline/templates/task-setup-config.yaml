@@ -35,12 +35,14 @@ spec:
       script: |
         #!/usr/bin/env sh
         cp "$(workspaces.k8s_cluster_data.path)/image.json" "$(workspaces.development_pipeline_data.path)/image.json"
+        jq 'if type=="array" then . else [.] end' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
         echo "Set temporary image name to test/scan-image:$(context.taskRun.uid)"
-        jq '.image_fullname="test/scan-image:$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
+        jq 'reduce range(0, length) as $d (.; (.[$d].image_fullname="test/scan-image:"+($d|tostring)+"$(context.taskRun.uid)"))' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
         echo "Set tag to context $(context.taskRun.uid)"
-        jq '.tag="$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
+        jq 'reduce range(0, length) as $d (.; (.[$d].tag=($d|tostring)+"$(context.taskRun.uid)"))' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
         echo "Set target location for git repository to $(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
-        jq '.build.target_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
+        jq 'reduce range(0, length) as $d (.; (.[$d].build.target_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)/"+.[$d].build.repo+"/"+.[$d].build.refspec))' "$(workspaces.development_pipeline_data.path)/image.json" > "$(workspaces.development_pipeline_data.path)/temp_image.json" && mv "$(workspaces.development_pipeline_data.path)/temp_image.json" "$(workspaces.development_pipeline_data.path)/image.json"
+        cat "$(workspaces.development_pipeline_data.path)/image.json"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -59,11 +61,12 @@ spec:
       script: |
         #!/usr/bin/env sh
         cp "$(workspaces.k8s_cluster_data.path)/chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
+        jq 'if type=="array" then . else [.] end' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
         echo "Set tag to context $(context.taskRun.uid)"
-        jq '.tag="$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
-        mkdir "$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
+        jq 'reduce range(0, length) as $d (.; (.[$d].tag="$(context.taskRun.uid)"))' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
         echo "Set target location for git repository to $(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"
-        jq '.build.target_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)"' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
+        jq 'reduce range(0, length) as $d (.; (.[$d].build.target_loc="$(workspaces.development_pipeline_data.path)/$(context.taskRun.uid)/"+.[$d].build.repo+"/"+.[$d].build.refspec))' "$(workspaces.development_pipeline_data.path)/chart.json" > "$(workspaces.development_pipeline_data.path)/temp_chart.json" && mv "$(workspaces.development_pipeline_data.path)/temp_chart.json" "$(workspaces.development_pipeline_data.path)/chart.json"
+        cat "$(workspaces.development_pipeline_data.path)/chart.json"
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
