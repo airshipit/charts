@@ -8,7 +8,7 @@ helm upgrade \
     --namespace=cert-manager \
     cert-manager \
     jetstack/cert-manager \
-    --version v1.1.0 \
+    --version v1.2.0 \
     --set installCRDs=true
 
 ./tools/deployment/common/wait-for-pods.sh cert-manager
@@ -26,7 +26,7 @@ data:
   tls.crt: $crt
   tls.key: $key
 ---
-apiVersion: cert-manager.io/v1alpha3
+apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: jarvis-ca-issuer
