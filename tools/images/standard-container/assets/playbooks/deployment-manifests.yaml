@@ -1,5 +1,0 @@
-- hosts: localhost
-  become: yes
-  tasks:
-    - name: validate-deployment-manifests-config
-      include_tasks: ./roles/deployment-manifests/tasks/validate-config.yaml

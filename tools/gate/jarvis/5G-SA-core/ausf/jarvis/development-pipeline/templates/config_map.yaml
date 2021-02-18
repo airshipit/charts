@@ -5,51 +5,56 @@ metadata:
 data:
   cluster.json: |
     {
+     "namespace": "{{ $.Values.namespace }}",
      "use_existing_cluster": "true"
     }
   image.json: |
-    {
-     "build_from_source": true,
-     "image_from": "harbor-core.jarvis.local/library/ubuntu:focal",
-     "image_name": "ausf",
-     "project": "ausf",
-     "repo": "ausf",
-     "tag": "1.built",
-     "image_fullname": "cnf/ausf:1.0",
-     "path": "images/ausf",
-     "build": {
-        "git_repo": "{{ $.Values.git_repo }}",
-        "checkout_loc": "/src/checkout/ausf",
-        "refspec": "{{ $.Values.refspec }}",
-        "version": "refs/changes/*:refs/changes/*"
-     }
-    }
+    [
+      {
+       "image_from": "harbor-core.jarvis.local/library/ubuntu:focal",
+       "build_from_source": true,
+       "image_name": "ausf",
+       "project": "ausf",
+       "repo": "ausf",
+       "image_fullname": "ausf/ausf:1.0",
+       "path": "images/ausf",
+       "namespace": "{{ $.Values.namespace }}",
+       "build": {
+          "git_repo": "{{ $.Values.git_repo }}",
+          "target_loc": "/src/checkout/ausf",
+          "refspec": "{{ $.Values.refspec }}",
+          "version": "refs/changes/*:refs/changes/*"
+       }
+      }
+    ]
   chart.json: |
-    {
-      "chart_name": "ausf",
-      "project": "ausf",
-      "repo": "ausf",
-      "version": "0.1.0",
-      "build_from_source": true,
-      "path": "charts",
-      "build": {
-        "git_repo": "{{ $.Values.git_repo }}",
-        "checkout_loc": "/src/checkout/airship/charts",
-        "refspec": "{{ $.Values.refspec }}",
-        "version": "refs/changes/*:refs/changes/*"
-      },
-      "namespace": "development-pipeline",
-      "release_name": "ausf",
-      "images": {
-        "applications": {
-          "ausf": {
-            "tag": "1.0",
-            "name": "ausf",
-            "repo": "ausf"
+    [
+      {
+        "chart_name": "ausf",
+        "project": "ausf",
+        "repo": "ausf",
+        "version": "0.1.0",
+        "build_from_source": true,
+        "path": "charts",
+        "build": {
+          "git_repo": "{{ $.Values.git_repo }}",
+          "target_loc": "/src/checkout/ausf",
+          "refspec": "{{ $.Values.refspec }}",
+          "version": "refs/changes/*:refs/changes/*"
+        },
+        "namespace": "{{ $.Values.namespace }}",
+        "release_name": "ausf",
+        "images": {
+          "applications": {
+            "ausf": {
+              "tag": "1.0",
+              "name": "ausf",
+              "repo": "ausf"
+            }
           }
         }
       }
-    }
+    ]
   default.json: |
     {
       "proxy": {
@@ -58,10 +63,19 @@ data:
         "noproxy": "",
         "enabled": false
       },
-     "chart_registry_url": "harbor-core.jarvis.local/chartrepo",
-     "chart_repository": "jarvis-harbor",
-     "docker_registry": "harbor-core.jarvis.local",
-     "harbor_secret_mounted_path": "/workspace/helm-creds"
+     "docker_content_trust": {
+        "DOCKER_CONTENT_TRUST": 1,
+        "DOCKER_CONTENT_TRUST_SERVER": "https://harbor-notary.jarvis.local",
+        "DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE": "passphrase",
+        "DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE": "passphrase"
+      },
+      "chart_registry_url": "harbor-core.jarvis.local/chartrepo",
+      "chart_repository": "jarvis-harbor",
+      "docker_registry": "harbor-core.jarvis.local",
+      "harbor_secret_mounted_path": "/workspace/helm-creds"
+      "clone_async_batch_size": 20,
+      "chart_async_batch_size": 20,
+      "image_async_batch_size": 2
     }
   cleanup.json: |
     {

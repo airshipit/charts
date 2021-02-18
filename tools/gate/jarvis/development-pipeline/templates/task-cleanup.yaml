@@ -16,12 +16,7 @@ spec:
         - mountPath: $(workspaces.development_pipeline_data.path)/config
           name:  kubeconfig
       script: |
-        #!/bin/sh
-        ansible-playbook -vvv "{{ $.Values.tasks.cleanup.cleanupPlaybook }}" -i hosts \
-        -e @"$(workspaces.development_pipeline_data.path)/default.json" \
-        -e @"$(workspaces.development_pipeline_data.path)/chart.json" \
-        -e @"$(workspaces.development_pipeline_data.path)/image.json" \
-        -e @"$(workspaces.development_pipeline_data.path)/cluster.json"
+        /jarvis/cleanup.sh
   volumes:
     - name: kubeconfig
       secret:

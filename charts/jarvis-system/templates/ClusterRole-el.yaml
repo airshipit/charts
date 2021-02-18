@@ -12,21 +12,21 @@ rules:
 - apiGroups: [""]
   # allow namespaces to be retrieved to validate we haven't already created it already
   resources: ["namespaces"]
-  verbs: ["list", "get", "create"]
+  verbs: ["list", "get", "create", "delete"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   # allow roles to be retrieved to validate we haven't already created it already
   resources: ["roles"]
-  verbs: ["list", "get", "create"]
+  verbs: ["list", "get", "create", "delete"]
 - apiGroups: [""]
   resources: ["configmaps"]
   verbs: ["get", "list", "watch", "create"]
 # Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
   resources: ["pipelineruns", "pipelineresources", "taskruns", "pipelines","tasks"]
-  verbs: ["create", "get", "list"]
+  verbs: ["create", "get", "list", "delete"]
 - apiGroups: [""]
   resources: ["serviceaccounts"]
-  verbs: ["impersonate", "get", "create"]
+  verbs: ["impersonate", "get", "create", "delete"]
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "list", "create"]
@@ -38,7 +38,7 @@ rules:
   verbs: ["get"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["rolebindings"]
-  verbs: ["get", "create"]
+  verbs: ["get", "create", "delete"]
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ClusterRole-el" ) }}

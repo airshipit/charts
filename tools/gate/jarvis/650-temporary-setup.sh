@@ -1,5 +1,6 @@
 #!/bin/bash
 set -ex
+
 ldap_username="jarvis"
 ldap_password="password"
 ldap_email="jarvis@cluster.local"

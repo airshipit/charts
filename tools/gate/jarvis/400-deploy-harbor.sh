@@ -73,6 +73,12 @@ EOF
     sudo -E docker rmi harbor-core.jarvis.local/library/busybox:latest
     sudo -E docker pull harbor-core.jarvis.local/library/busybox:latest
     sudo -E docker trust inspect --pretty harbor-core.jarvis.local/library/busybox:latest
+
+    #Required for pipelines
+    sudo docker pull docker.io/library/ubuntu:focal
+    sudo docker tag docker.io/library/ubuntu:focal harbor-core.jarvis.local/library/ubuntu:focal
+    sudo -E notary init -p harbor-core.jarvis.local/library/ubuntu:focal
+    sudo -E docker push harbor-core.jarvis.local/library/ubuntu:focal
 }
 
 validate

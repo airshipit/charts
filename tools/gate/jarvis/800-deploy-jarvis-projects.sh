@@ -28,7 +28,6 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
   fi
 
   # shellcheck disable=SC2046
-  # Copy development-pipeline to be
   helm upgrade \
       --create-namespace \
       --install \
@@ -50,15 +49,11 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
   jarvis_sanity_repo=$(mktemp -d)
   git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/${jarvis_project}.git "${jarvis_sanity_repo}"
   pushd "${jarvis_sanity_repo}"
-  tee .gitreview <<EOF
-  [gerrit]
-  host=gerrit.jarvis.local
-  port=29418
-  project=${jarvis_project}.git
-EOF
   popd
+  #Copy CNF code, development-pipeline and standard-container into each CNF git repository
   cp -a tools/gate/jarvis/5G-SA-core/${jarvis_project}/. "${jarvis_sanity_repo}"
   cp -a tools/gate/jarvis/development-pipeline/* "${jarvis_sanity_repo}/jarvis/development-pipeline"
+  cp -a tools/gate/jarvis/standard-container "${jarvis_sanity_repo}/jarvis"
   pushd "${jarvis_sanity_repo}"
   git review -s
   git add -A
@@ -66,42 +61,68 @@ EOF
   git review
   change_id=`git log -1 | grep Change-Id: | awk '{print $2}'`
   popd
-
+  sleep 180
+  if (( COUNTER == 0 ));
+  then
+    CHANGE_ID_COUNTER=$change_id
+  fi
   COUNTER=$((COUNTER+1))
+
 done
 
-./tools/deployment/common/wait-for-pods.sh jarvis-projects
+for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'`; do
+  # Check jarvis pipeline run
+  end=$(date +%s)
+  timeout="4000"
+  end=$((end + timeout))
+  while true; do
+    result="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/checks | tail -1 | jq -r .[].state)"
+    [ $result == "SUCCESSFUL" ] && break || [ $result == "FAILED" ] && break || true
+    sleep 25
+    now=$(date +%s)
+    if [ $now -gt $end ] ; then
+      echo "Pipeline failed to complete $timeout seconds"
+      exit 1
+    fi
+  done
 
-./tools/deployment/common/wait-for-pods.sh jarvis-8-1
-
-# Check jarvis pipeline run
-end=$(date +%s)
-timeout="3400"
-end=$((end + timeout))
-change_id=8
-while true; do
-  result="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/checks | tail -1 | jq -r .[].state)"
-  [ $result == "SUCCESSFUL" ] && break || [ $result == "FAILED" ] && break || true
-  sleep 5
-  now=$(date +%s)
-  if [ $now -gt $end ] ; then
-    echo "Pipeline failed to complete $timeout seconds"
-    exit 1
-  fi
-done
-
-# Check that Jarvis-System has reported the success of the pipeline run to Gerrit
-end=$(date +%s)
-timeout="120"
-end=$((end + timeout))
-change_id=8
-while true; do
-  VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
-  [ "$VERIFIED" == 1 ] && break || true
-  sleep 5
-  now=$(date +%s)
-  if [ "$now" -gt "$end" ] ; then
-    echo "Jarvis-System has not verified the change"
-    exit 1
-  fi
+  # Check that Jarvis-System has reported the success of the pipeline run to Gerrit
+  end=$(date +%s)
+  timeout="120"
+  end=$((end + timeout))
+  voting_ci="false"
+  while true; do
+    if [ $voting_ci = "true" ];
+    then
+      voting_ci="false"
+      # Check that Jarvis-System has reported the success of the pipeline run to Gerrit, by checking the value of the Verified label
+      VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+      [ "$VERIFIED" == 1 ] && break || true
+      sleep 5
+      now=$(date +%s)
+      if [ "$now" -gt "$end" ] ; then
+        echo "Jarvis-System has not verified the change"
+        exit 1
+      fi
+    else
+      voting_ci="true"
+      # Ensure that the patchset doesn't have the Verified label available to it.
+      LABELS=$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels)
+      if [ -z "$LABELS" ]; then
+        # The curl request didn't give us the labels available to this revision, try again when Gerrit is ready
+        sleep 5
+        continue
+      fi
+      VERIFIED_NULL="$( jq -r .Verified <<< "$LABELS" )"
+      if [ -z "$VERIFIED_NULL" ]; then
+        echo "Verified label found"
+        # Verified label should not be found, exit.
+        exit 1
+      else
+        # Labels curl returned all the labels successfully, and Verified was not in the list. This is desired.
+        break
+      fi
+    fi
+  done
+  CHANGE_ID_COUNTER=$((CHANGE_ID_COUNTER+1))
 done

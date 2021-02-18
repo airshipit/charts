@@ -10,10 +10,10 @@ spec:
     - name: k8s_cluster_data
     - name: development_pipeline_data
   steps:
-    - name: generate-kubeconfig
+    - name: get-kubeconfig
       image: {{ $.Values.tasks.kubernetes.createClusterImage }}
       script: |
-          ansible-playbook -vvv "{{ $.Values.tasks.kubernetes.getKubeconfigPlaybook }}"  -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json" -e @"$(workspaces.development_pipeline_data.path)/cluster.json"
+        /jarvis/get_kubeconfig.sh
       volumeMounts:
         - mountPath: $(workspaces.development_pipeline_data.path)/config
           name:  kubeconfig

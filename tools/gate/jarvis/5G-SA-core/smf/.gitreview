@@ -1,0 +1,4 @@
+[gerrit]
+host=gerrit.jarvis.local
+port=29418
+project=smf.git

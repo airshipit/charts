@@ -1,4 +1,0 @@
-- name: This task is to validate deployment manifests
-  command: echo "It can do anything you want, just put it right here."
-  args:
-    chdir: "/workspace"

@@ -1,4 +1,0 @@
-#Test Deployed CNF
-- name: Chart has no Helm Tests, echo for now
-  shell: echo "There are no helm tests yet"
-#  shell: echo 'helm test --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" "{{ name }}"'

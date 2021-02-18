@@ -1,36 +1,118 @@
-- name: Helm Lint
+- set_fact:
+    _async: "{{ chart_async | default(600) }}"
+    _delay: "{{ chart_check_status_delay | default(5) }}"
+
+- name: Helm Lint and Dry-Run
+  when:
+    - stage == "lint"
   block:
-    - name: Helm lint "{{ chart_name }}"
-      command: "helm lint {{ chart_name }}"
+    - name: Helm lint
+      command: "helm lint {{ chart.chart_name }}"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
-    - name: Helm Dry-run "{{ chart_name }}"
-      command: "helm install --dry-run {{ chart_name }} {{ chart_name }}"
+        chdir: "{{ chart.build.target_loc }}/{{ chart.path }}"
+      loop: "{{ charts | selectattr('build_from_source', 'equalto', True) | list }}"
+      loop_control:
+        loop_var: "chart"
+      async: "{{ _async }}"
+      poll: 0
+      register: lint_async_results
+
+    - name: Wait for helm lint results
+      vars:
+        async_results: "{{ lint_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
+
+    - name: Helm Dry-run
+      command: "helm install --dry-run {{ chart.chart_name }} {{ chart.chart_name }}"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
-  when: ( stage == "lint")
+        chdir: "{{ chart.build.target_loc }}/{{ chart.path }}"
+      loop: "{{ charts | selectattr('build_from_source', 'equalto', True) | list }}"
+      loop_control:
+        loop_var: "chart"
+      async: "{{ _async }}"
+      poll: 0
+      register: dry_run_async_results
+
+    - name: Wait for helm dry-run results
+      vars:
+        async_results: "{{ dry_run_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
   become: true
+
 - name: Helm Package
+  when:
+    - stage == "package"
   block:
     - name: Package Helm Chart
-      shell: helm package "{{ chart_name }}"
+      shell: helm package "{{ chart.chart_name }}"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
-  when: ( stage == "package")
+        chdir: "{{ chart.build.target_loc }}/{{ chart.path }}"
+      loop: "{{ charts | selectattr('build_from_source', 'equalto', True) | list }}"
+      loop_control:
+        loop_var: "chart"
+      async: "{{ _async }}"
+      poll: 0
+      register: package_async_results
+
+    - name: Wait for helm package results
+      vars:
+        async_results: "{{ package_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
+
+- name: Fetch Package
+  when:
+    - stage == "package"
+  block:
+    - name: Create target location for fetching charts
+      file:
+        state: directory
+        path: "{{ chart.build.target_loc }}/{{ chart.path }}"
+      loop: "{{ charts | selectattr('build_from_source', 'equalto', False) | list }}"
+      loop_control:
+        loop_var: "chart"
+      async: "{{ _async }}"
+      poll: 0
+      register: create_target_folder_async_results
+
+    - name: Wait for target location setup results
+      vars:
+        async_results: "{{ create_target_folder_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
+
+    - name: Fetch Helm charts
+      shell: helm repo update && helm fetch {{ chart.build.local_repo }}/{{ chart.chart_name }} --version {{ chart.version }}
+      args:
+        chdir: "{{ chart.build.target_loc }}/{{ chart.path }}"
+      loop: "{{ charts | selectattr('build_from_source', 'equalto', False) | list }}"
+      loop_control:
+        loop_var: "chart"
+      async: "{{ _async }}"
+      poll: 0
+      register: fetch_async_results
+
+    - name: Wait for helm fetch results
+      vars:
+        async_results: "{{ fetch_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml
+
+
 - name: Helm Publish
+  when: ( stage == "publish")
   block:
     - name: Install Plugin
       shell: helm plugin update push || helm plugin install https://github.com/chartmuseum/helm-push || true
-    - name: Get harbor username
-      shell: cat {{ harbor_secret_mounted_path }}/username
-      register: harbor_username
-    - name: Get harbor password
-      shell: cat {{ harbor_secret_mounted_path }}/password
-      register: harbor_password
-    - name: Add Harbor Helm repository and Test repository
-      shell: helm repo add "{{ chart_repository }}-staging" "https://{{ docker_registry }}/chartrepo/{{ chart_name }}-staging" --username={{ harbor_username.stdout }} --password={{ harbor_password.stdout }}
-    - name: Push chart "{{ chart_name }}" to Harbor staging registry
-      command: helm push "{{ chart_name }}-{{ version }}".tgz "{{ chart_repository }}-staging"
+    - name: Push chart to Harbor staging registry
+      command: helm push "{{ chart.chart_name }}-{{ chart.version }}".tgz "{{ chart.project }}-staging"
       args:
-        chdir: "{{ build.checkout_loc }}/{{ path }}"
-  when: ( stage == "publish")
+        chdir: "{{ chart.build.target_loc }}/{{ chart.path }}"
+      loop: "{{ charts }}"
+      loop_control:
+        loop_var: "chart"
+      async: "{{ _async }}"
+      poll: 0
+      register: push_async_results
+
+    - name: Wait for helm push results
+      vars:
+        async_results: "{{ push_async_results }}"
+      include_tasks: ./roles/common/tasks/check_sync_status.yaml

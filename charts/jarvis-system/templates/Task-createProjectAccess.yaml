@@ -16,6 +16,8 @@ spec:
   results:
     - name: commit
       description: The precise commit SHA that was fetched by this Task
+    - name: namespace
+      description: The namespace created for this pipelinerun
   steps:
     - name: create-namespace
       image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_create_namespace" ) }}
@@ -28,7 +30,11 @@ spec:
             echo "Created namespace jarvis-$(params.changeNumber)-$(params.patchSetNumber)"
           else
             echo "Namespace already exists, delete all resources for re-run."
-            kubectl delete all --all -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+            kubectl delete pr -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --all
+            helm delete development-pipeline -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+            kubectl delete role -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+            kubectl delete sa -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+            kubectl delete rolebinding -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
           fi
         }
         create_namespace
@@ -208,7 +214,10 @@ spec:
           -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) \
           ./development-pipeline \
           --set "git_repo=$(params.repoRoot)/$(params.project)" \
-          --set "refspec=$change_ref"
+          --set "refspec=$change_ref" \
+          --set "namespace=jarvis-$(params.changeNumber)-$(params.patchSetNumber)"
+
+        echo -n "jarvis-$(params.changeNumber)-$(params.patchSetNumber)" > $(results.namespace.path)
     - name: create-pipelinerun
       image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_secrets" ) }}
       script: |

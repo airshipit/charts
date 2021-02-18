@@ -13,4 +13,4 @@ spec:
     - name: example-validation-step
       image: {{ $.Values.tasks.deploymentManifests.deploymentManifestsImage }}
       script: |
-        ansible-playbook -vvv "{{ $.Values.tasks.deploymentManifests.deploymentManifestsPlaybook }}" -i hosts -e @"$(workspaces.development_pipeline_data.path)/default.json"
+        /jarvis/deployment_manifests.sh

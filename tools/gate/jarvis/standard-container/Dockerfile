@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ubuntu:20.04
+ARG BASE_IMAGE=harbor-core.jarvis.local/library/ubuntu:focal
 FROM ${BASE_IMAGE}
 
 SHELL ["bash", "-exc"]
@@ -27,7 +27,7 @@ RUN apt-get update ;\
     apt-get install -y --no-install-recommends \
         docker-ce-cli ;\
     pip3 install --upgrade wheel ;\
-    pip3 install ansible ;\
+    pip3 install ansible==2.10.7 ;\
     ansible-galaxy collection install community.kubernetes ;\
     pip3 install docker ;\
     # Install kubectl
@@ -50,4 +50,4 @@ COPY assets /opt/assets/
 RUN cp -ravf /opt/assets/* / ;\
     rm -rf /opt/assets
 
-ENTRYPOINT /entrypoint.sh
+ENTRYPOINT /git_clone.sh
