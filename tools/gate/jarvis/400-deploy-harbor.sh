@@ -8,11 +8,26 @@ helm upgrade \
     --create-namespace \
     --install \
     --namespace=harbor \
+    --set harbor.proxy.httpProxy="$http_proxy" \
+    --set harbor.proxy.httpsProxy="$https_proxy" \
     harbor \
     ./charts/harbor \
     $(./tools/deployment/common/get-values-overrides.sh harbor)
 
 ./tools/deployment/common/wait-for-pods.sh harbor
+
+# Setup internal certs so that Trivy can download its database.
+# Harbor's Trivy statefulset image is based on PhotonOS, which doesn't have
+# an update-ca-certificates package.
+# PhotonOS has support to generate the ca-bundle, but it's not installed in this
+# image. The statefulset also prevents privilege escalation, so we can't intervene and
+# install that.
+# So, hackily append .crt files to the ca-bundle.crt.
+for cert in ./tools/gate/jarvis/ubuntu-base/internal-certs/*.crt; do
+    kubectl exec harbor-harbor-trivy-0 \
+        --namespace harbor \
+        -- /bin/bash -c "echo \"$(cat $cert)\" >> /etc/pki/tls/certs/ca-bundle.crt"
+done
 
 helm -n harbor test harbor --logs
 
@@ -74,9 +89,10 @@ EOF
     sudo -E docker pull harbor-core.jarvis.local/library/busybox:latest
     sudo -E docker trust inspect --pretty harbor-core.jarvis.local/library/busybox:latest
 
-    #Required for pipelines
-    sudo docker pull docker.io/library/ubuntu:focal
-    sudo docker tag docker.io/library/ubuntu:focal harbor-core.jarvis.local/library/ubuntu:focal
+    #Required for pipelines and standard-container
+    pushd ./tools/gate/jarvis/ubuntu-base/
+    sudo docker build --build-arg http_proxy="$http_proxy" --build-arg https_proxy="$https_proxy" --build-arg no_proxy="$no_proxy" --build-arg HTTP_PROXY="$http_proxy" --build-arg HTTPS_PROXY="$https_proxy" --build-arg NO_PROXY="$no_proxy" -t harbor-core.jarvis.local/library/ubuntu:focal .
+    popd
     sudo -E notary init -p harbor-core.jarvis.local/library/ubuntu:focal
     sudo -E docker push harbor-core.jarvis.local/library/ubuntu:focal
 }

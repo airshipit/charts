@@ -203,6 +203,11 @@ curl https://docs.projectcalico.org/"${CALICO_VERSION}"/manifests/calico.yaml -o
 # in image pull error due to dockerhub's rate limiting policy. To avoid potential conflict,
 # use calico's quay.io repository to mitigate this issue.
 sed -i -e 's#docker.io/calico/#quay.io/calico/#g' /tmp/calico.yaml
+
+# Download images needed for calico before applying manifests, so that `kubectl wait` timeout
+# for `k8s-app=kube-dns` isn't reached by slow download speeds
+awk '/image:/ { print $2 }' /tmp/calico.yaml | xargs -I{} sudo docker pull {}
+
 kubectl apply -f /tmp/calico.yaml
 
 # Note: Patch calico daemonset to enable Prometheus metrics and annotations
