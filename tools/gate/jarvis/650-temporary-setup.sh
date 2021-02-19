@@ -8,3 +8,6 @@ kubectl create secret generic kubeconfig-secret --from-file=kubeconfig=$HOME/.ku
 #NOTE Will not be required once Harbor is backed by LDAP
 kubectl create secret generic harbor-basic-auth --from-literal=username='admin' --from-literal=password='Harbor12345' -n development-pipeline || true
 kubectl create secret docker-registry harbor-docker-auth --docker-username=admin --docker-password=Harbor12345 --docker-email=example@gmail.com --docker-server=harbor-core.jarvis.local -n development-pipeline || true
+
+cd ./tools/images/standard-container
+sudo docker build --build-arg BASE_IMAGE=ubuntu:focal -t standard-container:1.0 .

@@ -28,9 +28,9 @@ spec:
           value: $(params.patchSetNumber)
         - name: checkerUUID
           value: $(params.checkerUUID)
-    - name: createcheckoutrepo
+    - name: createprojectaccess
       taskRef:
-        name: {{ template "helpers.labels.fullname" . }}-createcheckoutrepo
+        name: {{ template "helpers.labels.fullname" . }}-createprojectaccess
       params:
         - name: repoRoot
           value: $(params.repoRoot)

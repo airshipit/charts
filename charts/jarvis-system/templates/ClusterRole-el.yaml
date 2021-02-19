@@ -10,6 +10,14 @@ rules:
   resources: ["clustertriggerbindings", "eventlisteners", "triggerbindings", "triggertemplates", "triggers"]
   verbs: ["get", "list", "watch"]
 - apiGroups: [""]
+  # allow namespaces to be retrieved to validate we haven't already created it already
+  resources: ["namespaces"]
+  verbs: ["list", "get", "create"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  # allow namespaces to be retrieved to validate we haven't already created it already
+  resources: ["roles"]
+  verbs: ["list", "get", "create"]
+- apiGroups: [""]
   # secrets are only needed for GitHub/GitLab interceptors
   resources: ["configmaps"]
   verbs: ["get", "list", "watch"]
@@ -19,7 +27,19 @@ rules:
   verbs: ["create"]
 - apiGroups: [""]
   resources: ["serviceaccounts"]
-  verbs: ["impersonate"]
+  verbs: ["impersonate", "get", "create"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["rolebindings"]
+  verbs: ["get", "create"]
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ClusterRole-el" ) }}
