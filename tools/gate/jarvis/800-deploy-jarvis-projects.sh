@@ -69,9 +69,18 @@ EOF
     fi
   done
 
-  # Ensure that the patch set has been labelled `Verified` by the Jarvis System
-  VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
-  if [ "$VERIFIED" -ne 1 ]; then
-    exit 1
-  fi
+  # Check that Jarvis-System has reported the success of the pipeline run to Gerrit
+  end=$(date +%s)
+  timeout="30"
+  end=$((end + timeout))
+  while true; do
+    VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+    [ "$VERIFIED" == 1 ] && break || true
+    sleep 5
+    now=$(date +%s)
+    if [ "$now" -gt "$end" ] ; then
+      echo "Jarvis-System has not verified the change"
+      exit 1
+    fi
+  done
 done
