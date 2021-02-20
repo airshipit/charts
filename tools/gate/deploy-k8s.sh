@@ -5,6 +5,7 @@ set -ex
 : "${KUBE_VERSION:="v1.19.6"}"
 : "${MINIKUBE_VERSION:="v1.16.0"}"
 : "${CALICO_VERSION:="v3.17"}"
+: "${YQ_VERSION:="v4.6.0"}"
 
 : "${HTTP_PROXY:=""}"
 : "${HTTPS_PROXY:=""}"
@@ -120,6 +121,9 @@ sudo -E apt-get install -y \
 # Prepare tmpfs for etcd
 sudo mkdir -p /var/lib/minikube/etcd
 sudo mount -t tmpfs -o size=512m tmpfs /var/lib/minikube/etcd
+
+# Install YQ
+wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz -O - | tar xz && sudo mv yq_linux_amd64 /usr/local/bin/yq
 
 # Install minikube and kubectl
 URL="https://storage.googleapis.com"
