@@ -1,6 +1,6 @@
 {{- define "ingress-dashboard" -}}
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ template "helpers.labels.fullname" $ }}
@@ -18,10 +18,14 @@ spec:
   - host: {{ $.Values.params.endpoints.hostname }}
     http:
       paths:
-      - backend:
-          serviceName: tekton-dashboard
-          servicePort: web
-        path: /
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tekton-dashboard
+            port:
+              name: http
+
   {{- if and $.Values.params.endpoints.tls.enabled }}
   tls:
   - hosts:
@@ -31,5 +35,3 @@ spec:
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ingress-dashboard" ) }}
-
-

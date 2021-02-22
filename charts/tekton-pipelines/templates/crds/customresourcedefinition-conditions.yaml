@@ -4,7 +4,6 @@ kind: CustomResourceDefinition
 metadata:
   name: conditions.tekton.dev
   labels:
-    app.kubernetes.io/component: tekton
     app.kubernetes.io/name: conditions
     app.kubernetes.io/instance: default
     app.kubernetes.io/part-of: tekton-pipelines

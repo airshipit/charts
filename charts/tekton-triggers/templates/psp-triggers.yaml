@@ -4,9 +4,7 @@ apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: tekton-triggers
-  labels:
-    app.kubernetes.io/instance: tekton-triggers
-    app.kubernetes.io/part-of: tekton-triggers
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-triggers") | nindent 4 }}
 spec:
   privileged: false
   allowPrivilegeEscalation: false

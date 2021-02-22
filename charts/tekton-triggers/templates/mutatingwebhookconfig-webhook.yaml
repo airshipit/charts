@@ -4,9 +4,11 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: webhook.triggers.tekton.dev
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook" "PartOf" "tekton-triggers") | nindent 4 }}
 webhooks:
   - admissionReviewVersions:
       - v1beta1
+      - v1
     clientConfig:
       service:
         name: tekton-triggers-webhook

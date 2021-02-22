@@ -5,9 +5,7 @@ kind: RoleBinding
 metadata:
   name: tekton-triggers-webhook-admin
   namespace: {{ $.Release.Namespace }}
-  labels:
-    app.kubernetes.io/instance: tekton-triggers
-    app.kubernetes.io/part-of: tekton-triggers
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-triggers") | nindent 4 }}
 subjects:
   - kind: ServiceAccount
     name: tekton-triggers-webhook

@@ -4,22 +4,22 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: tekton-aggregate-view
-  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $  "PartOf" "tekton-pipelines") | nindent 4 }}
     rbac.authorization.k8s.io/aggregate-to-view: "true"
 rules:
 - apiGroups:
-  - tekton.dev
+    - tekton.dev
   resources:
-  - tasks
-  - taskruns
-  - pipelines
-  - pipelineruns
-  - pipelineresources
-  - conditions
+    - tasks
+    - taskruns
+    - pipelines
+    - pipelineruns
+    - pipelineresources
+    - conditions
   verbs:
-  - get
-  - list
-  - watch
+    - get
+    - list
+    - watch
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "clusterrole-aggregate-view" ) }}

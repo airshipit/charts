@@ -4,44 +4,44 @@ kind: CustomResourceDefinition
 metadata:
   name: extensions.dashboard.tekton.dev
   labels:
-    app.kubernetes.io/component: tekton
+    app.kubernetes.io/component: dashboard
     app.kubernetes.io/name: extensions
     app.kubernetes.io/part-of: tekton-dashboard
 spec:
   group: dashboard.tekton.dev
   names:
     categories:
-    - tekton
-    - tekton-dashboard
+      - tekton
+      - tekton-dashboard
     kind: Extension
-    plural: extensions
     singular: extension
+    plural: extensions
     shortNames:
-    - ext
-    - exts
+      - ext
+      - exts
   preserveUnknownFields: false
   scope: Namespaced
   versions:
-  - name: v1alpha1
-    served: true
-    storage: true
-    additionalPrinterColumns:
-    - jsonPath: .spec.apiVersion
-      name: API version
-      type: string
-    - jsonPath: .spec.name
-      name: Kind
-      type: string
-    - jsonPath: .spec.displayname
-      name: Display name
-      type: string
-    - jsonPath: .metadata.creationTimestamp
-      name: Age
-      type: date
-    schema:
-      openAPIV3Schema:
-        type: object
-        x-kubernetes-preserve-unknown-fields: true
-    subresources:
-      status: {}
+    - additionalPrinterColumns:
+        - jsonPath: .spec.apiVersion
+          name: API version
+          type: string
+        - jsonPath: .spec.name
+          name: Kind
+          type: string
+        - jsonPath: .spec.displayname
+          name: Display name
+          type: string
+        - jsonPath: .metadata.creationTimestamp
+          name: Age
+          type: date
+      name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      served: true
+      storage: true
+      subresources:
+        status: {}
 ...

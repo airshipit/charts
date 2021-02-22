@@ -1,9 +1,9 @@
-{{- define "role_admin-triggers" -}}
+{{- define "role-triggers_admin" -}}
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-triggers") | nindent 4 }}
   name: tekton-triggers-admin
   namespace: {{ $.Release.Namespace }}
 rules:
@@ -16,4 +16,4 @@ rules:
     verbs:
       - use
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "role_admin-triggers" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "role-triggers_admin" ) }}

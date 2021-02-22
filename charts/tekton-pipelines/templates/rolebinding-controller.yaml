@@ -5,7 +5,7 @@ kind: RoleBinding
 metadata:
   name: tekton-pipelines-controller
   namespace: {{ $.Release.Namespace }}
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller" "PartOf" "tekton-pipelines") | nindent 4 }}
 subjects:
 - kind: ServiceAccount
   name: tekton-pipelines-controller

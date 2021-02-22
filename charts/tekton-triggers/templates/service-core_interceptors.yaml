@@ -1,0 +1,16 @@
+{{- define "service-core_interceptors" -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tekton-triggers-core-interceptors
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "interceptors" "PartOf" "tekton-triggers") | nindent 4 }}
+spec:
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "interceptors" "PartOf" "tekton-triggers") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ $.Values.params.endpoints.ports.interceptors.port }}
+      targetPort: {{ $.Values.params.endpoints.ports.interceptors.target }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-core_interceptors" ) }}

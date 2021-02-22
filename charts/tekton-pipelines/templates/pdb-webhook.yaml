@@ -1,0 +1,14 @@
+{{- define "pdb-webhook" -}}
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: tekton-pipelines-webhook
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook" "PartOf" "tekton-pipelines") | nindent 4 }}
+spec:
+  minAvailable: 80%
+  selector:
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "webhook" ) | nindent 6 }}
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "pdb-webhook" ) }}

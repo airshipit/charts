@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "helpers.labels.fullname" $ }}
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard" "PartOf" "tekton-dashboard") | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,7 @@ spec:
       maxSurge: 3
   template:
     metadata:
-      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard") | nindent 8 }}
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard" "PartOf" "tekton-dashboard") | nindent 8 }}
     spec:
       serviceAccountName: {{ template "helpers.labels.fullname" . }}
       securityContext:
@@ -30,12 +30,11 @@ spec:
           image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_dashboard" ) }}
           imagePullPolicy: {{ $.Values.images.pull.policy | quote }}
           args:
-            - --port=8080
+            - --port=9097
             - --logout-url={{ $.Values.config.args.logout_url }}
             - --pipelines-namespace={{ $.Release.Namespace }}
             - --triggers-namespace={{ $.Release.Namespace }}
             - --read-only={{ $.Values.config.args.read_only }}
-            - --csrf-secure-cookie={{ $.Values.config.args.csrf_secure_cookie }}
             - --log-level={{ $.Values.config.args.log_level }}
             - --log-format={{ $.Values.config.args.log_format }}
             - --namespace={{ $.Values.config.args.namespace }}
@@ -48,20 +47,19 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
           ports:
-            - name: web
-              containerPort: 8080
+            - containerPort: 9097
           readinessProbe:
             httpGet:
               scheme: HTTP
               path: /readiness
-              port: 8080
+              port: 9097
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
               scheme: HTTP
               path: /health
-              port: 8080
+              port: 9097
             initialDelaySeconds: 50
             periodSeconds: 20
             timeoutSeconds: 5
