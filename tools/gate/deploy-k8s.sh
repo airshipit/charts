@@ -115,7 +115,8 @@ sudo -E apt-get install -y \
   ipvsadm \
   make \
   bc \
-  git-review
+  git-review \
+  notary
 
 # Prepare tmpfs for etcd
 sudo mkdir -p /var/lib/minikube/etcd

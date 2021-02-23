@@ -80,3 +80,6 @@ check_cert_and_key ${jarvis_ca_root}/ca.pem ${jarvis_ca_root}/ca-key.pem
 
 sudo cp -v ${jarvis_ca_root}/ca.pem /usr/local/share/ca-certificates/insecure-jarvis-development-ephemeral-ca.crt
 sudo update-ca-certificates
+
+sudo mkdir -p $HOME/.docker/tls/harbor-core.jarvis.local
+sudo cp -v ${jarvis_ca_root}/ca.pem $HOME/.docker/tls/harbor-core.jarvis.local/ca.crt
