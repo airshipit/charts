@@ -11,6 +11,11 @@
 # limitations under the License.
 
 - project:
+    vars:
+      proxy:
+        http_proxy: ""
+        https_proxy: ""
+        noproxy: ""
     check:
       jobs:
         - openstack-tox-docs: &docs

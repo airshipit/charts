@@ -14,3 +14,7 @@
   make:
     chdir: "{{ work_dir }}/charts"
     target: all
+    params:
+      HTTPS_PROXY: "{{ proxy.https_proxy }}"
+      HTTP_PROXY: "{{ proxy.http_proxy }}"
+      NO_PROXY: "{{ proxy.noproxy }}"
