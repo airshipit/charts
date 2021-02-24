@@ -13,6 +13,7 @@ helm upgrade \
     --namespace kyverno \
     kyverno \
     kyverno/kyverno \
+    --version v1.3.3 \
     --create-namespace
 
 ./tools/deployment/common/wait-for-pods.sh kyverno
