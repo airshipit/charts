@@ -95,11 +95,20 @@ spec:
   sidecars:
     - image: {{ $.Values.tasks.image.sidecarServer }}
       name: server
-      args:
-        - --storage-driver=overlay2
-        - --userland-proxy=false
-        - --debug
-        - --insecure-registry={{ $.Values.tasks.image.insecureRegistry }}
+      script: |
+        # Alpine's update-ca-certificates does not support directories, so copy files
+        # Copy files instead of mounting to prevent overriding built-in certificates
+        if ls /internal-certs/*.crt ; then
+          cp /internal-certs/*.crt /usr/local/share/ca-certificates/
+        fi
+
+        update-ca-certificates
+
+        /usr/local/bin/dockerd-entrypoint.sh \
+          --storage-driver=overlay2 \
+          --userland-proxy=false \
+          --debug \
+          --insecure-registry={{ $.Values.tasks.image.insecureRegistry }}
       ##TODO: Get rid of privileged true
       securityContext:
         privileged: true
@@ -107,6 +116,18 @@ spec:
       # Write generated certs to the path shared with the client.
       - name: DOCKER_TLS_CERTDIR
         value: /certs
+      - name: http_proxy
+        value: {{ $.Values.proxy.http_proxy }}
+      - name: https_proxy
+        value: {{ $.Values.proxy.https_proxy }}
+      - name: no_proxy
+        value: {{ $.Values.proxy.no_proxy }}
+      - name: HTTP_PROXY
+        value: {{ $.Values.proxy.http_proxy }}
+      - name: HTTPS_PROXY
+        value: {{ $.Values.proxy.https_proxy }}
+      - name: NO_PROXY
+        value: {{ $.Values.proxy.no_proxy }}
       volumeMounts:
         - mountPath: /certs/client
           name: dind-certs
@@ -115,6 +136,10 @@ spec:
         - mountPath: /usr/local/share/ca-certificates/harbor-ca.crt
           name: harbor-ca
           subPath: harbor-ca
+{{ if .Values.proxy.internal_certs_dir }}
+        - mountPath: /internal-certs
+          name: internal-certs
+{{ end }}
       # Wait for the dind daemon to generate the certs it will share with the
       # client.
       readinessProbe:
@@ -135,3 +160,9 @@ spec:
     - name: harbor-ca
       secret:
         secretName: harbor-ca
+{{ if .Values.proxy.internal_certs_dir }}
+    - name: internal-certs
+      hostPath:
+        path: {{ .Values.proxy.internal_certs_dir }}
+        type: Directory
+{{ end }}

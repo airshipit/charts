@@ -21,7 +21,9 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ENV["INTERNAL_CERTS_DIR"], "/usr/local/share/ca-certificates/internal-certs/"
     # for containerd/docker to trust proxy when pulling images within kubernetes cluster
     config.vm.synced_folder ENV["INTERNAL_CERTS_DIR"], "/etc/containerd/cert.d/"
-    # for use by ubuntu-base to trust proxy
+    # for use by ubuntu-base , trivy, jarvis-system chart, and development-pipeline to trust proxy
+    # most will mount this path directly, but others copy files from it
+    # standard-container and 5G projects will use the ubuntu-base image as their base to get these certs
     config.vm.synced_folder ENV["INTERNAL_CERTS_DIR"], "/airship_charts/tools/gate/jarvis/ubuntu-base/internal-certs/"
   end
 

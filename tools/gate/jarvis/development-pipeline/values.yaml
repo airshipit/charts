@@ -3,6 +3,12 @@ pvc:
   storageClass: standard
   size: 1Gi
 
+proxy:
+  http_proxy:
+  https_proxy:
+  no_proxy:
+  internal_certs_dir:
+
 tasks:
   kubernetes:
     createClusterImage: &base_image standard-container:1.0
