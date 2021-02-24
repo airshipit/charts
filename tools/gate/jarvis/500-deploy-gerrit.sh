@@ -127,17 +127,6 @@ function gerrit_bootstrap() {
   git fetch origin refs/meta/config:refs/remotes/origin/meta/config
   git checkout meta/config
 
-  # Configure Verified Label
-  tee --append project.config <<EOF
-[label "Verified"]
-        function = MaxWithBlock
-        defaultValue = 0
-        value = -1 Fails
-        value = 0 No score
-        value = +1 Verified
-        copyAllScoresIfNoCodeChange = true
-EOF
-
   # Give Admins, Service Users and Project Owners voting rights for the Verified Label
   sed -i '/\[access "refs\/heads\/\*"\]/a\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Administrators\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Service Users\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Project Owners' project.config
 
@@ -147,6 +136,31 @@ EOF
   # Commit and push config
   git add .
   git commit -asm "Create Verified Label"
+  git push origin HEAD:refs/meta/config
+  popd
+
+  # Create template repositories for voting and non-voting CI
+  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project "Verified-Label-Projects" --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project "Non-Verified-Label-Projects" --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+
+  # Configure Verified Label for the parent repository that will utilize it
+  verified_repo=$(mktemp -d)
+  git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/Verified-Label-Projects.git "${verified_repo}"
+  pushd "${verified_repo}"
+  git fetch origin refs/meta/config:refs/remotes/origin/meta/config
+  git checkout meta/config
+  tee --append project.config <<EOF
+[label "Verified"]
+        function = MaxWithBlock
+        defaultValue = 0
+        value = -1 Fails
+        value = 0 No score
+        value = +1 Verified
+        copyAllScoresIfNoCodeChange = true
+EOF
+  # Commit and push config
+  git add .
+  git commit -asm "Create Submission Rules"
   git push origin HEAD:refs/meta/config
   popd
 }

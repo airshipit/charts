@@ -16,7 +16,17 @@ EOF
 }
 generate_gerrit_creds_override
 
+COUNTER=0
 for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'`; do
+  # Half of Jarvis-Projects will be made with required CI, half will be made with optional CI to
+  # offer examples to developers using Jarvis.
+  if (( COUNTER % 2 ));
+  then
+    voting_ci="true"
+  else
+    voting_ci="false"
+  fi
+
   # shellcheck disable=SC2046
   helm upgrade \
       --create-namespace \
@@ -25,6 +35,7 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
       "${jarvis_project}" \
       "./charts/jarvis-project" \
       --values="${gerrit_creds_override}" \
+      --set config.ci.verify="$voting_ci" \
       $(./tools/deployment/common/get-values-overrides.sh jarvis-project)
 
   ./tools/deployment/common/wait-for-pods.sh jarvis-projects
@@ -69,18 +80,41 @@ EOF
     fi
   done
 
-  # Check that Jarvis-System has reported the success of the pipeline run to Gerrit
+  ### Ensure the repository is configured correctly ###
   end=$(date +%s)
   timeout="30"
   end=$((end + timeout))
   while true; do
-    VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
-    [ "$VERIFIED" == 1 ] && break || true
-    sleep 5
-    now=$(date +%s)
-    if [ "$now" -gt "$end" ] ; then
-      echo "Jarvis-System has not verified the change"
-      exit 1
+    if [ "$voting_ci" = "true" ];
+    then
+      # Check that Jarvis-System has reported the success of the pipeline run to Gerrit, by checking the value of the Verified label
+      VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+      [ "$VERIFIED" == 1 ] && break || true
+      sleep 5
+      now=$(date +%s)
+      if [ "$now" -gt "$end" ] ; then
+        echo "Jarvis-System has not verified the change"
+        exit 1
+      fi
+    else
+      # Ensure that the patchset doesn't have the Verified label available to it.
+      LABELS=$(curl -L https://gerrit.jarvis.local/changes/${change_id}/revisions/1/review/ | tail -1 | jq -r .labels)
+      if [ -z "$LABELS" ]; then
+        # The curl request didn't give us the labels available to this revision, try again when Gerrit is ready
+        sleep 5
+        continue
+      fi
+      VERIFIED_NULL="$( jq -r .Verified <<< "$LABELS" )"
+      if [ -z "$VERIFIED_NULL" ]; then
+        echo "Verified label found"
+        # Verified label should not be found, exit.
+        exit 1
+      else
+        # Labels curl returned all the labels successfully, and Verified was not in the list. This is desired.
+        break
+      fi
     fi
   done
+
+  COUNTER=$((COUNTER+1))
 done
