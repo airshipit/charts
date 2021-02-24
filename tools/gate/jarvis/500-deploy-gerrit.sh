@@ -120,45 +120,219 @@ function gerrit_bootstrap() {
   git config --global user.email "jarvis@cluster.local"
   git config --global --add gitreview.username "jarvis"
 
-  # Clone, fetch and checkout project config repo
+  # Configure Access Rules in All-Projects
   all_projects_repo=$(mktemp -d)
   git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/All-Projects.git "${all_projects_repo}"
+  # Replace project.config file
   pushd "${all_projects_repo}"
   git fetch origin refs/meta/config:refs/remotes/origin/meta/config
   git checkout meta/config
+  rm project.config || true
+  tee project.config << EOF
+[project]
+    description = Access inherited by all other projects.
+[receive]
+    requireContributorAgreement = false
+    requireSignedOffBy = false
+    requireChangeId = true
+    enableSignedPush = false
+[submit]
+    mergeContent = true
+[capability]
+    checks-administrateCheckers = group Administrators
+    administrateServer = group Administrators
+    priority = batch group Service Users
+    streamEvents = group Service Users
+[access "refs/*"]
+    read = group Administrators
+    read = group Anonymous Users
+    revert = group Registered Users
+[access "refs/for/*"]
+    addPatchSet = group Registered Users
+[access "refs/for/refs/*"]
+    push = group Registered Users
+    pushMerge = group Registered Users
+[access "refs/heads/*"]
+    create = group Administrators
+    create = group Project Owners
+    editTopicName = +force group Administrators
+    editTopicName = +force group Project Owners
+    forgeAuthor = group Registered Users
+    forgeCommitter = group Administrators
+    forgeCommitter = group Project Owners
+    push = group Administrators
+    push = group Project Owners
+    submit = group Administrators
+    submit = group Project Owners
+    label-Code-Review = -2..+2 group Administrators
+    label-Code-Review = -2..+2 group Project Owners
+    label-Code-Review = -1..+1 group Registered Users
+    label-Verified = -1..+1 group Administrators
+    label-Verified = -1..+1 group Service Users
+    label-Verified = -1..+1 group Project Owners
+    label-Workflow = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Service Users
+    label-Workflow = -1..+1 group Project Owners
+[access "refs/meta/config"]
+    exclusiveGroupPermissions = read
+    create = group Administrators
+    push = group Administrators
+    push = group Project Owners
+    read = group Administrators
+    read = group Project Owners
+    submit = group Administrators
+    submit = group Project Owners
+    label-Code-Review = -2..+2 group Administrators
+    label-Code-Review = -2..+2 group Project Owners
+    label-Code-Review = -1..+1 group Registered Users
+    label-Verified = -1..+1 group Administrators
+    label-Verified = -1..+1 group Service Users
+    label-Verified = -1..+1 group Project Owners
+    label-Workflow = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Service Users
+    label-Workflow = -1..+1 group Project Owners
+[access "refs/tags/*"]
+    create = group Administrators
+    create = group Project Owners
+    createSignedTag = group Administrators
+    createSignedTag = group Project Owners
+    createTag = group Administrators
+    createTag = group Project Owners
 
-  # Give Admins, Service Users and Project Owners voting rights for the Verified Label
-  sed -i '/\[access "refs\/heads\/\*"\]/a\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Administrators\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Service Users\n\ \ \ \ \ \ \ \ label-Verified = -1..+1 group Project Owners' project.config
-
-  # Give Admins, Service Users and Project Owners voting rights for the Verified Label
-  sed -i '/\[capability\]/a\ \ \ \ \ \ \ \ checks-administrateCheckers = group Administrators' project.config
-
-  # Commit and push config
+EOF
   git add .
-  git commit -asm "Create Verified Label"
+  git commit -asm "Create Submission Rules"
   git push origin HEAD:refs/meta/config
   popd
 
   # Create template repositories for voting and non-voting CI
-  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project "Verified-Label-Projects" --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
-  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project "Non-Verified-Label-Projects" --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project "Verified-Label-Projects" \
+    --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
+  ssh -p 29418 ${ldap_username}@gerrit.jarvis.local gerrit create-project "Non-Verified-Label-Projects" \
+    --submit-type MERGE_IF_NECESSARY --owner Administrators --empty-commit
 
-  # Configure Verified Label for the parent repository that will utilize it
+  # Configure Labels & Submission Rules for Verified-Label-Projects
   verified_repo=$(mktemp -d)
   git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/Verified-Label-Projects.git "${verified_repo}"
+  # Replace project.config file, add rules.pl file
   pushd "${verified_repo}"
   git fetch origin refs/meta/config:refs/remotes/origin/meta/config
   git checkout meta/config
-  tee --append project.config <<EOF
+  rm project.config || true
+  rm rules.pl || true
+  tee project.config << EOF
+[access]
+    inheritFrom = All-Projects
+[access "refs/*"]
+    owner = group Administrators
+[label "Code-Review"]
+    function = MaxWithBlock
+    defaultValue = 0
+    copyMinScore = true
+    copyAllScoresOnTrivialRebase = true
+    value = -2 This shall not be merged
+    value = -1 I would prefer this is not merged as is
+    value = 0 No score
+    value = +1 Looks good to me, but someone else must approve
+    value = +2 Looks good to me, approved
 [label "Verified"]
-        function = MaxWithBlock
-        defaultValue = 0
-        value = -1 Fails
-        value = 0 No score
-        value = +1 Verified
-        copyAllScoresIfNoCodeChange = true
+    function = MaxWithBlock
+    defaultValue = 0
+    value = -1 Fails
+    value = 0 No score
+    value = +1 Verified
+    copyAllScoresIfNoCodeChange = true
+[label "Workflow"]
+    function = MaxWithBlock
+    defaultValue = 0
+    value = -1 Work in progress
+    value = 0 Ready for reviews
+    value = +1 Approved
+
 EOF
-  # Commit and push config
+  tee rules.pl << EOF
+sum_list([], 0).
+sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
+
+add_category_min_score(In, Category, Min,  P) :-
+    findall(2, gerrit:commit_label(label(Category,2),R),Z),
+    sum_list(Z, Sum),
+    Sum >= Min, !,
+    gerrit:commit_label(label(Category, V), U),
+    V >= 1,
+    !,
+    P = [label(Category,ok(U)) | In].
+
+add_category_min_score(In, Category,Min,P) :-
+    P = [label(Category,need(Min)) | In].
+
+submit_filter(In, Out) :-
+    In =.. [submit | Ls],
+    gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
+    add_category_min_score(NoCR,'Code-Review', 4, Labels),
+    Out =.. [submit | Labels].
+
+EOF
+  git add .
+  git commit -asm "Create Submission Rules"
+  git push origin HEAD:refs/meta/config
+  popd
+
+  # Configure Labels & Submission Rules for Non-Verified-Label-Projects
+  non_verified_repo=$(mktemp -d)
+  git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/Non-Verified-Label-Projects.git "${non_verified_repo}"
+  # Replace project.config file, add rules.pl file
+  pushd "${non_verified_repo}"
+  git fetch origin refs/meta/config:refs/remotes/origin/meta/config
+  git checkout meta/config
+  rm project.config || true
+  rm rules.pl || true
+  tee project.config << EOF
+[access]
+    inheritFrom = All-Projects
+[access "refs/*"]
+    owner = group Administrators
+[label "Code-Review"]
+    function = MaxWithBlock
+    defaultValue = 0
+    copyMinScore = true
+    copyAllScoresOnTrivialRebase = true
+    value = -2 This shall not be merged
+    value = -1 I would prefer this is not merged as is
+    value = 0 No score
+    value = +1 Looks good to me, but someone else must approve
+    value = +2 Looks good to me, approved
+[label "Workflow"]
+    function = MaxWithBlock
+    defaultValue = 0
+    value = -1 Work in progress
+    value = 0 Ready for reviews
+    value = +1 Approved
+
+EOF
+  tee rules.pl << EOF
+sum_list([], 0).
+sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
+
+add_category_min_score(In, Category, Min,  P) :-
+    findall(2, gerrit:commit_label(label(Category,2),R),Z),
+    sum_list(Z, Sum),
+    Sum >= Min, !,
+    gerrit:commit_label(label(Category, V), U),
+    V >= 1,
+    !,
+    P = [label(Category,ok(U)) | In].
+
+add_category_min_score(In, Category,Min,P) :-
+    P = [label(Category,need(Min)) | In].
+
+submit_filter(In, Out) :-
+    In =.. [submit | Ls],
+    gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
+    add_category_min_score(NoCR,'Code-Review', 4, Labels),
+    Out =.. [submit | Labels].
+
+EOF
   git add .
   git commit -asm "Create Submission Rules"
   git push origin HEAD:refs/meta/config

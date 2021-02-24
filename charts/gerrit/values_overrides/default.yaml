@@ -1,4 +1,3 @@
-
 storageClasses:
   default:
     name: standard
