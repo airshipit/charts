@@ -43,6 +43,7 @@ helm upgrade \
     --namespace=ingress-nginx \
     ingress-nginx \
     ingress-nginx/ingress-nginx \
+    --version 3.23.0 \
     --set controller.service.type=NodePort \
     --set controller.service.nodePorts.http=80 \
     --set controller.service.nodePorts.https=443
@@ -122,6 +123,7 @@ helm upgrade \
     --namespace=ldap \
     ldap \
     stable/openldap \
+    --version 1.2.7 \
     $(./tools/deployment/common/get-values-overrides.sh ldap)
 
 ./tools/deployment/common/wait-for-pods.sh ldap
