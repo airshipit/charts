@@ -78,6 +78,7 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
   while true; do
     result="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/checks | tail -1 | jq -r .[].state)"
     [ $result == "SUCCESSFUL" ] && break || true
+    [ $result == "FAILED" ] && exit 1 || true
     sleep 25
     now=$(date +%s)
     if [ $now -gt $end ] ; then
