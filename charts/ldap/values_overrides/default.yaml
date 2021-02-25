@@ -10,6 +10,9 @@ env:
   LDAP_TLS_ENFORCE: "false"
   LDAP_REMOVE_CONFIG_AFTER_SETUP: "false"
 customLdifFiles:
+  # For user <project>-habor, password: "harbor-user-password"
+  # For user <project>-habor-staging, password: "harbor-staging-user-password"
+  # For user <project>-dev, password: "dev-password"
   groups.ldif: |-
     dn: ou=Users,dc=jarvis,dc=local
     changetype: add
@@ -39,3 +42,459 @@ customLdifFiles:
     cn: jarvis-admins
     description: Jarvis Administrators
     uniqueMember: uid=jarvis,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=pcf-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: pcf-harbor
+    sn: User
+    displayname: pcf-harbor User
+    mail: pcf-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=pcf-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: pcf-harbor-users-group
+    description: Project pcf users group
+    uniqueMember: uid=pcf-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=pcf-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: pcf-harbor-staging
+    sn: User
+    displayname: pcf-harbor-staging User
+    mail: pcf-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=pcf-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: pcf-harbor-staging-users-group
+    description: Project pcf users group
+    uniqueMember: uid=pcf-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=pcf-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: pcf-dev
+    sn: User
+    displayname: pcf-dev User
+    mail: pcf-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=pcf-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: pcf-dev-users-group
+    description: Project pcf users group
+    uniqueMember: uid=pcf-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=smf-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: smf-harbor
+    sn: User
+    displayname: smf-harbor User
+    mail: smf-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=smf-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: smf-harbor-users-group
+    description: Project smf users group
+    uniqueMember: uid=smf-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=smf-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: smf-harbor-staging
+    sn: User
+    displayname: smf-harbor-staging User
+    mail: smf-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=smf-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: smf-harbor-staging-users-group
+    description: Project smf users group
+    uniqueMember: uid=smf-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=smf-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: smf-dev
+    sn: User
+    displayname: smf-dev User
+    mail: smf-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=smf-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: smf-dev-users-group
+    description: Project smf users group
+    uniqueMember: uid=smf-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=udm-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: udm-harbor
+    sn: User
+    displayname: udm-harbor User
+    mail: udm-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=udm-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: udm-harbor-users-group
+    description: Project udm users group
+    uniqueMember: uid=udm-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=udm-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: udm-harbor-staging
+    sn: User
+    displayname: udm-harbor-staging User
+    mail: udm-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=udm-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: udm-harbor-staging-users-group
+    description: Project udm users group
+    uniqueMember: uid=udm-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=udm-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: udm-dev
+    sn: User
+    displayname: udm-dev User
+    mail: udm-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=udm-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: udm-dev-users-group
+    description: Project udm users group
+    uniqueMember: uid=udm-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=amf-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: amf-harbor
+    sn: User
+    displayname: amf-harbor User
+    mail: amf-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=amf-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: amf-harbor-users-group
+    description: Project amf users group
+    uniqueMember: uid=amf-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=amf-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: amf-harbor-staging
+    sn: User
+    displayname: amf-harbor-staging User
+    mail: amf-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=amf-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: amf-harbor-staging-users-group
+    description: Project amf users group
+    uniqueMember: uid=amf-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=amf-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: amf-dev
+    sn: User
+    displayname: amf-dev User
+    mail: amf-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=amf-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: amf-dev-users-group
+    description: Project amf users group
+    uniqueMember: uid=amf-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=ausf-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: ausf-harbor
+    sn: User
+    displayname: ausf-harbor User
+    mail: ausf-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=ausf-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: ausf-harbor-users-group
+    description: Project ausf users group
+    uniqueMember: uid=ausf-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=ausf-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: ausf-harbor-staging
+    sn: User
+    displayname: ausf-harbor-staging User
+    mail: ausf-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=ausf-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: ausf-harbor-staging-users-group
+    description: Project ausf users group
+    uniqueMember: uid=ausf-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=ausf-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: ausf-dev
+    sn: User
+    displayname: ausf-dev User
+    mail: ausf-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=ausf-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: ausf-dev-users-group
+    description: Project ausf users group
+    uniqueMember: uid=ausf-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=nrf-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: nrf-harbor
+    sn: User
+    displayname: nrf-harbor User
+    mail: nrf-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=nrf-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: nrf-harbor-users-group
+    description: Project nrf users group
+    uniqueMember: uid=nrf-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=nrf-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: nrf-harbor-staging
+    sn: User
+    displayname: nrf-harbor-staging User
+    mail: nrf-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=nrf-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: nrf-harbor-staging-users-group
+    description: Project nrf users group
+    uniqueMember: uid=nrf-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=nrf-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: nrf-dev
+    sn: User
+    displayname: nrf-dev User
+    mail: nrf-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=nrf-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: nrf-dev-users-group
+    description: Project nrf users group
+    uniqueMember: uid=nrf-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=udr-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: udr-harbor
+    sn: User
+    displayname: udr-harbor User
+    mail: udr-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=udr-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: udr-harbor-users-group
+    description: Project udr users group
+    uniqueMember: uid=udr-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=udr-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: udr-harbor-staging
+    sn: User
+    displayname: udr-harbor-staging User
+    mail: udr-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=udr-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: udr-harbor-staging-users-group
+    description: Project udr users group
+    uniqueMember: uid=udr-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=udr-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: udr-dev
+    sn: User
+    displayname: udr-dev User
+    mail: udr-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=udr-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: udr-dev-users-group
+    description: Project udr users group
+    uniqueMember: uid=udr-dev,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=mongodb-harbor,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: mongodb-harbor
+    sn: User
+    displayname: mongodb-harbor User
+    mail: mongodb-harbor@cluster.local
+    userpassword: {SSHA}u1BT4/+0D4CRCZEFYQHRieswErdUc5Zm
+
+    dn: cn=mongodb-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: mongodb-harbor-users-group
+    description: Project mongodb users group
+    uniqueMember: uid=mongodb-harbor,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=mongodb-harbor-staging,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: mongodb-harbor-staging
+    sn: User
+    displayname: mongodb-harbor-staging User
+    mail: mongodb-harbor-staging@cluster.local
+    userpassword: {SSHA}gYtZk9+9j59ytEj9z6/KUsKw4/CvpaEU
+
+    dn: cn=mongodb-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: mongodb-harbor-staging-users-group
+    description: Project mongodb users group
+    uniqueMember: uid=mongodb-harbor-staging,ou=Users,dc=jarvis,dc=local
+
+    dn: uid=mongodb-dev,ou=Users,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: person
+    objectClass: inetOrgPerson
+    cn: mongodb-dev
+    sn: User
+    displayname: mongodb-dev User
+    mail: mongodb-dev@cluster.local
+    userpassword: {SSHA}o8PQMzyBjq7+3wlnyFmjWILphtfnZ5tA
+
+    dn: cn=mongodb-dev-users-group,ou=Groups,dc=jarvis,dc=local
+    changetype: add
+    objectClass: top
+    objectClass: groupOfUniqueNames
+    cn: mongodb-dev-users-group
+    description: Project mongodb users group
+    uniqueMember: uid=mongodb-dev,ou=Users,dc=jarvis,dc=local
