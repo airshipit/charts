@@ -95,7 +95,11 @@ spec:
       taskRef:
         name: deployment-manifests
 
-    - name: microflow-functional
+    - name: microflow-promote-artifacts
+      when:
+        - input: $(params.pipeline)
+          operator: in
+          values: ["merge"]
       runAfter:
         - microflow-deployment-manifests
         - microflow-k8s
@@ -107,24 +111,22 @@ spec:
         - name: development_pipeline_data
           workspace: development_pipeline_data
       taskRef:
-        name: functional
+        name: promote
 
-    - name: microflow-promote-artifacts
-      when:
-        - input: $(params.pipeline)
-          operator: in
-          values: ["merge"]
+    - name: microflow-functional
       runAfter:
-        - microflow-functional
+        - microflow-promote-artifacts
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data
         - name: development_pipeline_data
           workspace: development_pipeline_data
       taskRef:
-        name: promote
-  finally:
+        name: functional
     - name: microflow-cleanup
+      runAfter:
+        - microflow-functional
+        - microflow-promote-artifacts
       workspaces:
         - name: k8s_cluster_data
           workspace: k8s_cluster_data

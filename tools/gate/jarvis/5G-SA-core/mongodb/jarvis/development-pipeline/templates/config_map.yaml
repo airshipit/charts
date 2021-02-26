@@ -34,6 +34,7 @@ data:
       "version": "3.3.3",
       "build_from_source": false,
       "path": "",
+      "remote_namespace": "mongodb",
       "build": {
         "name": "https://charts.bitnami.com/bitnami",
         "local_repo": "bitnami_mongodb",
@@ -84,5 +85,6 @@ data:
     }
   cleanup.json: |
     {
-     "remove_artifacts": "true"
+      "environment_name": "development",
+      "remove_artifacts": "false"
     }

@@ -80,7 +80,7 @@ EOF
   git review
   change_id=$(git log -1 | grep Change-Id: | awk '{print $2}')
   popd
-  sleep 180
+  sleep 60
   if (( COUNTER == 0 ));
   then
     CHANGE_ID_COUNTER=$change_id
