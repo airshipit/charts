@@ -1,0 +1,5 @@
+- hosts: localhost
+  become: yes
+  tasks:
+    - name: Clean up release
+      include_tasks: ./roles/cleanup/tasks/cleanup.yaml

@@ -1,0 +1,4 @@
+---
+- hosts: localhost
+  roles:
+    - { role: charts, vars: { stage: "default" } }

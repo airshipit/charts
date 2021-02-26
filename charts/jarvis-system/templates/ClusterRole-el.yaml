@@ -14,23 +14,22 @@ rules:
   resources: ["namespaces"]
   verbs: ["list", "get", "create"]
 - apiGroups: ["rbac.authorization.k8s.io"]
-  # allow namespaces to be retrieved to validate we haven't already created it already
+  # allow roles to be retrieved to validate we haven't already created it already
   resources: ["roles"]
   verbs: ["list", "get", "create"]
 - apiGroups: [""]
-  # secrets are only needed for GitHub/GitLab interceptors
   resources: ["configmaps"]
-  verbs: ["get", "list", "watch"]
+  verbs: ["get", "list", "watch", "create"]
 # Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
-  resources: ["pipelineruns", "pipelineresources", "taskruns"]
-  verbs: ["create"]
+  resources: ["pipelineruns", "pipelineresources", "taskruns", "pipelines","tasks"]
+  verbs: ["create", "get", "list"]
 - apiGroups: [""]
   resources: ["serviceaccounts"]
   verbs: ["impersonate", "get", "create"]
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get"]
+  verbs: ["get", "list", "create"]
 - apiGroups: [""]
   resources: ["services"]
   verbs: ["get"]
