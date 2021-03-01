@@ -26,6 +26,9 @@ params:
     host: gerrit.jarvis.local
   harbor:
     host: harbor-core.jarvis.local
+    member_ldap_dn:
+      project: ""
+      staging: ""
   endpoints:
     hostname: localhost
     tls:
@@ -40,4 +43,3 @@ config:
   test:
     ldap_username: jarvis
     ldap_password: password
-

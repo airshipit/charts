@@ -27,16 +27,28 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
     voting_ci="false"
   fi
 
+  project_override=$(mktemp --suffix=.yaml)
+  tee ${project_override} <<EOF
+config:
+  ci:
+    verify: ${voting_ci}
+params:
+  harbor:
+    member_ldap_dn:
+      project: cn=${jarvis_project}-harbor-users-group,ou=Groups,dc=jarvis,dc=local
+      staging: cn=${jarvis_project}-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+EOF
+
   # shellcheck disable=SC2046
   helm upgrade \
-      --create-namespace \
-      --install \
-      --namespace=jarvis-projects \
-      "${jarvis_project}" \
-      "./charts/jarvis-project" \
-      --values="${gerrit_creds_override}" \
-      --set config.ci.verify="$voting_ci" \
-      $(./tools/deployment/common/get-values-overrides.sh jarvis-project)
+    --create-namespace \
+    --install \
+    --namespace=jarvis-projects \
+    "${jarvis_project}" \
+    "./charts/jarvis-project" \
+    --values="${gerrit_creds_override}" \
+    --values="${project_override}" \
+    $(./tools/deployment/common/get-values-overrides.sh jarvis-project)
 
   ./tools/deployment/common/wait-for-pods.sh jarvis-projects
 
