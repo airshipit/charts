@@ -31,10 +31,11 @@ spec:
           else
             echo "Namespace already exists, delete all resources for re-run."
             kubectl delete pr -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --all
-            helm delete development-pipeline -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
-            kubectl delete role -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
-            kubectl delete sa -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
-            kubectl delete rolebinding -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+            helm delete development-pipeline -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) || true
+            kubectl delete role -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --all
+            kubectl delete secret -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --all
+            kubectl delete sa -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --all
+            kubectl delete rolebinding -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --all
           fi
         }
         create_namespace
