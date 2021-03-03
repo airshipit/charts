@@ -7,7 +7,8 @@ Environment Variables
 
 On the host machine, ensure the following environment variables are set with the appropriate proxy information:
 ``HTTP_PROXY``, ``HTTPS_PROXY``, and ``NO_PROXY``. You will also need to set the environment variable ``PRIVATE_NS``
-to an IP address of a corporate name server that will resolve internal URLs.
+to an IP address of a corporate name server that will resolve internal URLs. ``PRIVATE_NS`` can support multiple
+corporate name servers by creating a space separated list, such as ``PRIVATE_NS="172.18.0.17 172.19.0.17"``.
 
 Vagrant Plugin
 ==============

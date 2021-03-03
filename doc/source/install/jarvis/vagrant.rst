@@ -59,11 +59,11 @@ Host Setup
 ==========
 
 To access the exposed Jarvis services in the Vagrant box, update the
-``/etc/hosts`` file with:
+``/etc/hosts`` (``C:\Windows\System32\drivers\etc\hosts`` on Windows) file with:
 
 .. code::
 
-  192.168.56.10 gerrit.jarvis.local harbor-core.jarvis.local harbor-notary.jarvis.local loki.jarvis.local grafana.jarvis.local
+  192.168.56.10 gerrit.jarvis.local harbor-core.jarvis.local harbor-notary.jarvis.local loki.jarvis.local grafana.jarvis.local tekton.jarvis.local
 
 .. note:: Replace ``jarvis.local`` with the appropriate host and domain name if
   those are overwritten.
