@@ -72,7 +72,7 @@ data:
       "chart_registry_url": "harbor-core.jarvis.local/chartrepo",
       "chart_repository": "jarvis-harbor",
       "docker_registry": "harbor-core.jarvis.local",
-      "harbor_secret_mounted_path": "/workspace/helm-creds"
+      "harbor_secret_mounted_path": "/workspace/helm-creds",
       "clone_async_batch_size": 20,
       "chart_async_batch_size": 20,
       "image_async_batch_size": 2
