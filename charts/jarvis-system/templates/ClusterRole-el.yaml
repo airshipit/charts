@@ -19,17 +19,17 @@ rules:
   verbs: ["list", "get", "create", "delete"]
 - apiGroups: [""]
   resources: ["configmaps"]
-  verbs: ["get", "list", "watch", "create"]
+  verbs: ["get", "list", "watch", "create", "delete"]
 # Permissions to create resources in associated TriggerTemplates
 - apiGroups: ["tekton.dev"]
   resources: ["pipelineruns", "pipelineresources", "taskruns", "pipelines","tasks"]
   verbs: ["create", "get", "list", "delete"]
 - apiGroups: [""]
   resources: ["serviceaccounts"]
-  verbs: ["impersonate", "get", "create", "delete"]
+  verbs: ["impersonate", "get", "create", "delete", "list"]
 - apiGroups: [""]
   resources: ["secrets"]
-  verbs: ["get", "list", "create"]
+  verbs: ["get", "list", "create", "delete"]
 - apiGroups: [""]
   resources: ["services"]
   verbs: ["get"]
@@ -38,7 +38,7 @@ rules:
   verbs: ["get"]
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources: ["rolebindings"]
-  verbs: ["get", "create", "delete"]
+  verbs: ["get", "create", "delete", "list"]
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "ClusterRole-el" ) }}
