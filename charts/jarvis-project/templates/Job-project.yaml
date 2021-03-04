@@ -36,6 +36,16 @@ spec:
               value: "https://{{ .Values.params.gerrit.host }}"
             - name: HARBOR_URL
               value: "https://{{ .Values.params.harbor.host }}"
+            - name: PROJECT_LDAP_DN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "helpers.labels.fullname" . }}
+                  key: harbor-project-ldap-dn
+            - name: STAGING_LDAP_DN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "helpers.labels.fullname" . }}
+                  key: harbor-staging-ldap-dn
           command:
             - sh
             - -cex
@@ -78,10 +88,30 @@ spec:
                   esac
                 done
               }
+              add_ldap_member_to_project(){
+                project_name=$1
+                ldap_dn=$2
+                project_json=$(curl -sSL --netrc-file /run/jarvis/harbor-netrc/harbor-netrc -X GET \
+                  -H "Accept: application/json" \
+                  ${HARBOR_URL}/api/v2.0/projects?name=${project_name})
+                project_id=$(echo $project_json | grep -o '"project_id":[[:digit:]]*' | head -1 | awk -F':' '{print $2}')
+
+                curl -sSL -D - --netrc-file /run/jarvis/harbor-netrc/harbor-netrc -X POST \
+                  -H "Content-Type: application/json" \
+                  --data-raw '{
+                    "role_id": 2,
+                    "member_group": {
+                      "group_name": "'${project_name}'-users-group",
+                      "ldap_group_dn": "'${ldap_dn}'",
+                      "group_type": 1
+                    }
+                  }' ${HARBOR_URL}/api/v2.0/projects/${project_id}/members
+              }
+
               # Add project and staging project in harbor
               project_in_harbor "${JARVIS_PROJECT_NAME}" "${JARVIS_PROJECT_NAME}-staging"
-
-
+              add_ldap_member_to_project "${JARVIS_PROJECT_NAME}" "${PROJECT_LDAP_DN}"
+              add_ldap_member_to_project "${JARVIS_PROJECT_NAME}-staging" "${STAGING_LDAP_DN}"
           volumeMounts:
             - name: gerrit-creds
               mountPath: /run/jarvis/gerrit-authfile
