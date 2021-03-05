@@ -4,11 +4,13 @@
     _delay: "{{ git_check_status_delay | default(3) }}"
 
 - name: Run async git clone
-  git:
-    repo: "{{ repo.build.git_repo }}"
-    dest: "{{ repo.build.target_loc }}"
-    version: "{{ repo.build.refspec }}"
-    refspec: "refs/changes/*:refs/changes/*"
+  shell: |
+    if [ -n "{{ repo.build.user | default("", true) }}" ] && [ -n "{{ repo.build.password | default("", true) }}" ]; then \
+      git config --global credential.username {{ repo.build.user }} && git config --global credential.helper "!echo password={{ repo.build.password }}; echo"; \
+    fi
+    git clone {{ repo.build.git_repo }} {{ repo.build.target_loc }};
+    cd {{ repo.build.target_loc }};
+    git pull {{ repo.build.git_repo }} {{ repo.build.refspec }};
   async: "{{ _async }}"
   poll: 0
   loop: "{{ repos }}"

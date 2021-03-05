@@ -5,26 +5,28 @@ metadata:
 data:
   cluster.json: |
     {
-     "namespace": "{{ $.Values.namespace }}",
-     "use_existing_cluster": "true"
+      "namespace": "{{ $.Values.namespace }}",
+      "use_existing_cluster": "true"
     }
   image.json: |
     [
       {
-       "image_from": "harbor-core.jarvis.local/library/ubuntu:focal",
-       "build_from_source": true,
-       "image_name": "amf",
-       "project": "amf",
-       "repo": "amf",
-       "image_fullname": "amf/amf:1.0",
-       "path": "images/amf",
-       "namespace": "{{ $.Values.namespace }}",
-       "build": {
+        "image_from": "harbor-core.jarvis.local/library/ubuntu:focal",
+        "build_from_source": true,
+        "image_name": "amf",
+        "project": "amf",
+        "repo": "amf",
+        "image_fullname": "amf/amf:1.0",
+        "path": "images/amf",
+        "namespace": "{{ $.Values.namespace }}",
+        "build": {
           "git_repo": "{{ $.Values.git_repo }}",
           "target_loc": "/src/checkout/amf",
           "refspec": "{{ $.Values.refspec }}",
-          "version": "refs/changes/*:refs/changes/*"
-       }
+          "version": "refs/changes/*:refs/changes/*",
+          "user": "jarvis",
+          "password": "password"
+        }
       }
     ]
   chart.json: |
@@ -39,7 +41,9 @@ data:
         "git_repo": "{{ $.Values.git_repo }}",
         "target_loc": "/src/checkout/amf",
         "refspec": "{{ $.Values.refspec }}",
-        "version": "refs/changes/*:refs/changes/*"
+        "version": "refs/changes/*:refs/changes/*",
+        "user": "jarvis",
+        "password": "password"
       },
       "namespace": "{{ $.Values.namespace }}",
       "release_name": "amf",
@@ -88,5 +92,5 @@ data:
     }
   cleanup.json: |
     {
-     "remove_artifacts": "true"
+      "remove_artifacts": "true"
     }

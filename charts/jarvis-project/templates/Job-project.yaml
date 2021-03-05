@@ -32,10 +32,15 @@ spec:
                   key: gerrit-username
             - name: GERRIT_HOST
               value: {{ .Values.params.gerrit.host }}
+            - name: GERRIT_LDAP_CN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "helpers.labels.fullname" . }}
+                  key: gerrit-ldap-group-cn
             - name: GERRIT_URL
-              value: "https://{{ .Values.params.gerrit.host }}"
+              value: {{ printf "https://%s" $.Values.params.gerrit.host | quote }}
             - name: HARBOR_URL
-              value: "https://{{ .Values.params.harbor.host }}"
+              value: {{ printf "https://%s" $.Values.params.harbor.host | quote }}
             - name: PROJECT_LDAP_DN
               valueFrom:
                 secretKeyRef:
@@ -50,26 +55,22 @@ spec:
             - sh
             - -cex
             - |
+              alias gerrit_ssh="ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null -p 29418 \
+                -i /run/jarvis/secret/gerrit-ssh-key ${GERRIT_USERNAME}@${GERRIT_HOST} "
+
               # Create gerrit repo
               ( \
-                ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
-                  -p 29418 \
-                  -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
+                gerrit_ssh \
                   gerrit ls-projects -r "^$JARVIS_PROJECT_NAME\$" | grep -q "^${JARVIS_PROJECT_NAME}\$" \
                 &&
-                ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
-                  -p 29418 \
-                  -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
+                gerrit_ssh \
                   gerrit set-project-parent \
                   {{ if eq $.Values.config.ci.verify true }} --parent Verified-Label-Projects {{ else }} --parent Non-Verified-Label-Projects {{ end }} \
                   --children-of Non-Verified-Label-Projects \
               ) \
               || \
-              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
-                -p 29418 \
-                -i /run/jarvis/secret/gerrit-ssh-key ${GERRIT_USERNAME}@${GERRIT_HOST} \
-                gerrit create-project "${JARVIS_PROJECT_NAME}" \
-                --owner Administrators \
+              gerrit_ssh gerrit create-project "${JARVIS_PROJECT_NAME}" \
+                --owner Administrators --owner ldap/${GERRIT_LDAP_CN} \
                 {{ if eq $.Values.config.ci.verify true }} --parent Verified-Label-Projects {{ else }} --parent Non-Verified-Label-Projects {{ end }} \
                 --submit-type MERGE_IF_NECESSARY \
                 --empty-commit

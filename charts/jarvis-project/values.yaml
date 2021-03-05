@@ -24,6 +24,7 @@ params:
     password: ""
     ssh_key: ""
     host: gerrit.jarvis.local
+    ldap_group_cn: ""
   harbor:
     host: harbor-core.jarvis.local
     member_ldap_dn:

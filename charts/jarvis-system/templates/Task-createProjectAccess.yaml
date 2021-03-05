@@ -123,9 +123,8 @@ spec:
     - name: checkout-repo
       image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_git" ) }}
       script: |
-        #!/bin/sh
-        set -eu -o pipefail -x
-
+        #!/bin/bash
+        set -ex
         # A change ref has the format refs/changes/X/Y/Z where X is
         # the last two digits of the change number, Y is the entire
         # change number, and Z is the patch set. For example, if
@@ -134,7 +133,6 @@ spec:
         change_ref="refs/changes/$(echo "0$(params.changeNumber)" | awk '{ print substr( $0, length($0) - 1, length($0) ) }')/$(params.changeNumber)/$(params.patchSetNumber)"
         echo $change_ref
 
-
         CHECKOUT_DIR="$(workspaces.output.path)"
 
         cleandir() {
@@ -142,7 +140,7 @@ spec:
           #
           # We don't just "rm -rf $CHECKOUT_DIR" because $CHECKOUT_DIR might be "/"
           # or the root of a mounted volume.
-          if [[ -d "$CHECKOUT_DIR" ]] ; then
+          if [ -d "$CHECKOUT_DIR" ] ; then
             # Delete non-hidden files and directories
             rm -rf "$CHECKOUT_DIR"/*
             # Delete files and directories starting with . but excluding ..
@@ -157,6 +155,10 @@ spec:
         git init
         git config http.sslVerify "false"
         git config advice.detachedHead "false"
+        set +x
+        git config credential.username $(kubectl -n {{ $.Release.Namespace }} get secret {{ template "helpers.labels.fullname" . }}-gerrit -o=json | jq -r '.data."gerrit-user"' | base64 -d)
+        git config credential.helper "!echo password=$(kubectl -n {{ $.Release.Namespace }} get secret {{ template "helpers.labels.fullname" . }}-gerrit -o=json | jq -r '.data."gerrit-password"' | base64 -d); echo"
+        set -x
         git fetch $(params.repoRoot)/$(params.project) $change_ref
         git checkout FETCH_HEAD
 

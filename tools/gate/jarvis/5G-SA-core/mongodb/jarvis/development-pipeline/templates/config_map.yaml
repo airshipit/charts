@@ -20,7 +20,9 @@ data:
        "path": "",
        "build": {
           "git_repo": "docker.io/bitnami/mongodb-sharded",
-          "tag": "4.4.3-debian-10-r44"
+          "tag": "4.4.3-debian-10-r44",
+          "user": "",
+          "password": ""
        }
       }
     ]
@@ -35,7 +37,9 @@ data:
       "build": {
         "name": "https://charts.bitnami.com/bitnami",
         "local_repo": "bitnami_mongodb",
-        "target_loc": "/src/fetch/charts"
+        "target_loc": "/src/fetch/charts",
+        "user": "jarvis",
+        "password": "password"
       },
       "namespace": "{{ $.Values.namespace }}",
       "release_name": "mongodb-bitnami",

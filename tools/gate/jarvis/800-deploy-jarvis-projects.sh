@@ -17,7 +17,7 @@ EOF
 generate_gerrit_creds_override
 
 COUNTER=0
-for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'`; do
+for jarvis_project in $(find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'); do
   # Half of Jarvis-Projects will be made with required CI, half will be made with optional CI to
   # offer examples to developers using Jarvis.
   if (( COUNTER % 2 ));
@@ -37,6 +37,8 @@ params:
     member_ldap_dn:
       project: cn=${jarvis_project}-harbor-users-group,ou=Groups,dc=jarvis,dc=local
       staging: cn=${jarvis_project}-harbor-staging-users-group,ou=Groups,dc=jarvis,dc=local
+  gerrit:
+    ldap_group_cn: ${jarvis_project}-dev-users-group
 EOF
 
   # shellcheck disable=SC2046
@@ -76,7 +78,7 @@ EOF
   git add -A
   git commit -asm "Add project code and .gitreview file"
   git review
-  change_id=`git log -1 | grep Change-Id: | awk '{print $2}'`
+  change_id=$(git log -1 | grep Change-Id: | awk '{print $2}')
   popd
   sleep 180
   if (( COUNTER == 0 ));
@@ -88,13 +90,14 @@ EOF
 done
 
 voting_ci="false"
-for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'`; do
+for jarvis_project in $(find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'); do
+  echo "--- processing ${jarvis_project} with voting_ci = ${voting_ci}"
   # Check jarvis pipeline run
   end=$(date +%s)
   timeout="4000"
   end=$((end + timeout))
   while true; do
-    result="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/checks | tail -1 | jq -r .[].state)"
+    result="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${CHANGE_ID_COUNTER}/revisions/1/checks | tail -1 | jq -r .[].state)"
     [ $result == "SUCCESSFUL" ] && break || true
     [ $result == "FAILED" ] && exit 1 || true
     sleep 25
@@ -111,7 +114,7 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
   end=$((end + timeout))
   while true; do
     # Check that Jarvis-System has reported the success of the pipeline run to Gerrit, by checking the value of the Verified label
-    VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+    VERIFIED="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
     [ "$VERIFIED" == 1 ] && break || true
     sleep 5
     now=$(date +%s)

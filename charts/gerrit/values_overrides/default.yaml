@@ -59,8 +59,11 @@ gerrit:
           accountBase = ou=Users,dc=jarvis,dc=local
           accountPattern = (&(objectClass=inetOrgPerson)(uid=${username}))
           accountFullName = ${cn}
+          accountScope = sub
           groupBase = ou=Groups,dc=jarvis,dc=local
-          groupMemberPattern = (member=${dn})
+          groupScope = sub
+          groupPattern = (&(objectClass=groupOfUniqueNames)(cn=${groupname}))
+          groupMemberPattern = (&(objectClass=groupOfUniqueNames)(uniqueMember=${dn}))
           localUsernameToLowerCase = true
         [httpd]
           # If using an ingress use proxy-http or proxy-https

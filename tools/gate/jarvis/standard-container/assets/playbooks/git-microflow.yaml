@@ -11,7 +11,7 @@
 
     - name: Run git clone task
       include_tasks: ./roles/git/tasks/main.yaml
-      when: data.stdout_lines |length > 0
+      when: data.stdout_lines | length > 0
       loop: "{{ data.stdout_lines | map('from_json') | batch(clone_async_batch_size) | list }}"
       loop_control:
         loop_var: "repos"

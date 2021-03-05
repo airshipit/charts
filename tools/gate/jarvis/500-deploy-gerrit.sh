@@ -145,19 +145,19 @@ function gerrit_bootstrap() {
     streamEvents = group Service Users
 [access "refs/*"]
     read = group Administrators
-    read = group Anonymous Users
+    read = group Project Owners
     revert = group Registered Users
 [access "refs/for/*"]
     addPatchSet = group Registered Users
 [access "refs/for/refs/*"]
-    push = group Registered Users
-    pushMerge = group Registered Users
+    push = group Project Owners
+    pushMerge = group Project Owners
 [access "refs/heads/*"]
     create = group Administrators
     create = group Project Owners
     editTopicName = +force group Administrators
     editTopicName = +force group Project Owners
-    forgeAuthor = group Registered Users
+    forgeAuthor = group Project Owners
     forgeCommitter = group Administrators
     forgeCommitter = group Project Owners
     push = group Administrators

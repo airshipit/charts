@@ -9,9 +9,9 @@ images:
       name: attcomdev/jarvis-connector
       repo: quay.io
     task_git:
-      tag: v0.18.1
-      name: tekton-releases/github.com/tektoncd/pipeline/cmd/git-init
-      repo: gcr.io
+      tag: "1.0"
+      name: standard-container
+      repo: docker.io
     task_create_namespace:
       tag: "1.0"
       name: standard-container

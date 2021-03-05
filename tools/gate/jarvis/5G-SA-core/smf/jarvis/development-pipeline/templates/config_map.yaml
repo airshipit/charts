@@ -23,7 +23,9 @@ data:
           "git_repo": "{{ $.Values.git_repo }}",
           "target_loc": "/src/checkout/smf",
           "refspec": "{{ $.Values.refspec }}",
-          "version": "refs/changes/*:refs/changes/*"
+          "version": "refs/changes/*:refs/changes/*",
+          "user": "jarvis",
+          "password": "password"
        }
       }
     ]
@@ -39,7 +41,9 @@ data:
         "git_repo": "{{ $.Values.git_repo }}",
         "target_loc": "/src/checkout/smf",
         "refspec": "{{ $.Values.refspec }}",
-        "version": "refs/changes/*:refs/changes/*"
+        "version": "refs/changes/*:refs/changes/*",
+        "user": "jarvis",
+        "password": "password"
       },
       "namespace": "{{ $.Values.namespace }}",
       "release_name": "smf",
