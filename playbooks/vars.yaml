@@ -10,4 +10,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 version:
-  helm: 3.3.4
+  helm: 3.5.2
