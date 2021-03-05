@@ -29,3 +29,9 @@
     failed_when: result.stdout != ""
     args:
       chdir: "{{ zuul.project.src_dir }}"
+  - name: Check for Windows line endings
+    command: grep --files-with-match --recursive -I --binary --exclude-dir=.git --perl-regexp '\r$' .
+    register: line_endings_result
+    failed_when: line_endings_result.rc == 0
+    args:
+      chdir: "{{ zuul.project.src_dir }}"
