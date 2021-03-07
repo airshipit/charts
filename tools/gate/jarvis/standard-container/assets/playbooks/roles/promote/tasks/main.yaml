@@ -44,9 +44,7 @@
   when: ( stage == "promote_image")
   block:
     - name: Pull image from staging repo
-      docker_image:
-        pull: true
-        name: "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}:{{ image.tag }}"
+      shell: docker --config ~/.docker/pull pull "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}:{{ image.tag }}"
       loop: "{{ items }}"
       loop_control:
         loop_var: "image"
@@ -60,11 +58,9 @@
       include_tasks: ./roles/common/tasks/check_sync_status.yaml
 
     - name: Tag and push to promotion repository
-      docker_image:
-        push: true
-        name: "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}"
-        repository: "{{ docker_registry }}/{{ image.project }}/{{ image.repo }}"
-        tag: "{{ image.tag }}"
+      shell: |
+        docker --config ~/.docker/push tag "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}:{{ image.tag }}" "{{ docker_registry }}/{{ image.project }}/{{ image.repo }}:{{ image.tag }}"
+        docker --config ~/.docker/push push "{{ docker_registry }}/{{ image.project }}/{{ image.repo }}:{{ image.tag }}"
       loop: "{{ items }}"
       loop_control:
         loop_var: "image"

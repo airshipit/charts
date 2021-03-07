@@ -28,6 +28,7 @@ RUN apt-get update ;\
         docker-ce-cli ;\
     pip3 install --upgrade wheel ;\
     pip3 install ansible==2.10.7 ;\
+    pip3 install yq ;\
     ansible-galaxy collection install community.kubernetes ;\
     pip3 install docker ;\
     # Install kubectl

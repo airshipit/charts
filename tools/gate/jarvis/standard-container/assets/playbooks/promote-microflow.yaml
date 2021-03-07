@@ -11,12 +11,12 @@
 
     - name: Get list of internal staging repos
       when: ( stage == "promote_chart")
-      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project+\"-staging\"), secret: \"{{ harbor_secret_mounted_path }}\", name:  (.project+\"-staging\")}'  {{ loop_source }}  | sort | uniq"
+      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project+\"-staging\"), secret: \"{{ harbor_secret_pull_mounted_path }}\", name:  (.project+\"-staging\")}'  {{ loop_source }}  | sort | uniq"
       register: staging_internal_repos
 
     - name: Get list of internal stable repos
       when: ( stage == "promote_chart")
-      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project), secret: \"{{ harbor_secret_mounted_path }}\", name: .project}'  {{ loop_source }}  | sort | uniq"
+      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project), secret: \"{{ harbor_secret_push_mounted_path }}\", name: .project}'  {{ loop_source }}  | sort | uniq"
       register: internal_repos
 
     - include_tasks: ./roles/charts/tasks/setup_helm_repo.yaml

@@ -1,0 +1,121 @@
+dev:
+  jarvis-aio:
+    # Left blank as the kubeconfig is added in during execution of the 800-deploy-jarvis-projects.sh script
+    # The kubeconfig is added in from ~/.kube/config
+    kubeconfig:
+    # Left blank as the harbor-ca is added in during execution of the 800-deploy-jarvis-projects.sh script
+    # The harbor-ca is added in from /etc/jarvis/certs/ca/ca.pem
+    harbor-ca:
+    helm:
+      username: nrf-harbor
+      password: harbor-user-password
+    helm-staging:
+      username: nrf-harbor-staging
+      password: harbor-staging-user-password
+    harbor:
+      username: nrf-harbor
+      password: harbor-user-password
+      email: example@gmail.com
+      server: harbor-core.jarvis.local
+    harbor-staging:
+      username: nrf-harbor-staging
+      password: harbor-staging-user-password
+      email: example@gmail.com
+      server: harbor-core.jarvis.local
+#   clusterA:
+#     kubeconfig:
+#     harbor-ca:
+#     helm:
+#       username:
+#       password:
+#     helm-staging:
+#       username:
+#       password:
+#     harbor:
+#       username:
+#       password:
+#       email:
+#       server:
+#     harbor-staging:
+#       username:
+#       password:
+#       email:
+#       server:
+# sil:
+#   clusterA:
+#     kubeconfig:
+#     harbor-ca:
+#     helm:
+#       username:
+#       password:
+#     helm-staging:
+#       username:
+#       password:
+#     harbor:
+#       username:
+#       password:
+#       email:
+#       server:
+#     harbor-staging:
+#       username:
+#       password:
+#       email:
+#       server:
+#   clusterB:
+#     kubeconfig:
+#     harbor-ca:
+#     helm:
+#       username:
+#       password:
+#     helm-staging:
+#       username:
+#       password:
+#     harbor:
+#       username:
+#       password:
+#       email:
+#       server:
+#     harbor-staging:
+#       username:
+#       password:
+#       email:
+#       server:
+# prod:
+#   clusterA:
+#     kubeconfig:
+#     harbor-ca:
+#     helm:
+#       username:
+#       password:
+#     helm-staging:
+#       username:
+#       password:
+#     harbor:
+#       username:
+#       password:
+#       email:
+#       server:
+#     harbor-staging:
+#       username:
+#       password:
+#       email:
+#       server:
+#   clusterB:
+#     kubeconfig:
+#     harbor-ca:
+#     helm:
+#       username:
+#       password:
+#     helm-staging:
+#       username:
+#       password:
+#     harbor:
+#       username:
+#       password:
+#       email:
+#       server:
+#     harbor-staging:
+#       username:
+#       password:
+#       email:
+#       server:
