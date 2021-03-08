@@ -13,3 +13,6 @@ tools/deployment/vagrant/.vagrant
 
 # Helm dependencies lock file
 Chart.lock
+
+# ignore any added internal certs for ubuntu-build
+tools/gate/jarvis/ubuntu-base/internal-certs/

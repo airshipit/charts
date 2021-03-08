@@ -16,6 +16,15 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder "../../../", "/airship_charts"
 
+  if ENV["INTERNAL_CERTS_DIR"]
+    # for guest OS to trust proxy itself
+    config.vm.synced_folder ENV["INTERNAL_CERTS_DIR"], "/usr/local/share/ca-certificates/internal-certs/"
+    # for containerd/docker to trust proxy when pulling images within kubernetes cluster
+    config.vm.synced_folder ENV["INTERNAL_CERTS_DIR"], "/etc/containerd/cert.d/"
+    # for use by ubuntu-base to trust proxy
+    config.vm.synced_folder ENV["INTERNAL_CERTS_DIR"], "/airship_charts/tools/gate/jarvis/ubuntu-base/internal-certs/"
+  end
+
   config.vm.network "private_network", ip: "192.168.56.10"
 
   config.vm.provider "libvirt" do |libvirt|

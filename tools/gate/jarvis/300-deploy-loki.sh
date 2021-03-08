@@ -14,4 +14,10 @@ helm upgrade \
 
 ./tools/deployment/common/wait-for-pods.sh loki
 
-helm -n loki test loki --logs
+# TODO(dustinspecker): remove this if condition and run loki test behind proxy
+# loki pod's container downloads jq and curl, which won't work
+# since the proxies are not configured for the pod, so skip test loki test for now
+# when proxy is defined
+if [ -z "$http_proxy" ]; then
+     helm -n loki test loki --logs
+fi

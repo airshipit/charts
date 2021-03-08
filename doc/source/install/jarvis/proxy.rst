@@ -10,6 +10,18 @@ On the host machine, ensure the following environment variables are set with the
 to an IP address of a corporate name server that will resolve internal URLs. ``PRIVATE_NS`` can support multiple
 corporate name servers by creating a space separated list, such as ``PRIVATE_NS="172.18.0.17 172.19.0.17"``.
 
+Certificate Authority for Corporate Proxy
+=========================================
+
+If the proxy requires a certificate to trust then:
+
+#. Run ``mkdir ~/internal-certs/``
+#. Download the required ``*.crt`` file
+#. Move the ``*.crt`` file into ``~/internal-certs/``
+#. Define an environment variable named ``INTERNAL_CERTS_DIR`` with the value of ``~/internal-certs/``
+
+The ``Vagrantfile`` will handle using the internal certificates during the ``vagrant up`` process.
+
 Vagrant Plugin
 ==============
 
