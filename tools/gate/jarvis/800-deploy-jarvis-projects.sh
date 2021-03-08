@@ -82,6 +82,7 @@ EOF
 
 done
 
+voting_ci="false"
 for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'`; do
   # Check jarvis pipeline run
   end=$(date +%s)
@@ -103,7 +104,6 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
   end=$(date +%s)
   timeout="120"
   end=$((end + timeout))
-  voting_ci="false"
   while true; do
     if [ $voting_ci = "true" ];
     then
