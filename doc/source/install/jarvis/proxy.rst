@@ -31,6 +31,10 @@ To easily set up the Vagrant box's proxy setting, install the `vagrant_proxyconf
 
   $ vagrant plugin install vagrant-proxyconf
 
+.. note::
+  Executing the above command behind a proxy requiring a certificate will require the ``SSL_CERT_FILE`` environment variable to
+  be defined and pointing at a file that may be used to trust the proxy.
+
 ``NO_PROXY`` Configuration
 ==========================
 
@@ -54,6 +58,11 @@ Installation
 ============
 
 With the appropriate environment variables set, follow instruction :ref:`here <aio-installation>`.
+
+.. note::
+   If running behind a proxy that requires a certificate, define ``CURL_CA_BUNDLE`` environment variable
+   pointing at a file that may be used to trust the proxy when running ``vagrant up``,
+   so that vagrant may successfully download the Vagrant box.
 
 .. _vagrant_proxyconf: http://tmatilai.github.io/vagrant-proxyconf/
 .. _documentation: https://minikube.sigs.k8s.io/docs/handbook/vpn_and_proxy/
