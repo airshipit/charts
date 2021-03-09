@@ -73,8 +73,12 @@ spec:
         - name: METRICS_DOMAIN
           value: {{ $.Values.controller.conf.metrics_domain }}
         securityContext:
-          allowPrivilegeEscalation: {{ $.Values.controller.pod.security_context.container.tekton_pipelines_controller.allowPrivilegeEscalation }}
-          runAsUser: {{ $.Values.controller.pod.security_context.container.tekton_pipelines_controller.runAsUser }}
+          allowPrivilegeEscalation: false
+          runAsUser: 65532
+          runAsGroup: 65532
+          capabilities:
+            drop:
+              - all
       volumes:
       - name: config-logging
         configMap:

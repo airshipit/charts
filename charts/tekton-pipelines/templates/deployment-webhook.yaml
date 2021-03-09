@@ -48,8 +48,12 @@ spec:
         - name: METRICS_DOMAIN
           value: {{ $.Values.webhook.conf.metrics_domain }}
         securityContext:
-          allowPrivilegeEscalation: {{ $.Values.webhook.pod.security_context.container.webhook.allowPrivilegeEscalation }}
-          runAsUser: {{ $.Values.webhook.pod.security_context.container.webhook.runAsUser }}
+          allowPrivilegeEscalation: false
+          runAsUser: 65532
+          runAsGroup: 65532
+          capabilities:
+            drop:
+              - all
         ports:
         - name: metrics
           containerPort: {{ $.Values.webhook.endpoints.ports.metrics.targetPort }}
