@@ -103,17 +103,17 @@ config:
     #  <PDN Configuration with UE Pool>
     #
     #  o IPv4 Pool
-    #    pdn:
+    #    subnet:
     #      addr: 10.45.0.1/16
     #
     #  o IPv4/IPv6 Pool
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/16
     #      - addr: cafe:1::1/64
     #
     #
     #  o Specific DNN/APN(e.g 'ims') uses 10.46.0.1/16, cafe:2::1/64
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/16
     #        dnn: internet
     #      - addr: cafe:1::1/64
@@ -124,7 +124,7 @@ config:
     #        dnn: ims
     #
     #  o Multiple Devices (default: ogstun)
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/16
     #        dnn: internet
     #      - addr: cafe:1::1/64
@@ -138,23 +138,23 @@ config:
     #        dev: ogstun3
     #
     #  o Pool Range Sample
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/24
     #        range: 10.45.0.100-10.45.0.200
     #
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/24
     #        range:
     #          - 10.45.0.5-10.45.0.50
     #          - 10.45.0.100-
     #
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/24
     #        range:
     #          - -10.45.0.200
     #          - 10.45.0.210-10.45.0.220
     #
-    #    pdn:
+    #    subnet:
     #      - addr: 10.45.0.1/16
     #        range:
     #          - 10.45.0.100-10.45.0.200
@@ -193,7 +193,7 @@ config:
           - addr: 127.0.0.4
         pfcp:
           - addr: 127.0.0.4
-        pdn:
+        subnet:
           - addr: 10.45.0.1/16
         dns:
           - 8.8.8.8
