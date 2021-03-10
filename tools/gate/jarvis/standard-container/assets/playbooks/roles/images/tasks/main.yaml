@@ -8,7 +8,7 @@
   block:
     - name: Build Docker Image
       shell: |
-        docker build -t "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}:{{ image.tag }}" .
+        docker build --build-arg FROM="{{ image.image_from }}" -t "{{ docker_registry }}/{{ image.project }}-staging/{{ image.repo }}:{{ image.tag }}" .
       args:
         chdir: "{{ image.build.target_loc }}/{{ image.path }}"
       loop: "{{ images | selectattr('build_from_source', 'equalto', True) | list }}"

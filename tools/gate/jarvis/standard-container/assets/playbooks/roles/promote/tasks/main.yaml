@@ -11,9 +11,6 @@
 - name: Promote Chart
   when: ( stage == "promote_chart")
   block:
-    - name: Install Plugin
-      shell: helm plugin update push || helm plugin install https://github.com/chartmuseum/helm-push || true
-
     - name: Pull down Helm Chart
       shell: helm pull "{{ chart.project }}-staging/{{ chart.chart_name }}" --version="{{ chart.version }}"
       loop: "{{ items }}"

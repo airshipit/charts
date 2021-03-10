@@ -99,8 +99,6 @@
 - name: Helm Publish
   when: ( stage == "publish")
   block:
-    - name: Install Plugin
-      shell: helm plugin update push || helm plugin install https://github.com/chartmuseum/helm-push || true
     - name: Push chart to Harbor staging registry
       command: helm push "{{ chart.chart_name }}-{{ chart.version }}".tgz "{{ chart.project }}-staging"
       args:

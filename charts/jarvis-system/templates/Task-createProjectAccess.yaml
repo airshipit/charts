@@ -211,9 +211,14 @@ spec:
 
         cd "$(workspaces.output.path)"/jarvis
 
+        # escape commas in no_proxy because Helm tries to split the value on commas
         helm upgrade --install development-pipeline \
           -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) \
           ./development-pipeline \
+          --set proxy.http_proxy="{{ .Values.proxy.http_proxy }}" \
+          --set proxy.https_proxy="{{ .Values.proxy.https_proxy }}" \
+          --set proxy.no_proxy="$(echo {{ .Values.proxy.no_proxy }} | sed "s/,/\\\,/g")" \
+          --set proxy.internal_certs_dir="{{ .Values.proxy.internal_certs_dir }}" \
           --set "git_repo=$(params.repoRoot)/$(params.project)" \
           --set "refspec=$change_ref" \
           --set "namespace=jarvis-$(params.changeNumber)-$(params.patchSetNumber)"
