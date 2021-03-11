@@ -21,12 +21,14 @@ spec:
         - name: gerrit-netrc
           mountPath: /run/jarvis/gerrit-netrc
           subPath: gerrit-netrc
+        - name: harbor-netrc
+          mountPath: /run/jarvis/harbor-netrc
       script: |
         #!/bin/bash
         set -eu -o pipefail -x
 
         # Get project information from Harbor
-        PROJECT_INFO=$(curl -k -X GET "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/search?q=$(params.project)-staging" -H  "accept: application/json")
+        PROJECT_INFO=$(curl -k -X GET --netrc-file /run/jarvis/harbor-netrc/harbor-netrc "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/search?q=$(params.project)-staging" -H  "accept: application/json")
         PROJECT_ID=$(echo $PROJECT_INFO | jq -r '.project'[0].'project_id')
 
         # Get the taskRun uid from the microflow-setup-image pod
@@ -47,7 +49,7 @@ spec:
         if [ $REPO_COUNT -gt 0 ]; then
             REPOSITORY_NAME=$(echo $PROJECT_INFO | jq -r '.repository'[0].'repository_name' | awk -F"/" '{print $2}')
             # Grabs the SHA256 of the corresponding artifact based off taskrun uid
-            SHA256=$(curl -k -X GET "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/projects/$(params.project)-staging/repositories/${REPOSITORY_NAME}/artifacts/${TASK_RUN_UID}" -H  "accept: application/json" | jq -r '.digest')
+            SHA256=$(curl -k -X GET --netrc-file /run/jarvis/harbor-netrc/harbor-netrc "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/projects/$(params.project)-staging/repositories/${REPOSITORY_NAME}/artifacts/${TASK_RUN_UID}" -H  "accept: application/json" | jq -r '.digest')
             MESSAGE="${MESSAGE}\n\n----- Image Scan Report -----\nhttps://{{ .Values.params.harbor.dashboard.host }}/harbor/projects/${PROJECT_ID}/repositories/${REPOSITORY_NAME}/artifacts/${SHA256}"
         fi
 
@@ -90,6 +92,10 @@ spec:
         items:
           - key: gerrit-netrc
             path: gerrit-netrc
+    - name: harbor-netrc
+      secret:
+        secretName: {{ template "helpers.labels.fullname" . }}-harbor-netrc
+        defaultMode: 0444
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Task-createFailure" ) }}
