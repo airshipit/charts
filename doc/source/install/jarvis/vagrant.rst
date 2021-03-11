@@ -67,3 +67,8 @@ To access the exposed Jarvis services in the Vagrant box, update the
 
 .. note:: Replace ``jarvis.local`` with the appropriate host and domain name if
   those are overwritten.
+
+If using a corporate VPN, then port forwarding is recommended. Instead of using ``192.168.56.10`` above, use ``127.0.0.1``. After running
+``vagrant up``, open VirtualBox. Select the created VM. Click "Settings." Select the "Network" tab. Expand the "Advanced" section. Click the "Port Forwarding"
+button. Add a new Port Forwarding Rule. Specify a host port of ``443`` and a guest port of ``443``. Click "Ok" to close "Port Forwarding Rules." Click "Ok" again
+to close "Settings." Now, the above services should be accessible via a web browser once ``vagrant up`` is successful.
