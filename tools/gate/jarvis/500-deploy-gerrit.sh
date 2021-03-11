@@ -161,36 +161,14 @@ function gerrit_bootstrap() {
     forgeCommitter = group Administrators
     forgeCommitter = group Project Owners
     push = group Administrators
-    push = group Project Owners
     submit = group Administrators
-    submit = group Project Owners
-    label-Code-Review = -2..+2 group Administrators
-    label-Code-Review = -2..+2 group Project Owners
-    label-Code-Review = -1..+1 group Registered Users
-    label-Verified = -1..+1 group Administrators
-    label-Verified = -1..+1 group Service Users
-    label-Verified = -1..+1 group Project Owners
-    label-Workflow = -1..+1 group Administrators
-    label-Workflow = -1..+1 group Service Users
-    label-Workflow = -1..+1 group Project Owners
 [access "refs/meta/config"]
     exclusiveGroupPermissions = read
     create = group Administrators
     push = group Administrators
-    push = group Project Owners
     read = group Administrators
     read = group Project Owners
     submit = group Administrators
-    submit = group Project Owners
-    label-Code-Review = -2..+2 group Administrators
-    label-Code-Review = -2..+2 group Project Owners
-    label-Code-Review = -1..+1 group Registered Users
-    label-Verified = -1..+1 group Administrators
-    label-Verified = -1..+1 group Service Users
-    label-Verified = -1..+1 group Project Owners
-    label-Workflow = -1..+1 group Administrators
-    label-Workflow = -1..+1 group Service Users
-    label-Workflow = -1..+1 group Project Owners
 [access "refs/tags/*"]
     create = group Administrators
     create = group Project Owners
@@ -220,11 +198,26 @@ EOF
   git checkout meta/config
   rm project.config || true
   rm rules.pl || true
+  tee --append groups <<EOF
+global:Project-Owners                   	Project Owners
+EOF
   tee project.config << EOF
 [access]
     inheritFrom = All-Projects
 [access "refs/*"]
     owner = group Administrators
+[access "refs/heads/*"]
+    label-Code-Review = -2..+2 group Administrators
+    label-Code-Review = -2..+2 group Project Owners
+    label-Verified = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Project Owners
+[access "refs/meta/config"]
+    label-Code-Review = -2..+2 group Administrators
+    label-Code-Review = -2..+2 group Project Owners
+    label-Verified = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Project Owners
 [label "Code-Review"]
     function = MaxWithBlock
     defaultValue = 0
@@ -250,29 +243,30 @@ EOF
     value = +1 Approved
 
 EOF
-  tee rules.pl << EOF
-sum_list([], 0).
-sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
-
-add_category_min_score(In, Category, Min,  P) :-
-    findall(2, gerrit:commit_label(label(Category,2),R),Z),
-    sum_list(Z, Sum),
-    Sum >= Min, !,
-    gerrit:commit_label(label(Category, V), U),
-    V >= 1,
-    !,
-    P = [label(Category,ok(U)) | In].
-
-add_category_min_score(In, Category,Min,P) :-
-    P = [label(Category,need(Min)) | In].
-
-submit_filter(In, Out) :-
-    In =.. [submit | Ls],
-    gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
-    add_category_min_score(NoCR,'Code-Review', 4, Labels),
-    Out =.. [submit | Labels].
-
-EOF
+# TODO enable rules.pl once more LDAP users are registered
+#  tee rules.pl << EOF
+#sum_list([], 0).
+#sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
+#
+#add_category_min_score(In, Category, Min,  P) :-
+#    findall(2, gerrit:commit_label(label(Category,2),R),Z),
+#    sum_list(Z, Sum),
+#    Sum >= Min, !,
+#    gerrit:commit_label(label(Category, V), U),
+#    V >= 1,
+#    !,
+#    P = [label(Category,ok(U)) | In].
+#
+#add_category_min_score(In, Category,Min,P) :-
+#    P = [label(Category,need(Min)) | In].
+#
+#submit_filter(In, Out) :-
+#    In =.. [submit | Ls],
+#    gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
+#    add_category_min_score(NoCR,'Code-Review', 4, Labels),
+#    Out =.. [submit | Labels].
+#
+#EOF
   git add .
   git commit -asm "Create Submission Rules"
   git push origin HEAD:refs/meta/config
@@ -287,11 +281,28 @@ EOF
   git checkout meta/config
   rm project.config || true
   rm rules.pl || true
+  tee --append groups <<EOF
+global:Project-Owners                   	Project Owners
+EOF
   tee project.config << EOF
 [access]
     inheritFrom = All-Projects
 [access "refs/*"]
     owner = group Administrators
+[access "refs/heads/*"]
+    label-Code-Review = -2..+2 group Administrators
+    label-Code-Review = -2..+2 group Project Owners
+    label-Verified = -1..+1 group Administrators
+    label-Verified = -1..+1 group Project Owners
+    label-Workflow = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Project Owners
+[access "refs/meta/config"]
+    label-Code-Review = -2..+2 group Administrators
+    label-Code-Review = -2..+2 group Project Owners
+    label-Verified = -1..+1 group Administrators
+    label-Verified = -1..+1 group Project Owners
+    label-Workflow = -1..+1 group Administrators
+    label-Workflow = -1..+1 group Project Owners
 [label "Code-Review"]
     function = MaxWithBlock
     defaultValue = 0
@@ -302,6 +313,13 @@ EOF
     value = 0 No score
     value = +1 Looks good to me, but someone else must approve
     value = +2 Looks good to me, approved
+[label "Verified"]
+    function = MaxWithBlock
+    defaultValue = 0
+    value = -1 Fails
+    value = 0 No score
+    value = +1 Verified
+    copyAllScoresIfNoCodeChange = true
 [label "Workflow"]
     function = MaxWithBlock
     defaultValue = 0
@@ -310,29 +328,30 @@ EOF
     value = +1 Approved
 
 EOF
-  tee rules.pl << EOF
-sum_list([], 0).
-sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
-
-add_category_min_score(In, Category, Min,  P) :-
-    findall(2, gerrit:commit_label(label(Category,2),R),Z),
-    sum_list(Z, Sum),
-    Sum >= Min, !,
-    gerrit:commit_label(label(Category, V), U),
-    V >= 1,
-    !,
-    P = [label(Category,ok(U)) | In].
-
-add_category_min_score(In, Category,Min,P) :-
-    P = [label(Category,need(Min)) | In].
-
-submit_filter(In, Out) :-
-    In =.. [submit | Ls],
-    gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
-    add_category_min_score(NoCR,'Code-Review', 4, Labels),
-    Out =.. [submit | Labels].
-
-EOF
+# TODO enable rules.pl once more LDAP users are registered
+#  tee rules.pl << EOF
+#sum_list([], 0).
+#sum_list([H | Rest], Sum) :- sum_list(Rest,Tmp), Sum is H + Tmp.
+#
+#add_category_min_score(In, Category, Min,  P) :-
+#    findall(2, gerrit:commit_label(label(Category,2),R),Z),
+#    sum_list(Z, Sum),
+#    Sum >= Min, !,
+#    gerrit:commit_label(label(Category, V), U),
+#    V >= 1,
+#    !,
+#    P = [label(Category,ok(U)) | In].
+#
+#add_category_min_score(In, Category,Min,P) :-
+#    P = [label(Category,need(Min)) | In].
+#
+#submit_filter(In, Out) :-
+#    In =.. [submit | Ls],
+#    gerrit:remove_label(Ls,label('Code-Review',_),NoCR),
+#    add_category_min_score(NoCR,'Code-Review', 4, Labels),
+#    Out =.. [submit | Labels].
+#
+#EOF
   git add .
   git commit -asm "Create Submission Rules"
   git push origin HEAD:refs/meta/config

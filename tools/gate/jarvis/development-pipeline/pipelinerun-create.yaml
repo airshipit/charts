@@ -3,6 +3,9 @@ kind: PipelineRun
 metadata:
   generateName: development-pipeline-run
 spec:
+  params:
+    - name: pipeline
+      value: "create"
   pipelineRef:
     name: development-pipeline
   serviceAccountName: sa-development-pipeline

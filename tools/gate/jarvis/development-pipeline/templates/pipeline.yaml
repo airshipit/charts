@@ -4,6 +4,8 @@ metadata:
   name: development-pipeline
   namespace: {{ $.Release.Namespace }}
 spec:
+  params:
+    - name: pipeline
   workspaces:
     - name: k8s_cluster_data
     - name: development_pipeline_data
@@ -108,6 +110,10 @@ spec:
         name: functional
 
     - name: microflow-promote-artifacts
+      when:
+        - input: $(params.pipeline)
+          operator: in
+          values: ["merge"]
       runAfter:
         - microflow-functional
       workspaces:

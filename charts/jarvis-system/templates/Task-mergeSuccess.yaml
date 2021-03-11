@@ -1,0 +1,61 @@
+{{- define "Task-mergeSuccess" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-mergesuccess
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
+  steps:
+    - name: mergesuccess
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_results" ) }}
+      volumeMounts:
+        - name: gerrit-netrc
+          mountPath: /run/jarvis/gerrit-netrc
+          subPath: gerrit-netrc
+      script: |
+        #!/bin/bash
+        set -eu -o pipefail -x
+
+        curl \
+          -X POST \
+          --fail \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --insecure \
+          -L \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/submit/
+
+        curl \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --fail \
+          --insecure \
+          -L \
+          -H "Content-Type: application/json; charset=UTF-8" \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/hashtags/ \
+          --data-binary @- << EOF
+        {
+          "add": [],
+          "remove": [
+              "jarvis-merge"
+          ]
+        }
+        EOF
+  volumes:
+    - name: gerrit-netrc
+      secret:
+        secretName: {{ template "helpers.labels.fullname" . }}-gerrit
+        defaultMode: 0444
+        items:
+          - key: gerrit-netrc
+            path: gerrit-netrc
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Task-mergeSuccess" ) }}

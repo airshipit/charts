@@ -7,6 +7,7 @@ metadata:
 spec:
   serviceAccountName: {{ template "helpers.labels.fullname" . }}-el
   triggers:
+    # Gating Pipeline
     - name: jarvis-create
       interceptors:
         - cel:
@@ -36,6 +37,37 @@ spec:
         - ref: {{ template "helpers.labels.fullname" . }}-createresult
       template:
         ref: {{ template "helpers.labels.fullname" . }}-createfailure
+
+    # Integration Pipeline
+    - name: jarvis-merge
+      interceptors:
+        - cel:
+            filter: >-
+              header.match('X-Jarvis', 'merge')
+      bindings:
+        - ref: {{ template "helpers.labels.fullname" . }}-merge
+      template:
+        ref: {{ template "helpers.labels.fullname" . }}-merge
+    - name: jarvis-merge-success
+      interceptors:
+        - cel:
+            filter: >-
+              header.match('Ce-Type', 'dev.tekton.event.pipelinerun.successful.v1') &&
+              body.pipelineRun.metadata.labels['triggers.tekton.dev/trigger'] == 'jarvis-merge'
+      bindings:
+        - ref: {{ template "helpers.labels.fullname" . }}-mergeresult
+      template:
+        ref: {{ template "helpers.labels.fullname" . }}-mergesuccess
+    - name: jarvis-merge-failure
+      interceptors:
+        - cel:
+            filter: >-
+              header.match('Ce-Type', 'dev.tekton.event.pipelinerun.failed.v1') &&
+              body.pipelineRun.metadata.labels['triggers.tekton.dev/trigger'] == 'jarvis-merge'
+      bindings:
+        - ref: {{ template "helpers.labels.fullname" . }}-mergeresult
+      template:
+        ref: {{ template "helpers.labels.fullname" . }}-mergefailure
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "EventListener-system" ) }}
