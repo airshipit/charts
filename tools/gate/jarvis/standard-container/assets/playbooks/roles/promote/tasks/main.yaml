@@ -71,7 +71,6 @@
       async: "{{ _async }}"
       poll: 0
       register: image_push_async_results
-      environment: "{{ docker_content_trust }}"
 
     - name: Wait for docker push results
       vars:
