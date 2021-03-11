@@ -405,6 +405,9 @@ loki-stack:
 
 
   grafana:
+    testFramework:
+      image: "bats/bats"
+      tag: "1.2.1"
     adminPassword: password
     enabled: true
     persistence:
