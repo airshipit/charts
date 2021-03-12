@@ -171,35 +171,52 @@ spec:
       script: |
         #!/bin/bash
         ## Creating kubeconfig secret in correct namespace
-        SECRET_JSON_ORIGINAL=$(mktemp --suffix=".json")
-        kubectl get secret -n development-pipeline kubeconfig-secret -o=json > "$SECRET_JSON_ORIGINAL"
-        SECRET_JSON=$(mktemp --suffix=".json")
-        jq 'del(.metadata.namespace) | del(.metadata.creationTimestamp) | del(.metadata.labels."controller-uid") | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid) | del(.spec.selector) | del(.spec.template.metadata.creationTimestamp) | del(.spec.template.metadata.labels."controller-uid" )' "$SECRET_JSON_ORIGINAL" > "$SECRET_JSON"
-
-        cat "$SECRET_JSON" | kubectl create -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) -f -
+        CHECKOUT_DIR="$(workspaces.output.path)"
+        # base64 decode the kubeconfig as it was previously encoded to preserve the needed formatting
+        KUBECONFIG_DECODED=$(yq -r '.dev."jarvis-aio".kubeconfig' ${CHECKOUT_DIR}/jarvis.yaml | base64 --decode)
+        kubectl create secret generic kubeconfig-secret -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --from-literal=kubeconfig="$KUBECONFIG_DECODED"
 
         ## Creating Harbor certificate in correct namespace
-        SECRET_JSON_ORIGINAL=$(mktemp --suffix=".json")
-        kubectl get secret -n development-pipeline harbor-ca -o=json > "$SECRET_JSON_ORIGINAL"
-        SECRET_JSON=$(mktemp --suffix=".json")
-        jq 'del(.metadata.namespace) | del(.metadata.creationTimestamp) | del(.metadata.labels."controller-uid") | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid) | del(.spec.selector) | del(.spec.template.metadata.creationTimestamp) | del(.spec.template.metadata.labels."controller-uid" )' "$SECRET_JSON_ORIGINAL" > "$SECRET_JSON"
+        # base64 decode the ca as it was previously encoded to preserve the needed formatting
+        CRT_DECODED=$(yq -r '.dev."jarvis-aio"."harbor-ca"' ${CHECKOUT_DIR}/jarvis.yaml | base64 --decode)
+        kubectl create secret generic harbor-ca -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) --from-literal=harbor-ca="$CRT_DECODED"
 
-        cat "$SECRET_JSON" | kubectl create -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) -f -
-
-        rm "$SECRET_JSON_ORIGINAL"
-        rm "$SECRET_JSON"
-
-        ## Harbor basic auth and docker auth
+        # Harbor basic auth and docker auth
+        HELM_USERNAME=$(yq -r '.dev."jarvis-aio"."helm-staging".username' ${CHECKOUT_DIR}/jarvis.yaml)
+        HELM_PASSWORD=$(yq -r '.dev."jarvis-aio"."helm-staging".password' ${CHECKOUT_DIR}/jarvis.yaml)
         kubectl create secret generic harbor-basic-auth \
-          --from-literal=username='admin' \
-          --from-literal=password='Harbor12345' \
+          --from-literal=username=$HELM_USERNAME \
+          --from-literal=password=$HELM_PASSWORD \
           -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
 
+        HELM_USERNAME=$(yq -r '.dev."jarvis-aio".helm.username' ${CHECKOUT_DIR}/jarvis.yaml)
+        HELM_PASSWORD=$(yq -r '.dev."jarvis-aio".helm.password' ${CHECKOUT_DIR}/jarvis.yaml)
+        kubectl create secret generic harbor-basic-auth-promote \
+          --from-literal=username=$HELM_USERNAME \
+          --from-literal=password=$HELM_PASSWORD \
+          -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+
+        HARBOR_USERNAME=$(yq -r '.dev."jarvis-aio"."harbor-staging".username' ${CHECKOUT_DIR}/jarvis.yaml)
+        HARBOR_PASSWORD=$(yq -r '.dev."jarvis-aio"."harbor-staging".password' ${CHECKOUT_DIR}/jarvis.yaml)
+        HARBOR_EMAIL=$(yq -r '.dev."jarvis-aio"."harbor-staging".email' ${CHECKOUT_DIR}/jarvis.yaml)
+        HARBOR_SERVER=$(yq -r '.dev."jarvis-aio"."harbor-staging".server' ${CHECKOUT_DIR}/jarvis.yaml)
         kubectl create secret docker-registry harbor-docker-auth \
-          --docker-username=admin \
-          --docker-password=Harbor12345 \
-          --docker-email=example@gmail.com \
-          --docker-server=harbor-core.jarvis.local \
+          --docker-username=$HARBOR_USERNAME \
+          --docker-password=$HARBOR_PASSWORD \
+          --docker-email=$HARBOR_EMAIL \
+          --docker-server=$HARBOR_SERVER \
+          -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
+
+        # Need this new secret to be able to 'promote-artifacts'
+        HARBOR_USERNAME=$(yq -r '.dev."jarvis-aio".harbor.username' ${CHECKOUT_DIR}/jarvis.yaml)
+        HARBOR_PASSWORD=$(yq -r '.dev."jarvis-aio".harbor.password' ${CHECKOUT_DIR}/jarvis.yaml)
+        HARBOR_EMAIL=$(yq -r '.dev."jarvis-aio".harbor.email' ${CHECKOUT_DIR}/jarvis.yaml)
+        HARBOR_SERVER=$(yq -r '.dev."jarvis-aio".harbor.server' ${CHECKOUT_DIR}/jarvis.yaml)
+        kubectl create secret docker-registry harbor-docker-auth-promote \
+          --docker-username=$HARBOR_USERNAME \
+          --docker-password=$HARBOR_PASSWORD \
+          --docker-email=$HARBOR_EMAIL \
+          --docker-server=$HARBOR_SERVER \
           -n jarvis-$(params.changeNumber)-$(params.patchSetNumber)
     - name: install-development-pipeline
       image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_secrets" ) }}

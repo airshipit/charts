@@ -62,6 +62,11 @@ EOF
   git clone ssh://${ldap_username}@gerrit.jarvis.local:29418/${jarvis_project}.git "${jarvis_sanity_repo}"
   pushd "${jarvis_sanity_repo}"
   popd
+  # Add kubeconfig and ca to jarvis.yaml as single line base64 encoded so that to preserve the indentation required to be a valid kubeconfig
+  KUBECONFIG=$(base64 -w 0 ~/.kube/config)
+  CRT=$(base64 -w0 /etc/jarvis/certs/ca/ca.pem)
+  echo "$KUBECONFIG" | xargs -n 1 -I {} yq eval -i '.dev."jarvis-aio".kubeconfig = "{}"' tools/gate/jarvis/5G-SA-core/${jarvis_project}/jarvis.yaml
+  echo "$CRT" | xargs -n 1 -I {} yq eval -i '.dev."jarvis-aio"."harbor-ca" = "{}"' tools/gate/jarvis/5G-SA-core/${jarvis_project}/jarvis.yaml
   #Copy CNF code, development-pipeline and standard-container into each CNF git repository
   cp -a tools/gate/jarvis/5G-SA-core/${jarvis_project}/. "${jarvis_sanity_repo}"
   cp -a tools/gate/jarvis/development-pipeline/* "${jarvis_sanity_repo}/jarvis/development-pipeline"

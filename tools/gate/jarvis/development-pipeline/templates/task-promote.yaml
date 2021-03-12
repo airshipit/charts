@@ -27,7 +27,10 @@ spec:
       - name: HELM_DATA_HOME
         value: /root/.local/share/helm
       volumeMounts:
-        - mountPath: /tekton/home/.docker/config.json
+        - mountPath: /tekton/home/.docker/pull/config.json
+          name: image-pull-creds
+          subPath: .dockerconfigjson
+        - mountPath: /tekton/home/.docker/push/config.json
           name: image-push-creds
           subPath: .dockerconfigjson
         - mountPath: /certs/client
@@ -35,8 +38,10 @@ spec:
         - mountPath: /usr/local/share/ca-certificates/harbor-ca.crt
           name: harbor-ca
           subPath: harbor-ca
-        - mountPath: /workspace/helm-creds
-          name: helm-publish-creds
+        - mountPath: /workspace/helm-creds/push
+          name: helm-push-creds
+        - mountPath: /workspace/helm-creds/pull
+          name: helm-pull-creds
       script: |
         /jarvis/promote_artifacts.sh
   sidecars:
@@ -66,12 +71,18 @@ spec:
   volumes:
     - name: dind-certs
       emptyDir: {}
-    - name: image-push-creds
+    - name: image-pull-creds
       secret:
         secretName: harbor-docker-auth
-    - name: helm-publish-creds
+    - name: image-push-creds
+      secret:
+        secretName: harbor-docker-auth-promote
+    - name: helm-pull-creds
       secret:
         secretName: harbor-basic-auth
+    - name: helm-push-creds
+      secret:
+        secretName: harbor-basic-auth-promote
     - name: harbor-ca
       secret:
         secretName: harbor-ca
