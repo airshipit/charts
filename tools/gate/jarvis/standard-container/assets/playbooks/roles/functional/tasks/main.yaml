@@ -8,7 +8,7 @@
     #Deploy CNF
 
     - name: Deploy charts
-      shell: helm upgrade --install --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" "{{ chart.release_name }}" "{{ chart.project }}-staging/{{ chart.chart_name }}" --version="{{ chart.version }}" --namespace="{{ chart.namespace }}"
+      shell: helm upgrade --install --create-namespace --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" "{{ chart.release_name }}" "{{ chart.project }}-staging/{{ chart.chart_name }}" --version="{{ chart.version }}" --namespace="{{ chart.namespace }}"
       loop: "{{ charts }}"
       loop_control:
         loop_var: "chart"
