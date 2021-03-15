@@ -68,3 +68,8 @@ params:
   harbor:
     dashboard:
       host: harbor-core.jarvis.local
+
+config:
+  test:
+    ldap_username: jarvis
+    ldap_password: password
