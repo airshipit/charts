@@ -25,32 +25,35 @@ data:
       }
     ]
   chart.json: |
-    [
-      {
-        "chart_name": "mongodb-sharded",
-        "project": "mongodb",
-        "repo": "mongodb-sharded",
-        "version": "3.3.3",
-        "build_from_source": false,
-        "path": "",
-        "build": {
-          "name": "https://charts.bitnami.com/bitnami",
-          "local_repo": "bitnami_mongodb",
-          "target_loc": "/src/fetch/charts"
-        },
-        "namespace": "development-pipeline",
-        "release_name": "mongodb-bitnami",
-        "images": {
-          "applications": {
-            "mongodb-sharded": {
-              "tag": "1.0",
-              "name": "mongodb",
-              "repo": "mongodb"
-            }
-          }
+    [{
+      "chart_name": "mongodb-sharded",
+      "project": "mongodb",
+      "repo": "mongodb-sharded",
+      "version": "3.3.3",
+      "build_from_source": false,
+      "path": "",
+      "build": {
+        "name": "https://charts.bitnami.com/bitnami",
+        "local_repo": "bitnami_mongodb",
+        "target_loc": "/src/fetch/charts"
+      },
+      "namespace": "{{ $.Values.namespace }}",
+      "release_name": "mongodb-bitnami",
+      "sources": {
+        "image_map": {
+          "tag": ["releases", "image", "tag"],
+          "tmp_name": ["releases", "image", "repository"],
+          "tmp_repo": ["releases", "image", "registry"]
+        }
+      },
+      "releases": {
+        "image": {
+          "registry": "docker.io",
+          "repository": "bitnami/mongodb-sharded",
+          "tag": "4.4.4-debian-10-r28"
         }
       }
-    ]
+    }]
   default.json: |
     {
       "proxy": {

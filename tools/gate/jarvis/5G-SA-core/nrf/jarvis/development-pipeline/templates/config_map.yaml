@@ -28,22 +28,29 @@ data:
       }
     ]
   chart.json: |
-    [
-      {
-        "chart_name": "nrf",
-        "project": "nrf",
-        "repo": "nrf",
-        "version": "0.1.0",
-        "build_from_source": true,
-        "path": "charts",
-        "build": {
-          "git_repo": "{{ $.Values.git_repo }}",
-          "target_loc": "/src/checkout/nrf",
-          "refspec": "{{ $.Values.refspec }}",
-          "version": "refs/changes/*:refs/changes/*"
-        },
-        "namespace": "{{ $.Values.namespace }}",
-        "release_name": "nrf",
+    [{
+      "chart_name": "nrf",
+      "project": "nrf",
+      "repo": "nrf",
+      "version": "0.1.0",
+      "build_from_source": true,
+      "path": "charts",
+      "build": {
+        "git_repo": "{{ $.Values.git_repo }}",
+        "target_loc": "/src/checkout/nrf",
+        "refspec": "{{ $.Values.refspec }}",
+        "version": "refs/changes/*:refs/changes/*"
+      },
+      "namespace": "{{ $.Values.namespace }}",
+      "release_name": "nrf",
+      "sources": {
+        "image_map": {
+          "tag": ["releases", "images", "applications", "nrf", "tag"],
+          "tmp_name": ["releases", "images", "applications", "nrf", "name"],
+          "tmp_repo": ["releases", "images", "applications", "nrf", "repo"]
+        }
+      },
+      "releases": {
         "images": {
           "applications": {
             "nrf": {
@@ -54,7 +61,7 @@ data:
           }
         }
       }
-    ]
+    }]
   default.json: |
     {
       "proxy": {

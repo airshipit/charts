@@ -9,7 +9,7 @@ data:
      "use_existing_cluster": "true"
     }
   image.json: |
-    {
+    [{
      "build_from_source": true,
      "image_from": "harbor-core.jarvis.local/library/ubuntu:focal",
      "image_name": "udr",
@@ -25,33 +25,42 @@ data:
         "refspec": "{{ $.Values.refspec }}",
         "version": "refs/changes/*:refs/changes/*"
      }
-    }
+    }]
   chart.json: |
-    {
+    [{
       "chart_name": "udr",
       "project": "udr",
       "repo": "udr",
       "version": "0.1.0",
       "build_from_source": true,
       "path": "charts",
-      "namespace": "{{ $.Values.namespace }}",
       "build": {
         "git_repo": "{{ $.Values.git_repo }}",
         "target_loc": "/src/checkout/udr",
         "refspec": "{{ $.Values.refspec }}",
         "version": "refs/changes/*:refs/changes/*"
       },
+      "namespace": "{{ $.Values.namespace }}",
       "release_name": "udr",
-      "images": {
-        "applications": {
-          "udr": {
-            "tag": "1.0",
-            "name": "udr",
-            "repo": "udr"
+      "sources": {
+        "image_map": {
+          "tag": ["releases", "images", "applications", "udr", "tag"],
+          "tmp_name": ["releases", "images", "applications", "udr", "name"],
+          "tmp_repo": ["releases", "images", "applications", "udr", "repo"]
+        }
+      },
+      "releases": {
+        "images": {
+          "applications": {
+            "udr": {
+              "tag": "1.0",
+              "name": "udr",
+              "repo": "udr"
+            }
           }
         }
       }
-    }
+    }]
   default.json: |
     {
       "proxy": {
