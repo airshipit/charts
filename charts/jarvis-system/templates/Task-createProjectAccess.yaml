@@ -10,6 +10,7 @@ spec:
     - name: project
     - name: changeNumber
     - name: patchSetNumber
+    - name: pipeline
   workspaces:
     - name: output
       description: The git repo will be cloned onto the volume backing this workspace
@@ -248,8 +249,7 @@ spec:
 
         kubectl create \
           -n jarvis-$(params.changeNumber)-$(params.patchSetNumber) \
-          -f "$(workspaces.output.path)"/jarvis/development-pipeline/pipelinerun-validation.yaml
-
+          -f "$(workspaces.output.path)"/jarvis/development-pipeline/pipelinerun-$(params.pipeline).yaml
             # Default wait timeout is 1000 seconds
             end=$(date +%s)
             timeout=${3:-3000}

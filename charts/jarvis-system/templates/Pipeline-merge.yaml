@@ -1,9 +1,9 @@
-{{- define "Pipeline-create" -}}
+{{- define "Pipeline-merge" -}}
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: {{ template "helpers.labels.fullname" . }}-create
+  name: {{ template "helpers.labels.fullname" . }}-merge
 spec:
   params:
     - name: repoRoot
@@ -14,20 +14,6 @@ spec:
   workspaces:
     - name: output
   tasks:
-    - name: createregisterscheduled
-      taskRef:
-        name: {{ template "helpers.labels.fullname" . }}-createregisterscheduled
-      params:
-        - name: repoRoot
-          value: $(params.repoRoot)
-        - name: project
-          value: $(params.project)
-        - name: changeNumber
-          value: $(params.changeNumber)
-        - name: patchSetNumber
-          value: $(params.patchSetNumber)
-        - name: checkerUUID
-          value: $(params.checkerUUID)
     - name: createprojectaccess
       taskRef:
         name: {{ template "helpers.labels.fullname" . }}-createprojectaccess
@@ -41,10 +27,10 @@ spec:
         - name: patchSetNumber
           value: $(params.patchSetNumber)
         - name: pipeline
-          value: "create"
+          value: "merge"
       workspaces:
         - name: output
           workspace: output
 ...
 {{- end -}}
-{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Pipeline-create" ) }}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Pipeline-merge" ) }}

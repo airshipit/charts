@@ -110,36 +110,14 @@ for jarvis_project in `find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth
   timeout="120"
   end=$((end + timeout))
   while true; do
-    if [ $voting_ci = "true" ];
-    then
-      voting_ci="false"
-      # Check that Jarvis-System has reported the success of the pipeline run to Gerrit, by checking the value of the Verified label
-      VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
-      [ "$VERIFIED" == 1 ] && break || true
-      sleep 5
-      now=$(date +%s)
-      if [ "$now" -gt "$end" ] ; then
-        echo "Jarvis-System has not verified the change"
-        exit 1
-      fi
-    else
-      voting_ci="true"
-      # Ensure that the patchset doesn't have the Verified label available to it.
-      LABELS=$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels)
-      if [ -z "$LABELS" ]; then
-        # The curl request didn't give us the labels available to this revision, try again when Gerrit is ready
-        sleep 5
-        continue
-      fi
-      VERIFIED_NULL="$( jq -r .Verified <<< "$LABELS" )"
-      if [ -z "$VERIFIED_NULL" ]; then
-        echo "Verified label found"
-        # Verified label should not be found, exit.
-        exit 1
-      else
-        # Labels curl returned all the labels successfully, and Verified was not in the list. This is desired.
-        break
-      fi
+    # Check that Jarvis-System has reported the success of the pipeline run to Gerrit, by checking the value of the Verified label
+    VERIFIED="$(curl -L https://gerrit.jarvis.local/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+    [ "$VERIFIED" == 1 ] && break || true
+    sleep 5
+    now=$(date +%s)
+    if [ "$now" -gt "$end" ] ; then
+      echo "Jarvis-System has not verified the change"
+      exit 1
     fi
   done
   CHANGE_ID_COUNTER=$((CHANGE_ID_COUNTER+1))

@@ -51,16 +51,19 @@ spec:
             - -cex
             - |
               # Create gerrit repo
-              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
-                -p 29418 \
-                -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
-                gerrit ls-projects -r "^$JARVIS_PROJECT_NAME\$" | grep -q "^${JARVIS_PROJECT_NAME}\$" \
-              &&
-              ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
-                -p 29418 \
-                -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
-                gerrit set-project-parent \
-                {{ if eq $.Values.config.ci.verify true }} --parent Verified-Label-Projects {{ else }} --parent Non-Verified-Label-Projects {{ end }} \
+              ( \
+                ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
+                  -p 29418 \
+                  -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
+                  gerrit ls-projects -r "^$JARVIS_PROJECT_NAME\$" | grep -q "^${JARVIS_PROJECT_NAME}\$" \
+                &&
+                ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
+                  -p 29418 \
+                  -i /run/jarvis/secret/gerrit-ssh-key "${GERRIT_USERNAME}@${GERRIT_HOST}" \
+                  gerrit set-project-parent \
+                  {{ if eq $.Values.config.ci.verify true }} --parent Verified-Label-Projects {{ else }} --parent Non-Verified-Label-Projects {{ end }} \
+                  --children-of Non-Verified-Label-Projects \
+              ) \
               || \
               ssh -oStrictHostKeyChecking=accept-new -oUserKnownHostsFile=/dev/null \
                 -p 29418 \

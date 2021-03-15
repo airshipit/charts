@@ -1,0 +1,40 @@
+{{- define "Pipeline-mergeFailure" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-mergefailure
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
+  tasks:
+    - name: mergefailure
+      taskRef:
+        name: {{ template "helpers.labels.fullname" . }}-mergefailure
+      params:
+        - name: repoRoot
+          value: $(params.repoRoot)
+        - name: project
+          value: $(params.project)
+        - name: changeNumber
+          value: $(params.changeNumber)
+        - name: patchSetNumber
+          value: $(params.patchSetNumber)
+        - name: checkerUUID
+          value: $(params.checkerUUID)
+        - name: pipelineName
+          value: $(params.pipelineName)
+        - name: pipelineRunName
+          value: $(params.pipelineRunName)
+        - name: pipelineRunNamespace
+          value: $(params.pipelineRunNamespace)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Pipeline-mergeFailure" ) }}

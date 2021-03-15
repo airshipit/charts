@@ -30,7 +30,6 @@ spec:
       script: |
         #!/bin/sh
         set -eu -o pipefail -x
-
         curl \
           --netrc-file /run/jarvis/gerrit-netrc \
           --fail \
@@ -46,7 +45,6 @@ spec:
           "message": "Jarvis has started to process the run for change #$(params.changeNumber) ps #$(params.patchSetNumber) to the $(params.project) repo"
         }
         EOF
-
         curl \
           --netrc-file /run/jarvis/gerrit-netrc \
           --fail \

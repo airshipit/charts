@@ -1,0 +1,111 @@
+{{- define "Task-mergeFailure" -}}
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-mergefailure
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
+  steps:
+    - name: mergefailure
+      image: {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "task_results" ) }}
+      volumeMounts:
+        - name: gerrit-netrc
+          mountPath: /run/jarvis/gerrit-netrc
+          subPath: gerrit-netrc
+      script: |
+        #!/bin/bash
+        set -eu -o pipefail -x
+
+        # Get project information from Harbor
+        PROJECT_INFO=$(curl -k -X GET "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/search?q=$(params.project)-staging" -H  "accept: application/json")
+        PROJECT_ID=$(echo $PROJECT_INFO | jq -r '.project'[0].'project_id')
+
+        # Get the taskRun uid from the microflow-setup-image pod
+        TASK_RUN_NAMESPACE="jarvis-$(params.changeNumber)-$(params.patchSetNumber)"
+        TASK_RUN_DEV_PIPELINE=$(kubectl get taskrun -n "${TASK_RUN_NAMESPACE}" | grep microflow-setup-image | awk '{print $1}') || true
+
+        if [[ -z "$TASK_RUN_DEV_PIPELINE" ]]; then
+            # Do not append the CVE report link, if there is no 'microflow-setup-image' pod to get the taskRun uid from
+            REPO_COUNT=0
+        else
+            TASK_RUN_UID=$(kubectl get taskrun -n "${TASK_RUN_NAMESPACE}" "${TASK_RUN_DEV_PIPELINE}" -o jsonpath='{.metadata.uid}')
+            # For first time run, there may be no repositories, so only check for artifacts if the project has repositories
+            REPO_COUNT=$(echo $PROJECT_INFO | jq -r '.project'[0].'repo_count')
+        fi
+
+        MESSAGE="Jarvis failed to process the run for change #$(params.changeNumber) ps #$(params.patchSetNumber) to the $(params.project)"
+
+        if [ $REPO_COUNT -gt 0 ]; then
+            REPOSITORY_NAME=$(echo $PROJECT_INFO | jq -r '.repository'[0].'repository_name' | awk -F"/" '{print $2}')
+            # Grabs the SHA256 of the corresponding artifact based off taskrun uid
+            SHA256=$(curl -k -X GET "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/projects/$(params.project)-staging/repositories/${REPOSITORY_NAME}/artifacts/${TASK_RUN_UID}" -H  "accept: application/json" | jq -r '.digest')
+            MESSAGE="${MESSAGE}\n\n----- Image Scan Report -----\nhttps://{{ .Values.params.harbor.dashboard.host }}/harbor/projects/${PROJECT_ID}/repositories/${REPOSITORY_NAME}/artifacts/${SHA256}"
+        fi
+
+        curl \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --fail \
+          --insecure \
+          -L \
+          -H "Content-Type: application/json; charset=UTF-8" \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/revisions/$(params.patchSetNumber)/checks/ \
+          --data-binary @- << EOF
+        {
+          "checker_uuid": "$(params.checkerUUID)",
+          "state": "FAILED",
+          "url": "https://{{ .Values.params.grafana.dashboard.host }}/d/{{ .Values.params.grafana.dashboard.uid }}/{{ .Values.params.grafana.dashboard.title }}?orgId={{ .Values.params.grafana.dashboard.orgid }}&var-namespace=$(params.pipelineRunNamespace)&var-tekton_dev_pipeline=$(params.pipelineName)&var-tekton_dev_pipelineRun=$(params.pipelineRunName)&var-tekton_dev_taskRun=All",
+          "message": "${MESSAGE}",
+          "finished": "$(date --utc '+%F %T.%N')"
+        }
+        EOF
+
+        curl \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --fail \
+          --insecure \
+          -L \
+          -H "Content-Type: application/json; charset=UTF-8" \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/revisions/$(params.patchSetNumber)/review/ \
+          --data-binary @- << EOF
+        {
+          "labels": {
+            "Verified": "-1"
+          }
+        }
+        EOF
+
+        curl \
+          --netrc-file /run/jarvis/gerrit-netrc \
+          --fail \
+          --insecure \
+          -L \
+          -H "Content-Type: application/json; charset=UTF-8" \
+          $(params.repoRoot)/a/changes/$(params.changeNumber)/hashtags/ \
+          --data-binary @- << EOF
+        {
+          "add": [],
+          "remove": [
+              "jarvis-merge"
+          ]
+        }
+        EOF
+  volumes:
+    - name: gerrit-netrc
+      secret:
+        secretName: {{ template "helpers.labels.fullname" . }}-gerrit
+        defaultMode: 0444
+        items:
+          - key: gerrit-netrc
+            path: gerrit-netrc
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "Task-mergeFailure" ) }}

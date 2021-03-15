@@ -1,0 +1,45 @@
+{{- define "TriggerTemplate-mergeFailure" -}}
+---
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: {{ template "helpers.labels.fullname" . }}-mergefailure
+spec:
+  params:
+    - name: repoRoot
+    - name: project
+    - name: changeNumber
+    - name: patchSetNumber
+    - name: checkerUUID
+    - name: pipelineName
+    - name: pipelineRunName
+    - name: pipelineRunNamespace
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: {{ template "helpers.labels.fullname" . }}-mergefailure-
+      spec:
+        serviceAccountName: jarvis-system-el
+        pipelineRef:
+          name: {{ template "helpers.labels.fullname" . }}-mergefailure
+        params:
+          - name: repoRoot
+            value: $(tt.params.repoRoot)
+          - name: project
+            value: $(tt.params.project)
+          - name: changeNumber
+            value: $(tt.params.changeNumber)
+          - name: patchSetNumber
+            value: $(tt.params.patchSetNumber)
+          - name: checkerUUID
+            value: $(tt.params.checkerUUID)
+          - name: pipelineName
+            value: $(tt.params.pipelineName)
+          - name: pipelineRunName
+            value: $(tt.params.pipelineRunName)
+          - name: pipelineRunNamespace
+            value: $(tt.params.pipelineRunNamespace)
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "TriggerTemplate-mergeFailure" ) }}
