@@ -191,6 +191,8 @@ config:
           port: 7777
         gtpc:
           - addr: 127.0.0.4
+        gtpu:
+          - addr: 127.0.0.4
         pfcp:
           - addr: 127.0.0.4
         subnet:
@@ -285,6 +287,8 @@ config:
     #        nr_cell_id: [123456789, 9413]
     #
     upf:
+        gtpu:
+          - addr: 127.0.0.7
         pfcp:
           - addr: 127.0.0.7
 
