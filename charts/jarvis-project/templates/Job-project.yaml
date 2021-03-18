@@ -93,7 +93,7 @@ spec:
                   --netrc-file /run/jarvis/harbor-netrc/harbor-netrc \
                   -H "accept: application/json" \
                   -H "Content-Type: application/json" \
-                  -d "{ \"project_name\": \"${PROJECT_NAME}\", \"public\": false, \"metadata\": { \"auto_scan\": \"true\" }}"` ;;
+                  -d "{ \"project_name\": \"${PROJECT_NAME}\", \"public\": true, \"metadata\": { \"auto_scan\": \"true\" }}"` ;;
                   *) echo "Unable to retrieve projects in harbor: ${PROJECT_CHECK_RESP} response code."; exit 1
                   esac
                 done

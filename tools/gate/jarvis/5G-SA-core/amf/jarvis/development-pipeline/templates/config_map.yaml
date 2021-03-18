@@ -92,5 +92,6 @@ data:
     }
   cleanup.json: |
     {
+      "environment_name": "development",
       "remove_artifacts": "true"
     }

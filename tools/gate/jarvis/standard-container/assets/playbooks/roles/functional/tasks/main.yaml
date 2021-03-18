@@ -3,7 +3,7 @@
     _delay: "{{ chart_check_status_delay | default(5) }}"
 
 - name: Functional Deploy
-  when: ("{{ stage }}" == "deploy")
+  when: stage == "deploy"
   block:
     #Deploy CNF
     - name: Deploy charts
@@ -30,10 +30,10 @@
         cat {{ datapath }}/{{ chart.chart_name }}-overrides.json ;
         helm upgrade --install \
           --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" \
-          "{{ chart.release_name }}" "{{ chart.project }}-staging/{{ chart.chart_name }}" \
+          "{{ chart.release_name }}" "{{ chart.project }}/{{ chart.chart_name }}" \
           --version="{{ chart.version }}" \
           --values="{{ datapath }}/{{ chart.chart_name }}-overrides.json" \
-          --namespace="{{ chart.namespace }}"
+          --namespace="{{ chart.remote_namespace }}"
       args:
         executable: /bin/bash
       loop: "{{ charts }}"
@@ -50,7 +50,7 @@
   become: true
 
 - name: Functional Test
-  when: ( stage == "test")
+  when: stage == "test"
   block:
     #Test Deployed CNF
     - name: Chart currently has no Helm Tests, echo for now

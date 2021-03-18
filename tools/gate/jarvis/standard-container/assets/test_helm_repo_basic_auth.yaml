@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: harbor-helm-creds
-  namespace: development-pipeline
-type: kubernetes.io/basic-auth
-stringData:
-  username: admin
-  password: Harbor12345
