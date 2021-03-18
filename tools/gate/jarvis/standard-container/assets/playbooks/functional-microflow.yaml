@@ -14,9 +14,20 @@
       shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project+\"-staging\"), secret: \"{{ harbor_secret_mounted_path }}\", name:  (.project+\"-staging\")}'  {{ loop_source }}  | sort | uniq"
       register: internal_repos
 
+    - name: Get list of nonstaging internal repos
+      when: (stage == 'deploy')
+      shell: "jq -c '.[] | {repo: (\"https://{{ chart_registry_url }}/\"+.project), secret: \"{{ harbor_secret_mounted_path }}\", name:  (.project)}'  {{ loop_source }}  | sort | uniq"
+      register: internal_nonstaging_repos
+
     - include_tasks: ./roles/charts/tasks/setup_helm_repo.yaml
       when: (stage == 'deploy')
       loop: "{{ internal_repos.stdout_lines }}"
+      vars:
+        repo: "{{ item }}"
+
+    - include_tasks: ./roles/charts/tasks/setup_helm_repo.yaml
+      when: (stage == 'deploy')
+      loop: "{{ internal_nonstaging_repos.stdout_lines }}"
       vars:
         repo: "{{ item }}"
 

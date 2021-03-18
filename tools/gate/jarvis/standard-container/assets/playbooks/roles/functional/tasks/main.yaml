@@ -32,6 +32,7 @@
           --kubeconfig="{{ cluster_kubeconfig_path }}/kubeconfig" \
           "{{ chart.release_name }}" "{{ chart.project }}/{{ chart.chart_name }}" \
           --version="{{ chart.version }}" \
+          --create-namespace \
           --values="{{ datapath }}/{{ chart.chart_name }}-overrides.json" \
           --namespace="{{ chart.remote_namespace }}"
       args:

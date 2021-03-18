@@ -81,14 +81,10 @@ EOF
   change_id=$(git log -1 | grep Change-Id: | awk '{print $2}')
   popd
   sleep 60
-  if (( COUNTER == 0 ));
-  then
-    CHANGE_ID_COUNTER=$change_id
-  fi
   COUNTER=$((COUNTER+1))
-
 done
 
+COUNTER=1
 voting_ci="false"
 for jarvis_project in $(find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindepth 1 -type d -printf '%f\n'); do
   echo "--- processing ${jarvis_project} with voting_ci = ${voting_ci}"
@@ -97,7 +93,7 @@ for jarvis_project in $(find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindept
   timeout="4000"
   end=$((end + timeout))
   while true; do
-    result="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${CHANGE_ID_COUNTER}/revisions/1/checks | tail -1 | jq -r .[].state)"
+    result="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${COUNTER}/revisions/1/checks | tail -1 | jq -r .[].state)"
     [ $result == "SUCCESSFUL" ] && break || true
     [ $result == "FAILED" ] && exit 1 || true
     sleep 25
@@ -114,8 +110,37 @@ for jarvis_project in $(find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindept
   end=$((end + timeout))
   while true; do
     # Check that Jarvis-System has reported the success of the pipeline run to Gerrit, by checking the value of the Verified label
-    VERIFIED="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${CHANGE_ID_COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
-    [ "$VERIFIED" == 1 ] && break || true
+    VERIFIED="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${COUNTER}/revisions/1/review/ | tail -1 | jq -r .labels.Verified.all[0].value)"
+    if [ "$VERIFIED" == 1 ] ; then
+      if [ "${jarvis_project}" == "mongodb" ] ; then
+        echo "Merging mongodb patchset"
+        ssh -p 29418 jarvis@gerrit.jarvis.local gerrit review "${COUNTER}",1 --label Workflow=1 --label Code-Review=2
+        sleep 60
+        #Setting a longer timeout if it is going through the Merge pipeline.
+        timeout="720"
+        end=$((end + timeout))
+        while true; do
+          MERGED="$(curl -u jarvis:password -SsL https://gerrit.jarvis.local/a/changes/${COUNTER}/revisions/1/review/ | tail -1 | jq -r .status)"
+          kubectl get pods -n "jarvis-${COUNTER}-1"
+          if [ "$MERGED" == "MERGED" ] ; then
+             break
+          else
+             sleep 20
+             true
+          fi
+          now=$(date +%s)
+          if [ "$now" -gt "$end" ] ; then
+             echo "Jarvis-System has not merged the change"
+             exit 1
+          fi
+        done
+        break
+      else
+        break
+      fi
+    else
+      true
+    fi
     sleep 5
     now=$(date +%s)
     if [ "$now" -gt "$end" ] ; then
@@ -123,5 +148,5 @@ for jarvis_project in $(find ./tools/gate/jarvis/5G-SA-core -maxdepth 1 -mindept
       exit 1
     fi
   done
-  CHANGE_ID_COUNTER=$((CHANGE_ID_COUNTER+1))
+  COUNTER=$((COUNTER+1))
 done
