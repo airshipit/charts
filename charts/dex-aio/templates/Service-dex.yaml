@@ -6,17 +6,17 @@ metadata:
   name: {{ template "helpers.labels.fullname" . }}
   labels: {{- include "helpers.labels.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.params.service.type }}
+  type: NodePort
   ports:
   - name: http
-    targetPort: 80
+    targetPort: http
     port: {{ .Values.params.endpoints.port.http }}
-    nodePort: {{ .Values.params.endpoints.nodePort.http }}
+    nodePort: {{ .Values.params.endpoints.port.http }}
     protocol: TCP
   - name: https
-    targetPort: 443
+    targetPort: https
     port: {{ .Values.params.endpoints.port.https }}
-    nodePort: {{ .Values.params.endpoints.nodePort.https }}
+    nodePort: {{ .Values.params.endpoints.port.https }}
     protocol: TCP
   selector: {{- include "helpers.labels.matchLabels" . | nindent 4 }}
 ...
