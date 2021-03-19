@@ -32,17 +32,12 @@ node_labels:
 params:
   site:
     name: PDL1
-  service:
-    type: NodePort
   endpoints:
     hostname: vm-capi-docker.lan
     port:
       https: 5556
       http: 5554
       k8s: 6443
-    nodePort:
-      https: 30556
-      http: 30554
     tls:
       cert_manager: false
       issuer:
