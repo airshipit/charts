@@ -119,9 +119,14 @@ sudo -E apt-get install -y \
   git-review \
   notary
 
-# Prepare tmpfs for etcd
-sudo mkdir -p /var/lib/minikube/etcd
-sudo mount -t tmpfs -o size=512m tmpfs /var/lib/minikube/etcd
+# Prepare tmpfs for etcd when running on CI
+# CI VMs can have slow I/O causing issues for etcd
+# Only do this on CI (when user is zuul), so that local development can have a kubernetes
+# environment that will persist on reboot since etcd data will stay intact
+if [ "$USER" = "zuul" ]; then
+  sudo mkdir -p /var/lib/minikube/etcd
+  sudo mount -t tmpfs -o size=512m tmpfs /var/lib/minikube/etcd
+fi
 
 # Install YQ
 wget https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64.tar.gz -O - | tar xz && sudo mv yq_linux_amd64 /usr/local/bin/yq
