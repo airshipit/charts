@@ -50,7 +50,9 @@ spec:
             REPOSITORY_NAME=$(echo $PROJECT_INFO | jq -r '.repository'[0].'repository_name' | awk -F"/" '{print $2}')
             # Grabs the SHA256 of the corresponding artifact based off taskrun uid
             SHA256=$(curl -k -X GET --netrc-file /run/jarvis/harbor-netrc/harbor-netrc "https://{{ .Values.params.harbor.dashboard.host }}/api/v2.0/projects/$(params.project)-staging/repositories/${REPOSITORY_NAME}/artifacts/${TASK_RUN_UID}" -H  "accept: application/json" | jq -r '.digest')
-            MESSAGE="${MESSAGE}\n\n----- Image Scan Report -----\nhttps://{{ .Values.params.harbor.dashboard.host }}/harbor/projects/${PROJECT_ID}/repositories/${REPOSITORY_NAME}/artifacts/${SHA256}"
+            if [ "${SHA256}" != "null" ]; then
+                MESSAGE="${MESSAGE}\n\n----- Image Scan Report -----\nhttps://{{ .Values.params.harbor.dashboard.host }}/harbor/projects/${PROJECT_ID}/repositories/${REPOSITORY_NAME}/artifacts/${SHA256}"
+            fi
         fi
 
         curl \
