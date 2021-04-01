@@ -1,3 +1,25 @@
+#Test pre-defined image tag
+- name: test pre-defined image tag
+  shell: |
+    echo "Checking if pre-defined image tag is preserved during development pipeline run" ;
+    # The original image tag is what is in the deployment-flow configmap
+    ORIGINAL_TAG=$(kubectl get cm deployment-flow -o json | jq -r .'data'.'"image.json"' | jq -r .'[0]'.'tag')
+    # The actual image tag is the tag that is assigned during the development pipeline run and is ultimately
+    # what is used to tag the image in Harbor
+    ACTUAL_TAG=$(helm --kubeconfig /workspace/development_pipeline_data/config/kubeconfig ls -n mongodb -o json | jq -r .[0].app_version)
+    if [ "${ORIGINAL_TAG}" == "null" ] || [ "${ORIGINAL_TAG}" == "" ]; then
+        echo "Skipping as there is no pre-defined tag that should be used on the image"
+    else
+        if [ "${ACTUAL_TAG}" == "${ORIGINAL_TAG}" ]; then
+            echo "Actual tag: ${ACTUAL_TAG} matches expected tag: ${ORIGINAL_TAG}"
+        else
+            echo "Actual tag: ${ACTUAL_TAG} does NOT match expected tag: ${ORIGINAL_TAG}"
+            exit 1
+        fi
+    fi
+  args:
+    executable: /bin/bash
+
 #Test Deployed CNF
 - name: Chart has no Helm Tests, echo for now
   shell: echo "There are no helm tests yet"

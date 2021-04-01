@@ -53,5 +53,5 @@
   when: stage == "test"
   block:
     #Test Deployed CNF
-    - name: Chart currently has no Helm Tests, echo for now
-      shell: echo "There are no helm tests yet"
+    - name: Run tests
+      include_tasks: ./roles/functional/tasks/functional-test.yaml

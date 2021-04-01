@@ -26,6 +26,9 @@ spec:
       image: {{ $.Values.tasks.functional.functionalTestImage }}
       script: |
         /jarvis/functional_test.sh
+      volumeMounts:
+        - mountPath: $(workspaces.development_pipeline_data.path)/config
+          name:  kubeconfig
   volumes:
     - name: helm-publish-creds
       secret:
