@@ -16,3 +16,64 @@ harbor:
         notarySecretName: harbor-notary-tls
   internalTLS:
     enabled: true
+  nginx:
+    image:
+      repository: quay.io/rick_bartra/goharbor-nginx-photon
+      tag: v2.1.3
+  portal:
+    image:
+      repository: quay.io/rick_bartra/goharbor-harbor-portal
+      tag: v2.1.3
+  core:
+    image:
+      repository: quay.io/rick_bartra/goharbor-harbor-core
+      tag: v2.1.3
+  jobservice:
+    image:
+      repository: quay.io/rick_bartra/goharbor-harbor-jobservice
+      tag: v2.1.3
+  registry:
+    registry:
+      image:
+        repository: quay.io/rick_bartra/goharbor-registry-photon
+        tag: v2.1.3
+    controller:
+      image:
+        repository: quay.io/rick_bartra/goharbor-harbor-registryctl
+        tag: v2.1.3
+  chartmuseum:
+    image:
+      repository: quay.io/rick_bartra/goharbor-chartmuseum-photon
+      tag: v2.1.3
+  trivy:
+    image:
+      repository: quay.io/rick_bartra/goharbor-trivy-adapter-photon
+      tag: v2.1.3
+  notary:
+    server:
+      image:
+        repository: quay.io/rick_bartra/goharbor-notary-server-photon
+        tag: v2.1.3
+    signer:
+      image:
+        repository: quay.io/rick_bartra/goharbor-notary-signer-photon
+        tag: v2.1.3
+  database:
+    internal:
+      image:
+        repository: quay.io/rick_bartra/goharbor-harbor-db
+        tag: v2.1.3
+  redis:
+    internal:
+      image:
+        repository: quay.io/rick_bartra/goharbor-redis-photon
+        tag: v2.1.3
+  clair:
+    clair:
+      image:
+        repository: quay.io/rick_bartra/goharbor-clair-photon
+        tag: v2.1.3
+    adapter:
+      image:
+        repository: quay.io/rick_bartra/goharbor-clair-adapter-photon
+        tag: v2.1.3
