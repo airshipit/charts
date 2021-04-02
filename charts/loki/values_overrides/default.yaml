@@ -412,6 +412,14 @@ loki-stack:
     enabled: true
     persistence:
       enabled: true
+    datasources:
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+          - name: PromLoki
+            type: prometheus
+            url: http://loki:3100/loki/
+            access: proxy
     grafana.ini:
       auth.anonymous:
         enabled: true
@@ -629,8 +637,8 @@ loki-stack:
                       "text": "All",
                       "value": "$__all"
                     },
-                    "datasource": "Loki",
-                    "definition": "label_values(kube_pod_info, namespace)",
+                    "datasource": "PromLoki",
+                    "definition": "label_values(namespace)",
                     "hide": 0,
                     "includeAll": true,
                     "index": -1,
@@ -638,7 +646,7 @@ loki-stack:
                     "multi": false,
                     "name": "namespace",
                     "options": [],
-                    "query": "label_values(kube_pod_info, namespace)",
+                    "query": "label_values(namespace)",
                     "refresh": 1,
                     "regex": "/.*^(?!loki)/",
                     "skipUrlSync": false,
@@ -650,14 +658,14 @@ loki-stack:
                     "useTags": false
                   },
                   {
-                    "allValue": "^$namespace.*",
+                    "allValue": "",
                     "current": {
                       "selected": false,
                       "text": "All",
                       "value": "$__all"
                     },
-                    "datasource": "Loki",
-                    "definition": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_pipeline)",
+                    "datasource": "PromLoki",
+                    "definition": "label_values({namespace=\"$namespace\"}, tekton_dev_pipeline)",
                     "hide": 0,
                     "includeAll": true,
                     "index": -1,
@@ -665,9 +673,9 @@ loki-stack:
                     "multi": false,
                     "name": "tekton_dev_pipeline",
                     "options": [],
-                    "query": "label_values(mixin_pod_workload{namespace=\"namespace\"}, tekton_dev_pipeline)",
+                    "query": "label_values({namespace=\"$namespace\"}, tekton_dev_pipeline)",
                     "refresh": 1,
-                    "regex": "^$namespace.*",
+                    "regex": "^.*",
                     "skipUrlSync": false,
                     "sort": 5,
                     "tagValuesQuery": "",
@@ -677,14 +685,14 @@ loki-stack:
                     "useTags": false
                   },
                   {
-                    "allValue": "^$namespace.*",
+                    "allValue": "",
                     "current": {
                       "selected": false,
                       "text": "All",
                       "value": "$__all"
                     },
-                    "datasource": "Loki",
-                    "definition": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_pipelineRun)",
+                    "datasource": "PromLoki",
+                    "definition": "label_values({namespace=\"$namespace\",tekton_dev_pipeline=\"$tekton_dev_pipeline\"}, tekton_dev_pipelineRun)",
                     "hide": 0,
                     "includeAll": true,
                     "index": -1,
@@ -692,9 +700,9 @@ loki-stack:
                     "multi": false,
                     "name": "tekton_dev_pipelineRun",
                     "options": [],
-                    "query": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_pipelineRun)",
+                    "query": "label_values({namespace=\"$namespace\",tekton_dev_pipeline=\"$tekton_dev_pipeline\"}, tekton_dev_pipelineRun)",
                     "refresh": 1,
-                    "regex": "^$namespace.*",
+                    "regex": ".*",
                     "skipUrlSync": false,
                     "sort": 5,
                     "tagValuesQuery": "",
@@ -704,14 +712,14 @@ loki-stack:
                     "useTags": false
                   },
                   {
-                    "allValue": "^$namespace.*",
+                    "allValue": "",
                     "current": {
                       "selected": false,
                       "text": "All",
                       "value": "$__all"
                     },
-                    "datasource": "Loki",
-                    "definition": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_taskRun)",
+                    "datasource": "PromLoki",
+                    "definition": "label_values({namespace=\"$namespace\",tekton_dev_pipeline=\"$tekton_dev_pipeline\",tekton_dev_pipelineRun=\"$tekton_dev_pipelineRun\"}, tekton_dev_taskRun)",
                     "hide": 0,
                     "includeAll": true,
                     "index": -1,
@@ -719,9 +727,9 @@ loki-stack:
                     "multi": false,
                     "name": "tekton_dev_taskRun",
                     "options": [],
-                    "query": "label_values(mixin_pod_workload{namespace=\"$namespace\"}, tekton_dev_taskRun)",
+                    "query": "label_values({namespace=\"$namespace\",tekton_dev_pipeline=\"$tekton_dev_pipeline\",tekton_dev_pipelineRun=\"$tekton_dev_pipelineRun\"}, tekton_dev_taskRun)",
                     "refresh": 1,
-                    "regex": "^$namespace.*",
+                    "regex": "^.*",
                     "skipUrlSync": false,
                     "sort": 5,
                     "tagValuesQuery": "",
