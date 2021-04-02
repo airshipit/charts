@@ -9,7 +9,7 @@ images:
       name: attcomdev/jarvis-connector
       repo: quay.io
   pull:
-    policy: Always
+    policy: IfNotPresent
 
 node_labels:
   project:

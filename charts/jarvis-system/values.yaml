@@ -29,7 +29,7 @@ images:
       name: stannum/curl
       repo: quay.io
   pull:
-    policy: Always
+    policy: IfNotPresent
 
 node_labels:
   connector:
