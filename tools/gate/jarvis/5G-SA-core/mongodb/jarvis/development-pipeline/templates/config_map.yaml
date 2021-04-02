@@ -15,12 +15,12 @@ data:
        "image_name": "mongodb-sharded",
        "project": "mongodb",
        "repo": "mongodb-sharded",
-       "tag": "4.4.3",
-       "image_fullname": "mongodb/mongodb-sharded:4.4.3",
+       "tag": "4.4.4",
+       "image_fullname": "mongodb/mongodb-sharded:4.4.4",
        "path": "",
        "build": {
-          "git_repo": "docker.io/bitnami/mongodb-sharded",
-          "tag": "4.4.3-debian-10-r44",
+          "git_repo": "quay.io/slfletch/mongodb-sharded",
+          "tag": "4.4.4-debian-10-r41",
           "user": "",
           "password": ""
        }
@@ -31,7 +31,7 @@ data:
       "chart_name": "mongodb-sharded",
       "project": "mongodb",
       "repo": "mongodb-sharded",
-      "version": "3.3.3",
+      "version": "3.4.4",
       "build_from_source": false,
       "path": "",
       "remote_namespace": "mongodb",
@@ -53,9 +53,9 @@ data:
       },
       "releases": {
         "image": {
-          "registry": "docker.io",
-          "repository": "bitnami/mongodb-sharded",
-          "tag": "4.4.4-debian-10-r28"
+          "registry": "quay.io",
+          "repository": "slfletch/mongodb-sharded",
+          "tag": "4.4.4-debian-10-r41"
         }
       }
     }]
