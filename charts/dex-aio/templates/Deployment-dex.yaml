@@ -105,7 +105,8 @@ spec:
           - serve
           - /etc/dex/dex.yaml
         env:
-          - name: LDAP_BINDPW
+          # - name: LDAP_BINDPW
+          - name: {{ .Values.params.ldap.config.bind_pw_env }}
             valueFrom:
               secretKeyRef:
                 name: {{ template "helpers.labels.fullname" . }}

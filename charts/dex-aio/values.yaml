@@ -5,7 +5,7 @@
 images:
   applications:
     dex:
-      tag: v2.20.0
+      tag: v2.28.1
       name: dexidp/dex
       repo: quay.io
     nginx:
@@ -47,7 +47,28 @@ params:
     client_id: my-cluster
     client_secret: pUBnBOY80SnXgjibTYM9ZWNzY2xreNGQok
   ldap:
-    bind_password: super-secure
+    bind_password: "super-secure"
+    name: ITTESTSERVICES
+    config:
+      host: ldap.test.com
+      port: 636
+      bind_dn: uid@ldap.services.test.com
+      bind_pw_env: LDAP_BINDPW
+      username_prompt: SSO Username
+      user_search:
+        base_dn: dc=ldap,dc=services,dc=test,dc=com
+        filter: "(objectClass=person)"
+        username: cn
+        idAttr: cn
+        emailAttr: name
+        nameAttr: name
+      group_search:
+        base_dn: ou=groups,dc=ldap,dc=services,dc=test,dc=com
+        filter: "(objectClass=group)"
+        userMatchers:
+          userAttr: name
+          groupAttr: member
+        nameAttr: name
 
 over_rides:
   deployment:
@@ -84,6 +105,48 @@ config:
       - token
       - id_token
       skipApprovalScreen: true
+    connectors:
+    - type: ldap
+      name: "{{ .Values.params.ldap.name }}"
+      id: ldap
+      config:
+        # LDAPS without certificate validation:
+        host: "{{ .Values.params.ldap.config.host }}:{{ .Values.params.ldap.config.port }}"
+        insecureNoSSL: false
+        insecureSkipVerify: true
+
+        bindDN: "{{ .Values.params.ldap.config.bind_dn }}"
+        bindPW: "${{ .Values.params.ldap.config.bind_pw_env }}"
+
+        # usernamePrompt: Email Address
+        usernamePrompt: "{{ .Values.params.ldap.config.username_prompt }}"
+
+        userSearch:
+          # The directory directly above the user entry.
+          baseDN: "{{ .Values.params.ldap.config.user_search.base_dn }}"
+          filter: "{{ .Values.params.ldap.config.user_search.filter }}"
+          # Expect user to enter "attuid" when logging in.
+          username: "{{ .Values.params.ldap.config.user_search.username }}"
+          idAttr: "{{ .Values.params.ldap.config.user_search.idAttr }}"
+          # When an email address is not available, use another value unique to the user, like name.
+          emailAttr: "{{ .Values.params.ldap.config.user_search.emailAttr }}"
+          nameAttr: "{{ .Values.params.ldap.config.user_search.nameAttr }}"
+
+        groupSearch:
+          # The directory directly above the group entry.
+          # baseDN: cn=groups,cn=compat,dc=example,dc=org
+          baseDN: "{{ .Values.params.ldap.config.group_search.base_dn }}"
+          filter: "{{ .Values.params.ldap.config.group_search.filter }}"
+
+          # The group search needs to match the "cn" attribute on
+          # the user with the "member" attribute on the group.
+          userMatchers:
+          - userAttr: "{{ .Values.params.ldap.config.group_search.userMatchers.userAttr }}"
+            groupAttr: "{{ .Values.params.ldap.config.group_search.userMatchers.groupAttr }}"
+
+          # Unique name of the group.
+          nameAttr: "{{ .Values.params.ldap.config.group_search.nameAttr }}"
+
     staticClients:
     - id: "{{ .Values.params.oidc.client_id }}"
       name: "{{ .Values.params.site.name }}"
