@@ -5,7 +5,7 @@
 images:
   applications:
     connector:
-      tag: latest
+      tag: 9c0f1a7
       name: attcomdev/jarvis-connector
       repo: quay.io
     task_git:
