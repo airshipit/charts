@@ -1,0 +1,14 @@
+{{- define "configmap-registry" -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-registry-cert
+  namespace: {{ $.Release.Namespace }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-pipelines") | nindent 4 }}
+# data:
+#  # Registry's self-signed certificate
+#  cert: |
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-registry" ) }}

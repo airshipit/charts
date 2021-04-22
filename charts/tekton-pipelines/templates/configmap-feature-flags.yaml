@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: feature-flags
   namespace: {{ $.Release.Namespace }}
-  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-pipelines") | nindent 4 }}
 data:
   # Setting this flag to "true" will prevent Tekton to create an
   # Affinity Assistant for every TaskRun sharing a PVC workspace
@@ -39,6 +39,21 @@ data:
   # info.
   disable-working-directory-overwrite: {{ $.Values.controller.conf.feature_flags.disable_working_directory_overwrite | quote }}
 
+  # Setting this flag to "true" will prevent Tekton scanning attached
+  # service accounts and injecting any credentials it finds into your
+  # Steps.
+  #
+  # The default behaviour currently is for Tekton to search service
+  # accounts for secrets matching a specified format and automatically
+  # mount those into your Steps.
+  #
+  # Note: setting this to "true" will prevent PipelineResources from
+  # working.
+  #
+  # See https://github.com/tektoncd/pipeline/issues/1836 for more
+  # info.
+  disable-creds-init: {{ $.Values.controller.conf.feature_flags.disable_creds_init | quote }}
+
   # This option should be set to false when Pipelines is running in a
   # cluster that does not use injected sidecars such as Istio. Setting
   # it to false should decrease the time it takes for a TaskRun to start
@@ -47,6 +62,24 @@ data:
   #
   # See https://github.com/tektoncd/pipeline/issues/2080 for more info.
   running-in-environment-with-injected-sidecars: {{ $.Values.controller.conf.feature_flags.running_in_environment_with_injected_sidecars | quote }}
+
+  # Setting this flag to "true" will require that any Git SSH Secret
+  # offered to Tekton must have known_hosts included.
+  #
+  # See https://github.com/tektoncd/pipeline/issues/2981 for more
+  # info.
+  require-git-ssh-secret-known-hosts: {{ $.Values.controller.conf.feature_flags.require_git_ssh_secret_known_hosts | quote }}
+
+  # Setting this flag to "true" enables the use of Tekton OCI bundle.
+  # This is an experimental feature and thus should still be considered
+  # an alpha feature.
+  enable-tekton-oci-bundles: {{ $.Values.controller.conf.feature_flags.enable_tekton_oci_bundles | quote }}
+
+  # Setting this flag to "true" enables the use of custom tasks from
+  # within pipelines.
+  # This is an experimental feature and thus should still be considered
+  # an alpha feature.
+  enable-custom-tasks: {{ $.Values.controller.conf.feature_flags.enable_custom_tasks | quote }}
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "configmap-feature-flags" ) }}

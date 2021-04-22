@@ -1,10 +1,14 @@
 ---
 config:
   controller:
-    period_seconds: 10
-    failure_threshold: 1
-    stderrthreshold: INFO
     el_port: 8080
+    el_readtimeout: 5
+    el_writetimeout: 40
+    el_idletimeout: 120
+    el_timeouthandler: 30
+    failure_threshold: 1
+    period_seconds: 10
+    stderrthreshold: INFO
   loglevel:
     controller: info
     eventlistener: info
@@ -23,8 +27,8 @@ config:
       messageKey: msg
       nameKey: logger
       stacktraceKey: stacktrace
-      timeEncoder: ''
-      timeKey: ''
+      timeEncoder: iso8601
+      timeKey: ts
     encoding: json
     errorOutputPaths:
       - stderr
@@ -40,6 +44,7 @@ params:
     ports:
       metrics:
         port: 9090
+        target: 9090
         scheme: http
       profiling:
         port: 8008
@@ -48,21 +53,32 @@ params:
         port: 443
         target: 8443
         scheme: https
+      interceptors:
+        port: 80
+        target: 8082
 
 images:
   applications:
     tekton_controller:
       name: tektoncd/triggers/cmd/controller
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.2
+      tag: v0.12.0
     tekton_eventlistener:
       name: tektoncd/triggers/cmd/eventlistenersink
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.2
+      tag: v0.12.0
     tekton_webhook:
       name: tektoncd/triggers/cmd/webhook
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.10.2
+      tag: v0.12.0
+    tekton_interceptors:
+      name: tektoncd/triggers/cmd/interceptors
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.12.0
+    tekton_eventlistenersink:
+      name: tektoncd/triggers/cmd/eventlistenersink
+      repo: gcr.io/tekton-releases/github.com
+      tag: v0.12.0
   pull:
     policy: IfNotPresent
 

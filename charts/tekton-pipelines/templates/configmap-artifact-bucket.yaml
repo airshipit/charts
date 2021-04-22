@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: config-artifact-bucket
   namespace: {{ $.Release.Namespace }}
-  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-pipelines") | nindent 4 }}
 data:
 {{- if $.Values.controller.conf.artifact_bucket.location }}
   # location of the gcs bucket to be used for artifact storage

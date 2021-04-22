@@ -1,0 +1,23 @@
+{{- define "hpa-webhook" -}}
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tekton-pipelines-webhook
+  namespace: tekton-pipelines
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook" "PartOf" "tekton-pipelines") | nindent 4 }}
+spec:
+  minReplicas: 1
+  maxReplicas: 5
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tekton-pipelines-webhook
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: 100
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "hpa-webhook" ) }}

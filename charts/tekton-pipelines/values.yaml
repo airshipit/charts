@@ -1,41 +1,35 @@
-# Default values file for Tekton-Pipelines
----
 images:
   applications:
     controller:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/controller
       repo: gcr.io/tekton-releases/github.com
     kubeconfig_writer_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/kubeconfigwriter
       repo: gcr.io/tekton-releases/github.com
-    creds_image:
-      tag: v0.19.0
-      name: tektoncd/pipeline/cmd/creds-init
-      repo: gcr.io/tekton-releases/github.com
     git_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/git-init
       repo: gcr.io/tekton-releases/github.com
     entrypoint_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/entrypoint
       repo: gcr.io/tekton-releases/github.com
     nop_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/nop
       repo: gcr.io/tekton-releases/github.com
     imagedigest_exporter_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/imagedigestexporter
       repo: gcr.io/tekton-releases/github.com
     pr_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: pipeline/cmd/pullrequest-init
       repo: gcr.io/tekton-releases/github.com
     build_gcs_fetcher_image:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/vendor/github.com/googlecloudplatform/cloud-builders/gcs-fetcher/cmd/gcs-fetcher
       repo: gcr.io/tekton-releases/github.com
     gsutil_image:
@@ -50,7 +44,7 @@ images:
       name: base@sha256
       repo: gcr.io/distroless
     webhook:
-      tag: v0.19.0
+      tag: v0.21.0
       name: tektoncd/pipeline/cmd/webhook
       repo: gcr.io/tekton-releases/github.com
   pull:
@@ -71,6 +65,8 @@ controller:
         port: 9090
         protocol: TCP
         targetPort: 9090
+      probes:
+        port: 8080
 
   pod:
     replicas: 1
@@ -102,6 +98,10 @@ controller:
       disable_home_env_overwrite: "false"
       disable_working_directory_overwrite: "false"
       running_in_environment_with_injected_sidecars: "true"
+      disable_creds_init: "false"
+      require_git_ssh_secret_known_hosts: "false"
+      enable_tekton_oci_bundles: "false"
+      enable_custom_tasks: "false"
 
 webhook:
   endpoints:
@@ -115,6 +115,8 @@ webhook:
       https_webhook:
         port: 443
         targetPort: 8443
+      probes:
+        port: 8080
 
   pod:
     probes:

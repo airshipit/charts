@@ -4,11 +4,11 @@ kind: CustomResourceDefinition
 metadata:
   name: eventlisteners.triggers.tekton.dev
   labels:
-    app.kubernetes.io/component: tekton
     app.kubernetes.io/name: eventlisteners
     app.kubernetes.io/part-of: tekton-triggers
 spec:
   group: triggers.tekton.dev
+  scope: Namespaced
   names:
     kind: EventListener
     plural: eventlisteners
@@ -18,26 +18,39 @@ spec:
     categories:
       - tekton
       - tekton-triggers
-  preserveUnknownFields: false
-  scope: Namespaced
   versions:
-  - name: v1alpha1
-    served: true
-    storage: true
-    subresources:
-      status: {}
-    additionalPrinterColumns:
-      - name: Address
-        type: string
-        jsonPath: .status.address.url
-      - name: Available
-        type: string
-        jsonPath: ".status.conditions[?(@.type=='Available')].status"
-      - name: Reason
-        type: string
-        jsonPath: ".status.conditions[?(@.type=='Available')].reason"
-    schema:
-      openAPIV3Schema:
-        type: object
-        x-kubernetes-preserve-unknown-fields: true
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          # One can use x-kubernetes-preserve-unknown-fields: true
+          # at the root of the schema (and inside any properties, additionalProperties)
+          # to get the traditional CRD behaviour that nothing is pruned, despite
+          # setting spec.preserveUnknownProperties: false.
+          #
+          # See https://kubernetes.io/blog/2019/06/20/crd-structural-schema/
+          # See issue: https://github.com/knative/serving/issues/912
+          x-kubernetes-preserve-unknown-fields: true
+      # Opt into the status subresource so metadata.generation
+      # starts to increment
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Address
+          type: string
+          jsonPath: .status.address.url
+        - name: Available
+          type: string
+          jsonPath: ".status.conditions[?(@.type=='Available')].status"
+        - name: Reason
+          type: string
+          jsonPath: ".status.conditions[?(@.type=='Available')].reason"
+        - name: Ready
+          type: string
+          jsonPath: ".status.conditions[?(@.type=='Ready')].status"
+        - name: Reason
+          type: string
+          jsonPath: ".status.conditions[?(@.type=='Ready')].reason"
 ...

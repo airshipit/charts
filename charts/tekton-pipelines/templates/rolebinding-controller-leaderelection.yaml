@@ -1,0 +1,18 @@
+{{- define "rolebinding-controller-leaderelection" -}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-pipelines-controller-leaderelection
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller" "PartOf" "tekton-pipelines") | nindent 4 }}
+subjects:
+- kind: ServiceAccount
+  name: tekton-pipelines-controller
+  namespace: {{ $.Release.Namespace }}
+roleRef:
+  kind: Role
+  name: tekton-pipelines-leader-election
+  apiGroup: rbac.authorization.k8s.io
+...
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "rolebinding-controller-leaderelection" ) }}

@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tekton-triggers-webhook
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook" "PartOf" "tekton-triggers") | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,8 @@ spec:
       maxSurge: 3
   template:
     metadata:
-      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 8 }}
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook"  "PartOf" "tekton-triggers") | nindent 8 }}
+        app: tekton-triggers-webhook
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
@@ -43,7 +44,7 @@ spec:
               value: tekton.dev/triggers
           ports:
             - name: metrics
-              containerPort: {{ $.Values.params.endpoints.ports.metrics.port }}
+              containerPort: {{ $.Values.params.endpoints.ports.metrics.target }}
             - name: profiling
               containerPort: {{ $.Values.params.endpoints.ports.profiling.port }}
             - name: https-webhook

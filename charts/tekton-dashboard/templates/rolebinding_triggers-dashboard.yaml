@@ -3,7 +3,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-dashboard") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "dashboard" "PartOf" "tekton-dashboard") | nindent 4 }}
   name: tekton-dashboard-triggers
   namespace: {{ $.Release.Namespace }}
 roleRef:

@@ -1,0 +1,27 @@
+{{- define "role-core_interceptors" -}}
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-triggers") | nindent 4 }}
+  name: tekton-triggers-core-interceptors
+  namespace: {{ $.Release.Namespace }}
+rules:
+  - apiGroups:
+      - policy
+    resources:
+      - podsecuritypolicies
+    resourceNames:
+      - tekton-triggers
+    verbs:
+      - use
+  - apiGroups:
+      - "*"
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+{{- end -}}
+{{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "role-core_interceptors" ) }}

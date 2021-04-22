@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "webhook" "PartOf" "tekton-pipelines") | nindent 4 }}
   name: tekton-pipelines-webhook
   namespace: {{ $.Release.Namespace }}
 spec:
@@ -18,7 +18,9 @@ spec:
   - name: https-webhook
     port: {{ $.Values.webhook.endpoints.ports.https_webhook.port }}
     targetPort: {{ $.Values.webhook.endpoints.ports.https_webhook.targetPort }}
-  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "webhook" )  | nindent 4 }}
+  - name: probes
+    port: {{ $.Values.webhook.endpoints.ports.probes.port }}
+  selector: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "webhook" "PartOf" "tekton-pipelines")  | nindent 4 }}
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "service-webhook" ) }}

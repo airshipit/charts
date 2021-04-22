@@ -4,7 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tekton-triggers-controller
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller" "PartOf" "tekton-triggers") | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -17,7 +17,8 @@ spec:
       maxSurge: 3
   template:
     metadata:
-      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 8 }}
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller" "PartOf" "tekton-triggers") | nindent 8 }}
+        app: tekton-triggers-controller
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
     spec:
@@ -36,6 +37,14 @@ spec:
             - {{ include "helpers.pod.container.image" ( dict "Global" $ "Application" "tekton_eventlistener" ) }}
             - -el-port
             - {{ $.Values.config.controller.el_port | quote }}
+            - -el-readtimeout
+            - {{ $.Values.config.controller.el_readtimeout | quote }}
+            - -el-writetimeout
+            - {{ $.Values.config.controller.el_writetimeout | quote }}
+            - -el-idletimeout
+            - {{ $.Values.config.controller.el_idletimeout | quote }}
+            - -el-timeouthandler
+            - {{ $.Values.config.controller.el_timeouthandler | quote }}
             - -period-seconds
             - {{ $.Values.config.controller.period_seconds | quote }}
             - -failure-threshold

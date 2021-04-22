@@ -3,7 +3,7 @@
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "tekton" "PartOf" "tekton-triggers") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-triggers") | nindent 4 }}
   name: tekton-triggers-admin-webhook
   namespace: {{ $.Release.Namespace }}
 rules:

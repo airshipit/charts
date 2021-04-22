@@ -5,7 +5,7 @@ kind: ConfigMap
 metadata:
   name: config-defaults
   namespace: {{ $.Release.Namespace }}
-  labels: {{- include "helpers.labels.labels" (dict "Global" $) | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "PartOf" "tekton-pipelines") | nindent 4 }}
 data:
 {{- if $.Values.controller.conf.defaults.default_timeout_minutes }}
   # default-timeout-minutes contains the default number of

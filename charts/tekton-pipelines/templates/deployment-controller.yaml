@@ -5,16 +5,16 @@ kind: Deployment
 metadata:
   name: tekton-pipelines-controller
   namespace: {{ $.Release.Namespace }}
-  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 4 }}
+  labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller" "PartOf" "tekton-pipelines") | nindent 4 }}
 spec:
   replicas: {{ $.Values.controller.pod.replicas }}
   selector:
-    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "controller") | nindent 6 }}
+    matchLabels: {{- include "helpers.labels.matchLabels" (dict "Global" $ "Component" "controller" ) | nindent 6 }}
   template:
     metadata:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
-      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller") | nindent 8 }}
+      labels: {{- include "helpers.labels.labels" (dict "Global" $ "Component" "controller" "PartOf" "tekton-pipelines") | nindent 8 }}
     spec:
       serviceAccountName: tekton-pipelines-controller
       nodeSelector: {{- include "helpers.pod.node_selector" ( dict "Global" $ "Component" "controller" ) | nindent 8 }}
@@ -27,8 +27,6 @@ spec:
           # by image references by digest.
           - -kubeconfig-writer-image
           - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "kubeconfig_writer_image" ) }}
-          - -creds-image
-          - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "creds_image" ) }}
           - -git-image
           - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "git_image" ) }}
           - -entrypoint-image
@@ -46,17 +44,19 @@ spec:
           - -shell-image
           - {{ include "helpers.pod.container.image" ( dict "Global" $ "Component" "shell_image" ) }}
         volumeMounts:
-        - name: config-logging
-          mountPath: /etc/config-logging
+          - name: config-logging
+            mountPath: /etc/config-logging
+          - name: config-registry-cert
+            mountPath: /etc/config-registry-cert
         env:
         - name: SYSTEM_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - # If you are changing these names, you will also need to update
+          # If you are changing these names, you will also need to update
           # the controller's Role in 200-role.yaml to include the new
           # values in the "configmaps" "get" rule.
-          name: CONFIG_DEFAULTS_NAME
+        - name: CONFIG_DEFAULTS_NAME
           value: config-defaults
         - name: CONFIG_LOGGING_NAME
           value: config-logging
@@ -70,6 +70,10 @@ spec:
           value: feature-flags
         - name: CONFIG_LEADERELECTION_NAME
           value: config-leader-election
+        - name: SSL_CERT_FILE
+          value: /etc/config-registry-cert/cert
+        - name: SSL_CERT_DIR
+          value: /etc/ssl/certs
         - name: METRICS_DOMAIN
           value: {{ $.Values.controller.conf.metrics_domain }}
         securityContext:
@@ -79,10 +83,32 @@ spec:
           capabilities:
             drop:
               - all
+        ports:
+          - name: probes
+            containerPort: {{ $.Values.controller.endpoints.ports.probes.port }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: probes
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: probes
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
       volumes:
       - name: config-logging
         configMap:
           name: config-logging
+      - name: config-registry-cert
+        configMap:
+          name: config-registry-cert
 ...
 {{- end -}}
 {{- include "helpers.template.overlay" ( dict "Global" $ "template_definition" "deployment-controller" ) }}

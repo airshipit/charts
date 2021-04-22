@@ -1,7 +1,6 @@
 ---
 config:
   args:
-    csrf_secure_cookie: false
     external-logs: ''
     log_format: json
     log_level: info
@@ -16,7 +15,7 @@ images:
     tekton_dashboard:
       name: tektoncd/dashboard/cmd/dashboard
       repo: gcr.io/tekton-releases/github.com
-      tag: v0.12.0
+      tag: v0.14.0
   pull:
     policy: IfNotPresent
 
