@@ -28,7 +28,6 @@ node_labels:
     key: node-role.kubernetes.io/master
     value: ""
 
-
 params:
   site:
     name: PDL1
@@ -165,6 +164,7 @@ config:
     web_path_prefix: "/ui"
     tls_cert: "/var/run/secrets/airshipit.org/tls/crt/tls.crt"
     tls_key: "/var/run/secrets/airshipit.org/tls/key/tls.key"
+    idp_ca_uri: "http://{{ .Values.params.endpoints.hostname }}:{{ .Values.params.endpoints.port.http }}/ca.crt"
     debug: true
     clusters:
     - client_id: "{{ .Values.params.oidc.client_id }}"

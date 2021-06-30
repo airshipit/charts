@@ -4,6 +4,7 @@ apiVersion: cert-manager.io/v1alpha2
 kind: Certificate
 metadata:
   name: {{ template "helpers.labels.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels: {{- include "helpers.labels.labels" . | nindent 4 }}
 spec:
   secretName: {{ template "helpers.labels.fullname" . }}-tls

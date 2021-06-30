@@ -4,6 +4,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ template "helpers.labels.fullname" . }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   labels: {{- include "helpers.labels.labels" . | nindent 4 }}
 data:
 {{- range $key, $value := .Values.config }}
