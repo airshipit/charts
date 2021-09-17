@@ -17,57 +17,6 @@
     nodeset: airship-charts-single-node
 
 - job:
-    name: airship-jarvis
-    timeout: 7200
-    pre-run:
-      - playbooks/airship-setup.yaml
-    run: playbooks/gate-runner.yaml
-    post-run: playbooks/gather-logs.yaml
-    description: Perform CI on the Jarvis Suite of applications
-    nodeset: airship-charts-single-node
-    vars:
-      aio_params:
-        feature_gates: ""
-      collect_kubernetes_logs_namespace: tekton-pipelines
-      gate_scripts_relative_path: ../charts
-      gate_scripts:
-        - ./tools/gate/jarvis/050-setup-development-ca.sh
-        - ./tools/gate/jarvis/100-deploy-k8s.sh
-        - ./tools/gate/jarvis/150-deploy-kyverno.sh
-        - ./tools/gate/jarvis/200-deploy-support.sh
-        - ./tools/gate/jarvis/300-deploy-loki.sh
-        - ./tools/gate/jarvis/400-deploy-harbor.sh
-        - ./tools/gate/jarvis/500-deploy-gerrit.sh
-        - ./tools/gate/jarvis/600-deploy-tekton.sh
-        - ./tools/gate/jarvis/650-temporary-setup.sh
-        - ./tools/gate/jarvis/700-deploy-jarvis-system.sh
-        - ./tools/gate/jarvis/800-deploy-jarvis-projects.sh
-
-- job:
-    name: airship-jarvis-sample-workload-validation
-    files:
-      - ^tools/gate/jarvis/5G-SA-core/.*$
-      - ^zuul\.d/.*$
-    timeout: 7200
-    pre-run:
-      - playbooks/airship-setup.yaml
-    run: playbooks/gate-runner.yaml
-    post-run: playbooks/gather-logs.yaml
-    description: Perform CI on the Jarvis Sample workload
-    nodeset: airship-charts-single-node
-    vars:
-      aio_params:
-        feature_gates: ""
-      collect_kubernetes_logs_namespace: tekton-pipelines
-      gate_scripts_relative_path: ../charts
-      gate_scripts:
-        - ./tools/gate/jarvis/050-setup-development-ca.sh
-        - ./tools/gate/jarvis/100-deploy-k8s.sh
-        - ./tools/gate/jarvis/5G-SA-core/200-build-containers.sh
-        - ./tools/gate/jarvis/5G-SA-core/300-check-charts.sh
-        - ./tools/gate/jarvis/5G-SA-core/400-smoke-deployment.sh
-
-- job:
     name: airship-charts-upload-git-mirror
     parent: upload-git-mirror
     description: Mirrors airship/charts to airshipit/charts

@@ -22,14 +22,10 @@
             files:
               - ^doc/.*$
         - airship-charts-lint-and-build
-        - airship-jarvis
-        - airship-jarvis-sample-workload-validation
     gate:
       jobs:
         - openstack-tox-docs: *docs
         - airship-charts-lint-and-build
-        - airship-jarvis
-        - airship-jarvis-sample-workload-validation
     post:
       jobs:
         - airship-charts-upload-git-mirror
@@ -37,7 +33,3 @@
       jobs:
         - promote-airship-project-docs: *docs
         - airship-charts-publish
-    periodic:
-      jobs:
-        - airship-jarvis
-        - airship-jarvis-sample-workload-validation
